@@ -12,9 +12,8 @@ const queryClient = new QueryClient({
     },
   },
 });
-
 vi.mock('@/hooks/use-participants', () => ({
-  useParticipants: () => ({
+  useActiveParticipants: () => ({
     participants: [],
     count: 0,
     loading: false,
@@ -47,6 +46,6 @@ describe('WordTemplatesReportPage Smoke Test', () => {
 
     // Verify key titles and selectors exist
     expect(screen.getByText('Participant Word Reports')).toBeInTheDocument();
-    expect(screen.getByText('Select Participant')).toBeInTheDocument();
+    expect(screen.getByText('1. Select Participant')).toBeInTheDocument();
   });
 });

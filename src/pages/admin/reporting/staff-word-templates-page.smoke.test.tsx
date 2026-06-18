@@ -14,7 +14,7 @@ const queryClient = new QueryClient({
 });
 
 vi.mock('@/hooks/use-staff', () => ({
-  useStaff: () => ({
+  useActiveStaff: () => ({
     staff: [],
     count: 0,
     loading: false,
@@ -46,6 +46,6 @@ describe('StaffWordTemplatesPage Smoke Test', () => {
 
     // Verify page title and selector exist
     expect(screen.getByText('Staff Word Reports')).toBeInTheDocument();
-    expect(screen.getByText('Select Staff Member')).toBeInTheDocument();
+    expect(screen.getByText('1. Select Staff Member')).toBeInTheDocument();
   });
 });

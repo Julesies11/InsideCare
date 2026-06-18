@@ -218,9 +218,19 @@ export function ReportingHubPage() {
       {
         title: 'Incident Summary Report',
         description:
-          'Compare incident counts and trends by type against the previous period.',
+          'Automated trend analysis and comparative counts. Features high-risk pattern detection and flags.',
         icon: AlertTriangle,
         path: ROUTES.REPORTING_CLINICAL_INCIDENTS,
+        category: 'Clinical',
+        permission: RBAC_MODULES.REPORTING_CLINICAL,
+        implemented: true,
+      },
+      {
+        title: 'Incident Quarterly Audit',
+        description:
+          'Consolidated quarterly governance report with manual executive oversight and mitigation commentary.',
+        icon: ShieldCheck,
+        path: ROUTES.REPORTING_INCIDENT_QUARTERLY_AUDIT,
         category: 'Clinical',
         permission: RBAC_MODULES.REPORTING_CLINICAL,
         implemented: true,

@@ -174,6 +174,11 @@ const IncidentSummaryReportPage = lazy(() =>
     default: m.IncidentSummaryReportPage,
   })),
 );
+const IncidentQuarterlyAuditReportPage = lazy(() =>
+  import('@/pages/admin/reporting/incident-quarterly-audit-report-page').then((m) => ({
+    default: m.IncidentQuarterlyAuditReportPage,
+  })),
+);
 const ParticipantsReportPage = lazy(() =>
   import('@/pages/admin/reporting/participants-report-page').then((m) => ({
     default: m.ParticipantsReportPage,
@@ -411,6 +416,10 @@ export function AppRoutingSetup() {
               <Route
                 path={ROUTES.REPORTING_CLINICAL_INCIDENTS}
                 element={<IncidentSummaryReportPage />}
+              />
+              <Route
+                path={ROUTES.REPORTING_INCIDENT_QUARTERLY_AUDIT}
+                element={<IncidentQuarterlyAuditReportPage />}
               />
               <Route
                 path={`${ROUTES.REPORTING_CLINICAL_PARTICIPANTS}/:id?`}

@@ -1,4 +1,5 @@
 import { TemplateTag } from './types';
+import { flattenMappedArray } from './generator';
 
 /**
  * Definitions and mapping for Staff Template Tags.
@@ -28,32 +29,26 @@ export const STAFF_TEMPLATE_TAGS: TemplateTag[] = [
   { name: '{{emergency_contact_phone}}', description: 'Emergency contact phone', category: 'Emergency Contact', example: '0422 222 222' },
   { name: '{{availability}}', description: 'General availability notes', category: 'Availability', example: 'Weekdays only' },
 
-  // Qualifications Loop (grouped under Qualifications)
-  { name: '{{#qualifications}}', description: 'Start of qualifications loop', category: 'Qualifications', example: '{{#qualifications}}', isLoopStart: true },
-  { name: '{{title}}', description: 'Qualification title (inside loop)', category: 'Qualifications', example: 'First Aid Certificate', loopParent: '{{#qualifications}}' },
-  { name: '{{institution}}', description: 'Institution name (inside loop)', category: 'Qualifications', example: 'Red Cross', loopParent: '{{#qualifications}}' },
-  { name: '{{date_completed}}', description: 'Completion date (inside loop)', category: 'Qualifications', example: '15/05/2025', loopParent: '{{#qualifications}}' },
-  { name: '{{expiry_date}}', description: 'Expiry date (inside loop)', category: 'Qualifications', example: '15/05/2028', loopParent: '{{#qualifications}}' },
-  { name: '{{file_name}}', description: 'Evidence file name (inside loop)', category: 'Qualifications', example: 'cert.pdf', loopParent: '{{#qualifications}}' },
-  { name: '{{/qualifications}}', description: 'End of qualifications loop', category: 'Qualifications', example: '{{/qualifications}}', isLoopEnd: true },
+  // Qualifications Flat Indexed Tags
+  { name: '{{qualification_title1}}', description: 'Qualification 1 Title', category: 'Qualifications', example: 'First Aid Certificate' },
+  { name: '{{qualification_institution1}}', description: 'Qualification 1 Institution', category: 'Qualifications', example: 'Red Cross' },
+  { name: '{{qualification_date_completed1}}', description: 'Qualification 1 Date Completed', category: 'Qualifications', example: '15/05/2025' },
+  { name: '{{qualification_expiry_date1}}', description: 'Qualification 1 Expiry Date', category: 'Qualifications', example: '15/05/2028' },
+  { name: '{{qualification_file_name1}}', description: 'Qualification 1 File Name', category: 'Qualifications', example: 'cert.pdf' },
 
-  // Training Loop (grouped under Training)
-  { name: '{{#training}}', description: 'Start of training loop', category: 'Training', example: '{{#training}}', isLoopStart: true },
-  { name: '{{title}}', description: 'Training title (inside loop)', category: 'Training', example: 'Ndis Induction', loopParent: '{{#training}}' },
-  { name: '{{category}}', description: 'Training category (inside loop)', category: 'Training', example: 'Induction', loopParent: '{{#training}}' },
-  { name: '{{description}}', description: 'Training description (inside loop)', category: 'Training', example: 'Overview of standard policies', loopParent: '{{#training}}' },
-  { name: '{{provider}}', description: 'Training provider (inside loop)', category: 'Training', example: 'NDIS Commission', loopParent: '{{#training}}' },
-  { name: '{{date_completed}}', description: 'Completion date (inside loop)', category: 'Training', example: '10/01/2026', loopParent: '{{#training}}' },
-  { name: '{{expiry_date}}', description: 'Expiry date (inside loop)', category: 'Training', example: '10/01/2027', loopParent: '{{#training}}' },
-  { name: '{{file_name}}', description: 'Evidence file name (inside loop)', category: 'Training', example: 'training_cert.pdf', loopParent: '{{#training}}' },
-  { name: '{{/training}}', description: 'End of training loop', category: 'Training', example: '{{/training}}', isLoopEnd: true },
+  // Training Flat Indexed Tags
+  { name: '{{training_title1}}', description: 'Training 1 Title', category: 'Training', example: 'Ndis Induction' },
+  { name: '{{training_category1}}', description: 'Training 1 Category', category: 'Training', example: 'Induction' },
+  { name: '{{training_description1}}', description: 'Training 1 Description', category: 'Training', example: 'Overview of standard policies' },
+  { name: '{{training_provider1}}', description: 'Training 1 Provider', category: 'Training', example: 'NDIS Commission' },
+  { name: '{{training_date_completed1}}', description: 'Training 1 Date Completed', category: 'Training', example: '10/01/2026' },
+  { name: '{{training_expiry_date1}}', description: 'Training 1 Expiry Date', category: 'Training', example: '10/01/2027' },
+  { name: '{{training_file_name1}}', description: 'Training 1 File Name', category: 'Training', example: 'training_cert.pdf' },
 
-  // Compliance Loop (grouped under Compliance)
-  { name: '{{#compliance}}', description: 'Start of compliance loop', category: 'Compliance', example: '{{#compliance}}', isLoopStart: true },
-  { name: '{{compliance_name}}', description: 'Compliance requirement name (inside loop)', category: 'Compliance', example: 'NDIS Worker Screening Check', loopParent: '{{#compliance}}' },
-  { name: '{{completion_date}}', description: 'Completion date (inside loop)', category: 'Compliance', example: '20/02/2026', loopParent: '{{#compliance}}' },
-  { name: '{{expiry_date}}', description: 'Expiry date (inside loop)', category: 'Compliance', example: '20/02/2027', loopParent: '{{#compliance}}' },
-  { name: '{{/compliance}}', description: 'End of compliance loop', category: 'Compliance', example: '{{/compliance}}', isLoopEnd: true },
+  // Compliance Flat Indexed Tags
+  { name: '{{compliance_name1}}', description: 'Compliance 1 Requirement Name', category: 'Compliance', example: 'NDIS Worker Screening Check' },
+  { name: '{{compliance_completion_date1}}', description: 'Compliance 1 Completion Date', category: 'Compliance', example: '20/02/2026' },
+  { name: '{{compliance_expiry_date1}}', description: 'Compliance 1 Expiry Date', category: 'Compliance', example: '20/02/2027' },
 ];
 
 /**
@@ -68,6 +63,35 @@ export function mapStaffToTags(
   }
 ) {
   const formatDate = (val: any) => val ? new Date(val).toLocaleDateString('en-AU') : '-';
+
+  // Relational Arrays (Mapped first to be used in both loops and flat indexed tags)
+  const mappedQualifications = (relatedData?.qualifications || [])
+    .map((q: any) => ({
+      title: q.title || '',
+      institution: q.institution || '',
+      date_completed: formatDate(q.date_completed),
+      expiry_date: formatDate(q.expiry_date),
+      file_name: q.file_name || '',
+    }));
+
+  const mappedTraining = (relatedData?.training || [])
+    .map((t: any) => ({
+      title: t.title || '',
+      category: t.category || '',
+      description: t.description || '',
+      provider: t.provider || '',
+      date_completed: formatDate(t.date_completed),
+      expiry_date: formatDate(t.expiry_date),
+      file_name: t.file_name || '',
+    }));
+
+  const mappedCompliance = (relatedData?.compliance || [])
+    .filter((c: any) => c.status === 'complete')
+    .map((c: any) => ({
+      compliance_name: c.compliance_type?.compliance_name || c.compliance_name || '',
+      completion_date: formatDate(c.completion_date),
+      expiry_date: formatDate(c.expiry_date),
+    }));
 
   return {
     staff_name: staff.staff_name || '',
@@ -90,32 +114,31 @@ export function mapStaffToTags(
     employment_type: staff.employment_type_info?.employment_type_name || '',
 
     // Relational Arrays (Loops)
-    qualifications: (relatedData?.qualifications || [])
-      .map((q: any) => ({
-        title: q.title || '',
-        institution: q.institution || '',
-        date_completed: formatDate(q.date_completed),
-        expiry_date: formatDate(q.expiry_date),
-        file_name: q.file_name || '',
-      })),
+    qualifications: mappedQualifications,
+    training: mappedTraining,
+    compliance: mappedCompliance,
 
-    training: (relatedData?.training || [])
-      .map((t: any) => ({
-        title: t.title || '',
-        category: t.category || '',
-        description: t.description || '',
-        provider: t.provider || '',
-        date_completed: formatDate(t.date_completed),
-        expiry_date: formatDate(t.expiry_date),
-        file_name: t.file_name || '',
-      })),
-
-    compliance: (relatedData?.compliance || [])
-      .filter((c: any) => c.status === 'complete')
-      .map((c: any) => ({
-        compliance_name: c.compliance_type?.compliance_name || c.compliance_name || '',
-        completion_date: formatDate(c.completion_date),
-        expiry_date: formatDate(c.expiry_date),
-      })),
+    // Flat Indexed Tags (1-10)
+    ...flattenMappedArray(mappedQualifications, {
+      title: 'qualification_title',
+      institution: 'qualification_institution',
+      date_completed: 'qualification_date_completed',
+      expiry_date: 'qualification_expiry_date',
+      file_name: 'qualification_file_name',
+    }),
+    ...flattenMappedArray(mappedTraining, {
+      title: 'training_title',
+      category: 'training_category',
+      description: 'training_description',
+      provider: 'training_provider',
+      date_completed: 'training_date_completed',
+      expiry_date: 'training_expiry_date',
+      file_name: 'training_file_name',
+    }),
+    ...flattenMappedArray(mappedCompliance, {
+      compliance_name: 'compliance_name',
+      completion_date: 'compliance_completion_date',
+      expiry_date: 'compliance_expiry_date',
+    }),
   };
 }

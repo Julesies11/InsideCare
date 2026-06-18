@@ -4,6 +4,7 @@
  */
 
 import { TemplateTag } from './types';
+import { flattenMappedArray } from './generator';
 
 /**
  * The master list of available tags for the UI Data Dictionary.
@@ -99,54 +100,32 @@ export const PARTICIPANT_TEMPLATE_TAGS: TemplateTag[] = [
   { name: '{{house_name}}', description: 'Name of the assigned house', category: 'Personal Details', example: 'Sunshine Villa' },
   { name: '{{house_phone}}', description: 'House landline number', category: 'Personal Details', example: '02 7000 0000' },
 
-  // Medications List Loop (grouped under Medications)
-  { name: '{{#medications}}', description: 'Start of medications loop', category: 'Medications', example: '{{#medications}}', isLoopStart: true },
-  { name: '{{medication_name}}', description: 'Medication name (inside medications loop)', category: 'Medications', example: 'Paracetamol', loopParent: '{{#medications}}' },
-  { name: '{{brand_name}}', description: 'Brand name (inside medications loop)', category: 'Medications', example: 'Panadol', loopParent: '{{#medications}}' },
-  { name: '{{dosage}}', description: 'Dosage instructions (inside medications loop)', category: 'Medications', example: '500mg', loopParent: '{{#medications}}' },
-  { name: '{{medication_type}}', description: 'Medication type (inside medications loop)', category: 'Medications', example: 'Analgesic', loopParent: '{{#medications}}' },
-  { name: '{{/medications}}', description: 'End of medications loop', category: 'Medications', example: '{{/medications}}', isLoopEnd: true },
+  // Medications Flat Indexed Tags
+  { name: '{{medication_name1}}', description: 'Medication 1 Name', category: 'Medications', example: 'Paracetamol' },
+  { name: '{{brand_name1}}', description: 'Medication 1 Brand Name', category: 'Medications', example: 'Panadol' },
+  { name: '{{dosage1}}', description: 'Medication 1 Dosage', category: 'Medications', example: '500mg' },
+  { name: '{{medication_type1}}', description: 'Medication 1 Type', category: 'Medications', example: 'Analgesic' },
 
-  // Goals List Loop (grouped under Goals)
-  { name: '{{#goals}}', description: 'Start of goals loop', category: 'Goals', example: '{{#goals}}', isLoopStart: true },
-  { name: '{{goal_type}}', description: 'Goal type (inside goals loop)', category: 'Goals', example: 'ndis / identified', loopParent: '{{#goals}}' },
-  { name: '{{description}}', description: 'Goal description (inside goals loop)', category: 'Goals', example: 'Build cooking skills', loopParent: '{{#goals}}' },
-  { name: '{{/goals}}', description: 'End of goals loop', category: 'Goals', example: '{{/goals}}', isLoopEnd: true },
+  // Goals Flat Indexed Tags
+  { name: '{{goal_type1}}', description: 'Goal 1 Type', category: 'Goals', example: 'ndis' },
+  { name: '{{goal_description1}}', description: 'Goal 1 Description', category: 'Goals', example: 'Build cooking skills' },
 
-  // Contacts List Loop (grouped under Contacts)
-  { name: '{{#contacts}}', description: 'Start of contacts loop', category: 'Contacts', example: '{{#contacts}}', isLoopStart: true },
-  { name: '{{contact_name}}', description: 'Contact name (inside contacts loop)', category: 'Contacts', example: 'John Smith', loopParent: '{{#contacts}}' },
-  { name: '{{phone}}', description: 'Contact phone (inside contacts loop)', category: 'Contacts', example: '0400 000 000', loopParent: '{{#contacts}}' },
-  { name: '{{email}}', description: 'Contact email (inside contacts loop)', category: 'Contacts', example: 'john@gmail.com', loopParent: '{{#contacts}}' },
-  { name: '{{address}}', description: 'Contact address (inside contacts loop)', category: 'Contacts', example: '12 Main St, Melbourne', loopParent: '{{#contacts}}' },
-  { name: '{{notes}}', description: 'Contact notes (inside contacts loop)', category: 'Contacts', example: 'Available after 5pm', loopParent: '{{#contacts}}' },
-  { name: '{{contact_type}}', description: 'Contact type/relationship (inside contacts loop)', category: 'Contacts', example: 'Guardian', loopParent: '{{#contacts}}' },
-  { name: '{{/contacts}}', description: 'End of contacts loop', category: 'Contacts', example: '{{/contacts}}', isLoopEnd: true },
+  // Contacts Flat Indexed Tags
+  { name: '{{contact_name1}}', description: 'Contact 1 Name', category: 'Contacts', example: 'John Smith' },
+  { name: '{{contact_phone1}}', description: 'Contact 1 Phone', category: 'Contacts', example: '0400 000 000' },
+  { name: '{{contact_email1}}', description: 'Contact 1 Email', category: 'Contacts', example: 'john@gmail.com' },
+  { name: '{{contact_address1}}', description: 'Contact 1 Address', category: 'Contacts', example: '12 Main St, Melbourne' },
+  { name: '{{contact_notes1}}', description: 'Contact 1 Notes', category: 'Contacts', example: 'Available after 5pm' },
+  { name: '{{contact_type1}}', description: 'Contact 1 Type/Relationship', category: 'Contacts', example: 'Guardian' },
 
-  // Providers List Loop (grouped under Service Providers)
-  { name: '{{#providers}}', description: 'Start of providers loop', category: 'Service Providers', example: '{{#providers}}', isLoopStart: true },
-  { name: '{{provider_name}}', description: 'Provider name (inside providers loop)', category: 'Service Providers', example: 'Physio Co', loopParent: '{{#providers}}' },
-  { name: '{{company}}', description: 'Provider company (inside providers loop)', category: 'Service Providers', example: 'Healthcare Services Ltd', loopParent: '{{#providers}}' },
-  { name: '{{provider_type}}', description: 'Provider type (inside providers loop)', category: 'Service Providers', example: 'Physiotherapist', loopParent: '{{#providers}}' },
-  { name: '{{phone}}', description: 'Provider phone number (inside providers loop)', category: 'Service Providers', example: '0400 111 222', loopParent: '{{#providers}}' },
-  { name: '{{email}}', description: 'Provider email (inside providers loop)', category: 'Service Providers', example: 'info@healthcare.com', loopParent: '{{#providers}}' },
-  { name: '{{notes}}', description: 'Provider notes (inside providers loop)', category: 'Service Providers', example: 'Prefers bookings on Tuesdays', loopParent: '{{#providers}}' },
-  { name: '{{/providers}}', description: 'End of providers loop', category: 'Service Providers', example: '{{/providers}}', isLoopEnd: true },
+  // Providers Flat Indexed Tags
+  { name: '{{provider_name1}}', description: 'Provider 1 Name', category: 'Service Providers', example: 'Physio Co' },
+  { name: '{{provider_company1}}', description: 'Provider 1 Company', category: 'Service Providers', example: 'Healthcare Services Ltd' },
+  { name: '{{provider_type1}}', description: 'Provider 1 Type', category: 'Service Providers', example: 'Physiotherapist' },
+  { name: '{{provider_phone1}}', description: 'Provider 1 Phone', category: 'Service Providers', example: '0400 111 222' },
+  { name: '{{provider_email1}}', description: 'Provider 1 Email', category: 'Service Providers', example: 'info@healthcare.com' },
+  { name: '{{provider_notes1}}', description: 'Provider 1 Notes', category: 'Service Providers', example: 'Prefers bookings on Tuesdays' },
 
-  // Funding List Loop (grouped under Funding)
-  { name: '{{#funding}}', description: 'Start of funding loop', category: 'Funding', example: '{{#funding}}', isLoopStart: true },
-  { name: '{{funding_source}}', description: 'Funding source name (inside funding loop)', category: 'Funding', example: 'NDIS', loopParent: '{{#funding}}' },
-  { name: '{{funding_type}}', description: 'Funding type name (inside funding loop)', category: 'Funding', example: 'Core Supports', loopParent: '{{#funding}}' },
-  { name: '{{code}}', description: 'Funding code (inside funding loop)', category: 'Funding', example: '1234', loopParent: '{{#funding}}' },
-  { name: '{{invoice_recipient}}', description: 'Invoice recipient (inside funding loop)', category: 'Funding', example: 'Plan Manager', loopParent: '{{#funding}}' },
-  { name: '{{end_date}}', description: 'Funding budget end date (inside funding loop)', category: 'Funding', example: '30/06/2026', loopParent: '{{#funding}}' },
-  { name: '{{allocated_amount}}', description: 'Total allocated budget amount (inside funding loop)', category: 'Funding', example: '$50,000.00', loopParent: '{{#funding}}' },
-  { name: '{{total_budget}}', description: 'Alias for allocated amount (inside funding loop)', category: 'Funding', example: '$50,000.00', loopParent: '{{#funding}}' },
-  { name: '{{used_amount}}', description: 'Used budget amount (inside funding loop)', category: 'Funding', example: '$26,550.00', loopParent: '{{#funding}}' },
-  { name: '{{remaining_amount}}', description: 'Remaining budget amount (inside funding loop)', category: 'Funding', example: '$23,450.00', loopParent: '{{#funding}}' },
-  { name: '{{remaining_budget}}', description: 'Alias for remaining amount (inside funding loop)', category: 'Funding', example: '$23,450.00', loopParent: '{{#funding}}' },
-  { name: '{{notes}}', description: 'Funding details or notes (inside funding loop)', category: 'Funding', example: 'Excludes travel expenses', loopParent: '{{#funding}}' },
-  { name: '{{/funding}}', description: 'End of funding loop', category: 'Funding', example: '{{/funding}}', isLoopEnd: true },
 ];
 
 /**
@@ -160,7 +139,6 @@ export function mapParticipantToTags(
     goals?: any[];
     contacts?: any[];
     providers?: any[];
-    funding?: any[];
   }
 ) {
   const [firstName, ...lastNameParts] = (participant.participant_name || '').split(' ');
@@ -168,6 +146,45 @@ export function mapParticipantToTags(
 
   const formatBool = (val: any) => (val === true ? 'Yes' : 'No');
   const formatDate = (val: any) => val ? new Date(val).toLocaleDateString('en-AU') : '-';
+
+  // Relational Arrays (Mapped first to be used in both loops and flat indexed tags)
+  const mappedMedications = (relatedData?.medications || [])
+    .filter((m: any) => m.is_active === true)
+    .map((m: any) => ({
+      medication_name: m.medication_info?.medication_name || '',
+      brand_name: m.medication_info?.brand_name || '',
+      dosage: m.dosage || '',
+      medication_type: m.medication_info?.medication_type?.medication_type_name || '',
+    }));
+
+  const mappedGoals = (relatedData?.goals || [])
+    .filter((g: any) => g.is_active === true)
+    .map((g: any) => ({
+      goal_type: g.goal_type || '',
+      description: g.description || '',
+    }));
+
+  const mappedContacts = (relatedData?.contacts || [])
+    .filter((c: any) => c.is_active === true)
+    .map((c: any) => ({
+      contact_name: c.contact_name || '',
+      phone: c.phone || '',
+      email: c.email || '',
+      address: c.address || '',
+      notes: c.notes || '',
+      contact_type: c.contact_type_info?.contact_type_name || c.contact_type?.contact_type_name || '',
+    }));
+
+  const mappedProviders = (relatedData?.providers || [])
+    .filter((p: any) => p.is_active === true)
+    .map((p: any) => ({
+      provider_name: p.provider_name || '',
+      company: p.company || '',
+      provider_type: p.provider_type || '',
+      phone: p.phone || '',
+      email: p.email || '',
+      notes: p.notes || '',
+    }));
 
   return {
     // Personal Details
@@ -260,61 +277,37 @@ export function mapParticipantToTags(
     house_phone: participant.house_phone || '',
 
     // Relational Arrays (Loops)
-    medications: (relatedData?.medications || [])
-      .filter((m: any) => m.is_active === true)
-      .map((m: any) => ({
-        medication_name: m.medication_info?.medication_name || '',
-        brand_name: m.medication_info?.brand_name || '',
-        dosage: m.dosage || '',
-        medication_type: m.medication_info?.medication_type?.medication_type_name || '',
-      })),
+    medications: mappedMedications,
+    goals: mappedGoals,
+    contacts: mappedContacts,
+    providers: mappedProviders,
 
-    goals: (relatedData?.goals || [])
-      .filter((g: any) => g.is_active === true)
-      .map((g: any) => ({
-        goal_type: g.goal_type || '',
-        description: g.description || '',
-      })),
-
-    contacts: (relatedData?.contacts || [])
-      .filter((c: any) => c.is_active === true)
-      .map((c: any) => ({
-        contact_name: c.contact_name || '',
-        phone: c.phone || '',
-        email: c.email || '',
-        address: c.address || '',
-        notes: c.notes || '',
-        contact_type: c.contact_type_info?.contact_type_name || c.contact_type?.contact_type_name || '',
-      })),
-
-    providers: (relatedData?.providers || [])
-      .filter((p: any) => p.is_active === true)
-      .map((p: any) => ({
-        provider_name: p.provider_name || '',
-        company: p.company || '',
-        provider_type: p.provider_type || '',
-        phone: p.phone || '',
-        email: p.email || '',
-        notes: p.notes || '',
-      })),
-
-    funding: (relatedData?.funding || [])
-      .filter((f: any) => f.status?.toLowerCase() === 'active')
-      .map((f: any) => {
-        const formatCurrency = (val: any) => val ? `$${Number(val).toLocaleString('en-AU', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : '-';
-        return {
-          funding_source: f.funding_source_info?.funding_source_name || '',
-          funding_type: f.funding_type_info?.funding_type_name || '',
-          code: f.code || '',
-          invoice_recipient: f.invoice_recipient || '',
-          end_date: formatDate(f.end_date),
-          allocated_amount: formatCurrency(f.allocated_amount),
-          total_budget: formatCurrency(f.allocated_amount), // alias
-          used_amount: formatCurrency(f.used_amount),
-          remaining_amount: formatCurrency(f.remaining_amount),
-          remaining_budget: formatCurrency(f.remaining_amount), // alias
-          notes: f.notes || '',
-        };
-      }),
+    // Flat Indexed Tags (1-10)
+    ...flattenMappedArray(mappedMedications, {
+      medication_name: 'medication_name',
+      brand_name: 'brand_name',
+      dosage: 'dosage',
+      medication_type: 'medication_type',
+    }),
+    ...flattenMappedArray(mappedGoals, {
+      goal_type: 'goal_type',
+      description: 'goal_description',
+    }),
+    ...flattenMappedArray(mappedContacts, {
+      contact_name: 'contact_name',
+      phone: 'contact_phone',
+      email: 'contact_email',
+      address: 'contact_address',
+      notes: 'contact_notes',
+      contact_type: 'contact_type',
+    }),
+    ...flattenMappedArray(mappedProviders, {
+      provider_name: 'provider_name',
+      company: 'provider_company',
+      provider_type: 'provider_type',
+      phone: 'provider_phone',
+      email: 'provider_email',
+      notes: 'provider_notes',
+    }),
   };
 }

@@ -462,61 +462,6 @@ export const masterListsApi = {
     },
   },
 
-  /**
-   * Funding Sources Master
-   */
-  fundingSources: {
-    async list(includeInactive = true) {
-      let query = supabase
-        .from(TABLES.FUNDING_SOURCES_MASTER)
-        .select(MASTER_LIST_VIEWS.FUNDING_SOURCES)
-        .order('funding_source_name', { ascending: true });
-
-      if (!includeInactive) {
-        query = query.eq('is_active', true);
-      }
-
-      const { data, error } = await query;
-      if (error) throw error;
-      return data;
-    },
-
-    async delete(id: string) {
-      const { error } = await supabase
-        .from(TABLES.FUNDING_SOURCES_MASTER)
-        .delete()
-        .eq('id', id);
-      if (error) throw error;
-    },
-  },
-
-  /**
-   * Funding Types Master
-   */
-  fundingTypes: {
-    async list(includeInactive = true) {
-      let query = supabase
-        .from(TABLES.FUNDING_TYPES_MASTER)
-        .select(MASTER_LIST_VIEWS.FUNDING_TYPES)
-        .order('funding_type_name', { ascending: true });
-
-      if (!includeInactive) {
-        query = query.eq('is_active', true);
-      }
-
-      const { data, error } = await query;
-      if (error) throw error;
-      return data;
-    },
-
-    async delete(id: string) {
-      const { error } = await supabase
-        .from(TABLES.FUNDING_TYPES_MASTER)
-        .delete()
-        .eq('id', id);
-      if (error) throw error;
-    },
-  },
 
   /**
    * Calendar Event Types Master

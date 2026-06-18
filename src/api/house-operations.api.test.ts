@@ -76,14 +76,23 @@ describe('houseOperationsApi.syncOperations', () => {
     expect(mockQuery.delete).toHaveBeenCalled();
     expect(mockQuery.not).toHaveBeenCalledWith('id', 'in', '(item-1)');
 
-    // Verify Items Upsert
+    // Verify Items Upsert (Existing items)
     expect(mockQuery.upsert).toHaveBeenCalledWith(
       expect.arrayContaining([
         expect.objectContaining({
           title: 'Existing Task',
           checklist_id: 'cl-1',
         }),
-        expect.objectContaining({ title: 'New Task', checklist_id: 'cl-1' }),
+      ]),
+    );
+
+    // Verify Items Insert (New items)
+    expect(mockQuery.insert).toHaveBeenCalledWith(
+      expect.arrayContaining([
+        expect.objectContaining({
+          title: 'New Task',
+          checklist_id: 'cl-1',
+        }),
       ]),
     );
   });

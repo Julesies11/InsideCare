@@ -210,3 +210,22 @@ export const docxGenerator = {
   },
 };
 
+/**
+ * Helper to flatten an array of mapped items into indexed tags (e.g., contact_name1, contact_name2...).
+ * Maps all elements in the array dynamically.
+ */
+export function flattenMappedArray(
+  array: any[],
+  prefixMap: Record<string, string>
+): Record<string, any> {
+  const result: Record<string, any> = {};
+  array.forEach((item, index) => {
+    const i = index + 1;
+    Object.entries(prefixMap).forEach(([fieldKey, targetTag]) => {
+      result[`${targetTag}${i}`] = item ? (item[fieldKey] ?? '') : '';
+    });
+  });
+  return result;
+}
+
+

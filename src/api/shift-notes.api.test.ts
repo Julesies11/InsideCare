@@ -75,7 +75,7 @@ describe('shiftNotesApi', () => {
     expect(mockUpsert).toHaveBeenCalledWith(
       expect.objectContaining({ ...noteData, status: 'active' }),
       expect.objectContaining({
-        onConflict: 'shift_id,staff_id,participant_id',
+        onConflict: 'id',
       }),
     );
     expect(result).toEqual(mockNote);

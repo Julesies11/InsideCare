@@ -14,10 +14,9 @@ const queryClient = new QueryClient({
 });
 
 vi.mock('@/hooks/use-houses', () => ({
-  useHouses: () => ({
-    houses: [],
-    count: 0,
-    loading: false,
+  useActiveHouses: () => ({
+    data: [],
+    isLoading: false,
     error: null,
   }),
 }));
@@ -46,6 +45,6 @@ describe('HouseWordTemplatesPage Smoke Test', () => {
 
     // Verify page title and selector exist
     expect(screen.getByText('House Word Reports')).toBeInTheDocument();
-    expect(screen.getByText('Select House')).toBeInTheDocument();
+    expect(screen.getByText('1. Select House')).toBeInTheDocument();
   });
 });

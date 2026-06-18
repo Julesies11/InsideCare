@@ -49,3 +49,4 @@ test-results/*
 playwright/.auth*
 
 stats.html
+*.DS_Store

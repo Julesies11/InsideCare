@@ -1,4 +1,5 @@
 import { TemplateTag } from './types';
+import { flattenMappedArray } from './generator';
 
 /**
  * Definitions and mapping for House Template Tags.
@@ -21,22 +22,18 @@ export const HOUSE_TEMPLATE_TAGS: TemplateTag[] = [
   { name: '{{risk_management}}', description: 'House-level risk management strategies and alerts', category: 'House Management', example: 'Ensure back door is locked at 9pm' },
   { name: '{{observations}}', description: 'Staff observations regarding the house environment', category: 'House Management', example: 'Increased activity on weekends' },
 
-  // Residents Loop (Participants)
-  { name: '{{#residents}}', description: 'Start of residents loop', category: 'Participants', example: '{{#residents}}', isLoopStart: true },
-  { name: '{{participant_name}}', description: 'Participant name (inside residents loop)', category: 'Participants', example: 'John Doe', loopParent: '{{#residents}}' },
-  { name: '{{ndis_number}}', description: 'NDIS number (inside residents loop)', category: 'Participants', example: '430 000 000', loopParent: '{{#residents}}' },
-  { name: '{{email}}', description: 'Participant email (inside residents loop)', category: 'Participants', example: 'john.doe@example.com', loopParent: '{{#residents}}' },
-  { name: '{{personal_mobile}}', description: 'Participant mobile number (inside residents loop)', category: 'Participants', example: '0400 000 000', loopParent: '{{#residents}}' },
-  { name: '{{date_of_birth}}', description: 'Participant date of birth (inside residents loop)', category: 'Participants', example: '15/05/1990', loopParent: '{{#residents}}' },
-  { name: '{{/residents}}', description: 'End of residents loop', category: 'Participants', example: '{{/residents}}', isLoopEnd: true },
+  // Residents Flat Indexed Tags
+  { name: '{{participant_name1}}', description: 'Resident 1 Name', category: 'Participants', example: 'John Doe' },
+  { name: '{{ndis_number1}}', description: 'Resident 1 NDIS Number', category: 'Participants', example: '430 000 000' },
+  { name: '{{email1}}', description: 'Resident 1 Email', category: 'Participants', example: 'john.doe@example.com' },
+  { name: '{{personal_mobile1}}', description: 'Resident 1 Mobile', category: 'Participants', example: '0400 000 000' },
+  { name: '{{date_of_birth1}}', description: 'Resident 1 Date of Birth', category: 'Participants', example: '15/05/1990' },
 
-  // Staff Assignments Loop
-  { name: '{{#staff}}', description: 'Start of staff assignments loop', category: 'Staff', example: '{{#staff}}', isLoopStart: true },
-  { name: '{{staff_name}}', description: 'Staff name (inside staff loop)', category: 'Staff', example: 'Jane Smith', loopParent: '{{#staff}}' },
-  { name: '{{role}}', description: 'Staff role (inside staff loop)', category: 'Staff', example: 'Support Worker', loopParent: '{{#staff}}' },
-  { name: '{{email}}', description: 'Staff email (inside staff loop)', category: 'Staff', example: 'jane.smith@insidecare.com', loopParent: '{{#staff}}' },
-  { name: '{{phone}}', description: 'Staff phone number (inside staff loop)', category: 'Staff', example: '0411 111 111', loopParent: '{{#staff}}' },
-  { name: '{{/staff}}', description: 'End of staff loop', category: 'Staff', example: '{{/staff}}', isLoopEnd: true },
+  // House Staff Flat Indexed Tags
+  { name: '{{staff_name1}}', description: 'Assigned Staff 1 Name', category: 'Staff', example: 'Jane Smith' },
+  { name: '{{staff_role1}}', description: 'Assigned Staff 1 Role', category: 'Staff', example: 'Support Worker' },
+  { name: '{{staff_email1}}', description: 'Assigned Staff 1 Email', category: 'Staff', example: 'jane.smith@insidecare.com' },
+  { name: '{{staff_phone1}}', description: 'Assigned Staff 1 Phone', category: 'Staff', example: '0411 111 111' },
 ];
 
 /**
@@ -50,6 +47,26 @@ export function mapHouseToTags(
   }
 ) {
   const formatDate = (val: any) => val ? new Date(val).toLocaleDateString('en-AU') : '-';
+
+  // Relational Arrays (Mapped first to be used in both loops and flat indexed tags)
+  const mappedResidents = (relatedData?.residents || [])
+    .filter((r: any) => r.status === 'active')
+    .map((r: any) => ({
+      participant_name: r.participant_name || '',
+      ndis_number: r.ndis_number || '',
+      email: r.email || '',
+      personal_mobile: r.personal_mobile || '',
+      date_of_birth: formatDate(r.date_of_birth),
+    }));
+
+  const mappedStaff = (relatedData?.staff || [])
+    .filter((s: any) => s.status === 'active' && s.staff?.status === 'active')
+    .map((s: any) => ({
+      staff_name: s.staff?.staff_name || s.staff_name || '',
+      role: s.staff?.role?.role_name || s.role || '',
+      email: s.staff?.email || '',
+      phone: s.staff?.phone || '',
+    }));
 
   return {
     house_name: house.house_name || '',
@@ -67,23 +84,22 @@ export function mapHouseToTags(
     observations: house.observations || '',
 
     // Relational Arrays (Loops)
-    residents: (relatedData?.residents || [])
-      .filter((r: any) => r.status === 'active')
-      .map((r: any) => ({
-        participant_name: r.participant_name || '',
-        ndis_number: r.ndis_number || '',
-        email: r.email || '',
-        personal_mobile: r.personal_mobile || '',
-        date_of_birth: formatDate(r.date_of_birth),
-      })),
+    residents: mappedResidents,
+    staff: mappedStaff,
 
-    staff: (relatedData?.staff || [])
-      .filter((s: any) => s.status === 'active' && s.staff?.status === 'active')
-      .map((s: any) => ({
-        staff_name: s.staff?.staff_name || s.staff_name || '',
-        role: s.staff?.role?.role_name || s.role || '',
-        email: s.staff?.email || '',
-        phone: s.staff?.phone || '',
-      })),
+    // Flat Indexed Tags (1-10)
+    ...flattenMappedArray(mappedResidents, {
+      participant_name: 'participant_name',
+      ndis_number: 'ndis_number',
+      email: 'email',
+      personal_mobile: 'personal_mobile',
+      date_of_birth: 'date_of_birth',
+    }),
+    ...flattenMappedArray(mappedStaff, {
+      staff_name: 'staff_name',
+      role: 'staff_role',
+      email: 'staff_email',
+      phone: 'staff_phone',
+    }),
   };
 }

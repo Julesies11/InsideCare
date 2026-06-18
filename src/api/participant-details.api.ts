@@ -9,7 +9,7 @@ import { supabase } from '@/lib/supabase';
  * Data Access Layer (DAL) for Participant Child Entities.
  *
  * Handles all sub-records linked to a participant such as Medications,
- * Goals, Contacts, Funding, and Documents.
+ * Goals, Contacts, and Documents.
  */
 export const participantDetailsApi = {
   /**
@@ -345,46 +345,6 @@ export const participantDetailsApi = {
     },
   },
 
-  /**
-   * Funding
-   */
-  funding: {
-    async list(participantId: string) {
-      const { data, error } = await supabase
-        .from(TABLES.PARTICIPANT_FUNDING)
-        .select(PARTICIPANT_VIEWS.FUNDING)
-        .eq('participant_id', participantId)
-        .order('end_date', { ascending: false });
-
-      if (error) throw error;
-      return data || [];
-    },
-
-    async upsert(
-      funding:
-        | Database['public']['Tables']['ic_participant_funding']['Insert']
-        | Database['public']['Tables']['ic_participant_funding']['Insert'][],
-    ) {
-      const records = Array.isArray(funding) ? funding : [funding];
-      const { data, error } = await supabase
-        .from(TABLES.PARTICIPANT_FUNDING)
-        .upsert(records)
-        .select(PARTICIPANT_VIEWS.FUNDING);
-
-      if (error) throw error;
-      return data;
-    },
-
-    async delete(id: string) {
-      const { error } = await supabase
-        .from(TABLES.PARTICIPANT_FUNDING)
-        .delete()
-        .eq('id', id);
-
-      if (error) throw error;
-      return true;
-    },
-  },
 
   /**
    * Documents

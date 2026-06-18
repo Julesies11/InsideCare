@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest';
 import { mapParticipantToTags } from './participant-tags';
 import { mapStaffToTags } from './staff-tags';
 import { mapHouseToTags } from './house-tags';
+import { flattenMappedArray } from './generator';
 
 describe('Document Template Mappings', () => {
   describe('mapParticipantToTags', () => {
@@ -135,20 +136,6 @@ describe('Document Template Mappings', () => {
             notes: 'Weekly visits',
           },
         ],
-        funding: [
-          {
-            status: 'Active',
-            code: 'F123',
-            invoice_recipient: 'Plan Manager',
-            end_date: '2026-12-31',
-            allocated_amount: 50000,
-            used_amount: 20000,
-            remaining_amount: 30000,
-            notes: 'Yearly package',
-            funding_source_info: { funding_source_name: 'NDIS' },
-            funding_type_info: { funding_type_name: 'Core' },
-          },
-        ],
       };
 
       const result = mapParticipantToTags(participant, relatedData);
@@ -175,11 +162,81 @@ describe('Document Template Mappings', () => {
       expect(result.providers[0].provider_type).toBe('Physio');
       expect(result.providers[0].phone).toBe('02 4444 4444');
       expect(result.providers[0].email).toBe('clinic@health.com');
+    });
 
-      // Verify funding
-      expect(result.funding).toHaveLength(1);
-      expect(result.funding[0].code).toBe('F123');
-      expect(result.funding[0].allocated_amount).toBe('$50,000.00');
+    it('correctly flattens participant repeating arrays to numbered index tags', () => {
+      const participant = { participant_name: 'Jane Doe' };
+      const relatedData = {
+        medications: [
+          {
+            is_active: true,
+            dosage: '500mg',
+            medication_info: {
+              medication_name: 'Paracetamol',
+              brand_name: 'Panadol',
+              medication_type: { medication_type_name: 'Analgesic' },
+            },
+          },
+        ],
+        goals: [
+          { is_active: true, goal_type: 'NDIS', description: 'Goal 1' },
+        ],
+        contacts: [
+          {
+            is_active: true,
+            contact_name: 'Bill Doe',
+            phone: '0499 999 999',
+            email: 'bill@example.com',
+            address: '10 Road St',
+            notes: 'Emergency contact',
+            contact_type_info: { contact_type_name: 'Father' },
+          },
+        ],
+        providers: [
+          {
+            is_active: true,
+            provider_name: 'Clinic A',
+            company: 'Health Corp',
+            provider_type: 'Physio',
+            phone: '02 4444 4444',
+            email: 'clinic@health.com',
+            notes: 'Weekly visits',
+          },
+        ],
+      };
+
+      const result = mapParticipantToTags(participant, relatedData);
+
+      // Verify Medication 1 Flat Tags
+      expect(result.medication_name1).toBe('Paracetamol');
+      expect(result.brand_name1).toBe('Panadol');
+      expect(result.dosage1).toBe('500mg');
+      expect(result.medication_type1).toBe('Analgesic');
+
+      // Verify Goal 1 Flat Tags
+      expect(result.goal_type1).toBe('NDIS');
+      expect(result.goal_description1).toBe('Goal 1');
+
+      // Verify Contact 1 Flat Tags
+      expect(result.contact_name1).toBe('Bill Doe');
+      expect(result.contact_phone1).toBe('0499 999 999');
+      expect(result.contact_email1).toBe('bill@example.com');
+      expect(result.contact_address1).toBe('10 Road St');
+      expect(result.contact_notes1).toBe('Emergency contact');
+      expect(result.contact_type1).toBe('Father');
+
+      // Verify Provider 1 Flat Tags
+      expect(result.provider_name1).toBe('Clinic A');
+      expect(result.provider_company1).toBe('Health Corp');
+      expect(result.provider_type1).toBe('Physio');
+      expect(result.provider_phone1).toBe('02 4444 4444');
+      expect(result.provider_email1).toBe('clinic@health.com');
+      expect(result.provider_notes1).toBe('Weekly visits');
+
+      // Verify next indexes do not exist (they should be undefined)
+      expect(result.medication_name2).toBeUndefined();
+      expect(result.contact_name2).toBeUndefined();
+      expect(result.goal_type2).toBeUndefined();
     });
   });
 
@@ -255,6 +312,68 @@ describe('Document Template Mappings', () => {
       expect(result.compliance).toHaveLength(1);
       expect(result.compliance[0].compliance_name).toBe('Screening Check');
     });
+
+    it('correctly flattens staff repeating arrays to numbered index tags', () => {
+      const staff = { staff_name: 'Jane Smith' };
+      const relatedData = {
+        qualifications: [
+          {
+            title: 'First Aid',
+            institution: 'Red Cross',
+            date_completed: '2025-05-15',
+            expiry_date: '2028-05-15',
+            file_name: 'cert.pdf',
+          },
+        ],
+        training: [
+          {
+            title: 'NDIS Induction',
+            category: 'Compliance',
+            description: 'Core rules training',
+            provider: 'Commission',
+            date_completed: '2026-01-10',
+            expiry_date: '2027-01-10',
+            file_name: 'training.pdf',
+          },
+        ],
+        compliance: [
+          {
+            status: 'complete',
+            completion_date: '2026-02-20',
+            expiry_date: '2027-02-20',
+            compliance_type: {
+              compliance_name: 'Screening Check',
+            },
+          },
+        ],
+      };
+
+      const result = mapStaffToTags(staff, relatedData);
+
+      // Verify Qualification 1 Flat Tags
+      expect(result.qualification_title1).toBe('First Aid');
+      expect(result.qualification_institution1).toBe('Red Cross');
+      expect(result.qualification_date_completed1).toBe('15/05/2025');
+      expect(result.qualification_expiry_date1).toBe('15/05/2028');
+      expect(result.qualification_file_name1).toBe('cert.pdf');
+
+      // Verify Training 1 Flat Tags
+      expect(result.training_title1).toBe('NDIS Induction');
+      expect(result.training_category1).toBe('Compliance');
+      expect(result.training_description1).toBe('Core rules training');
+      expect(result.training_provider1).toBe('Commission');
+      expect(result.training_date_completed1).toBe('10/01/2026');
+      expect(result.training_expiry_date1).toBe('10/01/2027');
+      expect(result.training_file_name1).toBe('training.pdf');
+
+      // Verify Compliance 1 Flat Tags
+      expect(result.compliance_name1).toBe('Screening Check');
+      expect(result.compliance_completion_date1).toBe('20/02/2026');
+      expect(result.compliance_expiry_date1).toBe('20/02/2027');
+
+      // Verify next indexes do not exist
+      expect(result.qualification_title2).toBeUndefined();
+    });
   });
 
   describe('mapHouseToTags', () => {
@@ -314,6 +433,77 @@ describe('Document Template Mappings', () => {
       expect(result.staff).toHaveLength(1);
       expect(result.staff[0].staff_name).toBe('Bob Worker');
       expect(result.staff[0].role).toBe('Supervisor');
+    });
+
+    it('correctly flattens house residents and staff to numbered index tags (aligned with DB field names)', () => {
+      const house = { house_name: 'Sunshine Villa' };
+      const relatedData = {
+        residents: [
+          {
+            status: 'active',
+            participant_name: 'Alice Resident',
+            ndis_number: '111 222 333',
+            email: 'alice@example.com',
+            personal_mobile: '0400 111 111',
+            date_of_birth: '1995-10-10',
+          },
+        ],
+        staff: [
+          {
+            status: 'active',
+            staff: {
+              status: 'active',
+              staff_name: 'Bob Worker',
+              email: 'bob@example.com',
+              phone: '0400 222 222',
+              role: {
+                role_name: 'Supervisor',
+              },
+            },
+          },
+        ],
+      };
+
+      const result = mapHouseToTags(house, relatedData);
+
+      // Verify Resident 1 Flat Tags (using database-aligned field names)
+      expect(result.participant_name1).toBe('Alice Resident');
+      expect(result.ndis_number1).toBe('111 222 333');
+      expect(result.email1).toBe('alice@example.com');
+      expect(result.personal_mobile1).toBe('0400 111 111');
+      expect(result.date_of_birth1).toBe('10/10/1995');
+
+      // Verify Staff 1 Flat Tags
+      expect(result.staff_name1).toBe('Bob Worker');
+      expect(result.staff_role1).toBe('Supervisor');
+      expect(result.staff_email1).toBe('bob@example.com');
+      expect(result.staff_phone1).toBe('0400 222 222');
+
+      // Verify next indexes do not exist
+      expect(result.participant_name2).toBeUndefined();
+      expect(result.staff_name2).toBeUndefined();
+    });
+  });
+
+  describe('flattenMappedArray helper', () => {
+    it('correctly flattens arbitrary objects using a mapping configuration', () => {
+      const items = [
+        { orig_a: 'val_a1', orig_b: 'val_b1' },
+        { orig_a: 'val_a2', orig_b: 'val_b2' },
+      ];
+      const prefixMap = {
+        orig_a: 'tag_a',
+        orig_b: 'tag_b',
+      };
+
+      const result = flattenMappedArray(items, prefixMap);
+
+      expect(result.tag_a1).toBe('val_a1');
+      expect(result.tag_b1).toBe('val_b1');
+      expect(result.tag_a2).toBe('val_a2');
+      expect(result.tag_b2).toBe('val_b2');
+      
+      expect(result.tag_a3).toBeUndefined();
     });
   });
 });
