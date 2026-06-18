@@ -41,6 +41,7 @@ import { ROUTES } from '@/config/routes.config';
 import { cn } from '@/lib/utils';
 import { useIncidentReports } from '@/hooks/use-incident-reports';
 import { useIncidentTypesMaster } from '@/hooks/use-incident-types-master';
+import { detectIncidentPatterns, generateIncidentInsights } from '@/lib/incident-pattern-detection';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
@@ -444,6 +445,18 @@ export function IncidentSummaryReportPage() {
           b.currentCount - a.currentCount || a.name.localeCompare(b.name),
       );
   }, [currentData, prevData, incidentTypes, isLoading]);
+
+  // Pattern detection and alerts
+  const patternData = useMemo(() => {
+    if (isLoading || !currentData?.data) return { alerts: [], insights: [] };
+    
+    // We analyze the full history fetched (up to 1000 records) to find patterns 
+    // that might cross the rolling windows defined in rules.
+    const alerts = detectIncidentPatterns(currentData.data);
+    const insights = generateIncidentInsights(currentData.data);
+    
+    return { alerts, insights };
+  }, [currentData, isLoading]);
 
   // Aggregated KPI blocks
   const kpis = useMemo(() => {
@@ -940,6 +953,103 @@ export function IncidentSummaryReportPage() {
                         </span>
                       </CardContent>
                     </Card>
+                  </div>
+
+                  {/* PATTERN INSIGHTS & ALERTS */}
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between border-b border-gray-200 pb-1.5">
+                      <h3 className="text-xs font-black text-gray-900 uppercase tracking-widest">
+                        Pattern Insights & Alerts
+                      </h3>
+                      <Badge variant="outline" className="text-[9px] font-bold uppercase tracking-tight">
+                        Risk Analysis
+                      </Badge>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {/* Alert Cards */}
+                      <div className="space-y-3">
+                        <h4 className="text-[10px] font-black uppercase text-gray-400 tracking-wider">
+                          High-Risk Alert Board
+                        </h4>
+                        {patternData.alerts.length > 0 ? (
+                          <div className="space-y-3">
+                            {patternData.alerts.map((alert, idx) => (
+                              <Card key={idx} className={cn(
+                                "border-l-4 shadow-sm",
+                                alert.severity === 'Critical' ? "border-l-red-600 bg-red-50/30" : 
+                                alert.severity === 'High' ? "border-l-orange-500 bg-orange-50/30" : 
+                                "border-l-blue-500 bg-blue-50/30"
+                              )}>
+                                <CardContent className="p-3">
+                                  <div className="flex justify-between items-start mb-1">
+                                    <span className="text-[10px] font-black uppercase text-gray-900 leading-tight">
+                                      {alert.ruleName}
+                                    </span>
+                                    <Badge className={cn(
+                                      "text-[8px] h-3.5 px-1 font-black uppercase",
+                                      alert.severity === 'Critical' ? "bg-red-600" : 
+                                      alert.severity === 'High' ? "bg-orange-500" : "bg-blue-500"
+                                    )}>
+                                      {alert.severity}
+                                    </Badge>
+                                  </div>
+                                  <p className="text-[11px] font-bold text-gray-900 mb-1">
+                                    {alert.involvedEntities.join(', ')}: {alert.triggerDescription}
+                                  </p>
+                                  <div className="bg-white/50 border border-gray-100 rounded p-1.5 mt-2">
+                                    <span className="text-[9px] font-black uppercase text-gray-400 block mb-0.5">Recommended Action:</span>
+                                    <p className="text-[10px] text-gray-700 leading-tight font-medium">
+                                      {alert.suggestedAction}
+                                    </p>
+                                  </div>
+                                </CardContent>
+                              </Card>
+                            ))}
+                          </div>
+                        ) : (
+                          <div className="h-24 border border-dashed border-gray-200 rounded-xl flex items-center justify-center bg-gray-50/50">
+                             <div className="text-center">
+                               <div className="text-[10px] font-black uppercase text-gray-300 tracking-widest">No Patterns Detected</div>
+                               <div className="text-[9px] font-medium text-gray-400 mt-0.5 italic">All organizational parameters within normal thresholds.</div>
+                             </div>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Distribution Insights */}
+                      <div className="space-y-3">
+                        <h4 className="text-[10px] font-black uppercase text-gray-400 tracking-wider">
+                          Automated Trend Insights
+                        </h4>
+                        <div className="bg-gray-50 border border-gray-200 rounded-xl p-4 space-y-3 h-full max-h-[250px] overflow-y-auto">
+                          {patternData.insights.length > 0 ? (
+                            <ul className="space-y-3">
+                              {patternData.insights.map((insight, idx) => (
+                                <li key={idx} className="flex gap-2 items-start">
+                                  <div className="size-1.5 rounded-full bg-primary shrink-0 mt-1" />
+                                  <p className="text-xs font-bold text-gray-700 leading-normal">
+                                    {insight}
+                                  </p>
+                                </li>
+                              ))}
+                            </ul>
+                          ) : (
+                            <div className="h-full flex items-center justify-center text-center px-4">
+                               <p className="text-[10px] font-bold text-gray-400 italic">
+                                 Insufficient data in this period to generate automated distribution insights.
+                               </p>
+                            </div>
+                          )}
+                          
+                          <div className="pt-4 border-t border-gray-200 mt-2">
+                             <p className="text-[9px] leading-relaxed text-gray-500 font-medium italic">
+                               Insights are generated automatically by comparing incident volumes across participants and classifications to identify concentration of risk.
+                             </p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
                   </div>
 
                   {/* VISUALIZATION CHART */}
