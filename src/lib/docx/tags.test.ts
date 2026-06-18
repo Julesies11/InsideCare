@@ -136,20 +136,6 @@ describe('Document Template Mappings', () => {
             notes: 'Weekly visits',
           },
         ],
-        funding: [
-          {
-            status: 'Active',
-            code: 'F123',
-            invoice_recipient: 'Plan Manager',
-            end_date: '2026-12-31',
-            allocated_amount: 50000,
-            used_amount: 20000,
-            remaining_amount: 30000,
-            notes: 'Yearly package',
-            funding_source_info: { funding_source_name: 'NDIS' },
-            funding_type_info: { funding_type_name: 'Core' },
-          },
-        ],
       };
 
       const result = mapParticipantToTags(participant, relatedData);
@@ -176,11 +162,6 @@ describe('Document Template Mappings', () => {
       expect(result.providers[0].provider_type).toBe('Physio');
       expect(result.providers[0].phone).toBe('02 4444 4444');
       expect(result.providers[0].email).toBe('clinic@health.com');
-
-      // Verify funding
-      expect(result.funding).toHaveLength(1);
-      expect(result.funding[0].code).toBe('F123');
-      expect(result.funding[0].allocated_amount).toBe('$50,000.00');
     });
 
     it('correctly flattens participant repeating arrays to numbered index tags', () => {
@@ -222,20 +203,6 @@ describe('Document Template Mappings', () => {
             notes: 'Weekly visits',
           },
         ],
-        funding: [
-          {
-            status: 'Active',
-            code: 'F123',
-            invoice_recipient: 'Plan Manager',
-            end_date: '2026-12-31',
-            allocated_amount: 50000,
-            used_amount: 20000,
-            remaining_amount: 30000,
-            notes: 'Yearly package',
-            funding_source_info: { funding_source_name: 'NDIS' },
-            funding_type_info: { funding_type_name: 'Core' },
-          },
-        ],
       };
 
       const result = mapParticipantToTags(participant, relatedData);
@@ -265,19 +232,6 @@ describe('Document Template Mappings', () => {
       expect(result.provider_phone1).toBe('02 4444 4444');
       expect(result.provider_email1).toBe('clinic@health.com');
       expect(result.provider_notes1).toBe('Weekly visits');
-
-      // Verify Funding 1 Flat Tags
-      expect(result.funding_source1).toBe('NDIS');
-      expect(result.funding_type1).toBe('Core');
-      expect(result.funding_code1).toBe('F123');
-      expect(result.funding_recipient1).toBe('Plan Manager');
-      expect(result.funding_end_date1).toBe('31/12/2026');
-      expect(result.funding_allocated_amount1).toBe('$50,000.00');
-      expect(result.funding_total_budget1).toBe('$50,000.00');
-      expect(result.funding_used_amount1).toBe('$20,000.00');
-      expect(result.funding_remaining_amount1).toBe('$30,000.00');
-      expect(result.funding_remaining_budget1).toBe('$30,000.00');
-      expect(result.funding_notes1).toBe('Yearly package');
 
       // Verify next indexes do not exist (they should be undefined)
       expect(result.medication_name2).toBeUndefined();

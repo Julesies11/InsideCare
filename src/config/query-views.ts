@@ -149,27 +149,6 @@ export const PARTICIPANT_VIEWS = {
     contact_type_info:${TABLES.CONTACT_TYPES_MASTER}!contact_type_id(id, contact_type_name)
   `,
 
-  /**
-   * View for participant funding.
-   */
-  FUNDING: `
-    id, 
-    participant_id, 
-    funding_source_id, 
-    funding_type_id, 
-    end_date, 
-    allocated_amount, 
-    used_amount,
-    remaining_amount, 
-    notes, 
-    status,
-    code,
-    invoice_recipient,
-    created_at, 
-    updated_at,
-    funding_source_info:${TABLES.FUNDING_SOURCES_MASTER}!funding_source_id(id, funding_source_name),
-    funding_type_info:${TABLES.FUNDING_TYPES_MASTER}!funding_type_id(id, funding_type_name)
-  `,
 
   /**
    * View for participant documents.
@@ -667,16 +646,6 @@ export const MASTER_LIST_VIEWS = {
    */
   DEPARTMENTS:
     'id, department_name, description, status, created_at, updated_at',
-
-  /**
-   * View for funding sources.
-   */
-  FUNDING_SOURCES: 'id, funding_source_name, is_active, created_at, updated_at',
-
-  /**
-   * View for funding types.
-   */
-  FUNDING_TYPES: 'id, funding_type_name, is_active, created_at, updated_at',
 
   /**
    * View for compliance types.

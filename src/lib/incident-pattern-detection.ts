@@ -41,7 +41,7 @@ export function detectIncidentPatterns(incidents: any[]): IncidentPatternAlert[]
     if (relevantIncidents.length === 0) return;
 
     // Grouping logic
-    let groups: Record<string, any[]> = {};
+    const groups: Record<string, any[]> = {};
 
     if (rule.grouping === 'participant') {
       relevantIncidents.forEach((inc) => {

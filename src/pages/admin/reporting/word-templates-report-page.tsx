@@ -92,12 +92,11 @@ export function WordTemplatesReportPage() {
     setIsGenerating(true);
     try {
       // Fetch child relations in parallel
-      const [medications, goalsData, contacts, providers, funding] = await Promise.all([
+      const [medications, goalsData, contacts, providers] = await Promise.all([
         participantDetailsApi.medications.list(participant.id),
         participantDetailsApi.goals.list(participant.id),
         participantDetailsApi.contacts.list(participant.id),
         participantDetailsApi.providers.list(participant.id),
-        participantDetailsApi.funding.list(participant.id),
       ]);
 
       const templateBlob = await downloadTemplate(selectedTemplateName);
@@ -106,7 +105,6 @@ export function WordTemplatesReportPage() {
         goals: goalsData,
         contacts,
         providers,
-        funding,
       });
 
       const filename = `${participant.participant_name.replace(/\s+/g, '_')}_${selectedTemplateName.replace('.docx', '')}`;

@@ -8,7 +8,7 @@ Central hub for all information related to care recipients.
 
 - **Profiles**: Comprehensive views of personal information, medical history, and goals.
 - **Medication Register**: Centralized master list of all medications used in care. Supports server-side pagination (50 per page), remote sorting, and category filtering. Provides an administrative interface for clinical guidance (side effects, interactions).
-- **Child Entities**: Detailed management of medications, documents, goals, notes, funding, contacts, hygiene routines, and restrictive practices.
+- **Child Entities**: Detailed management of medications, documents, goals, notes, contacts, hygiene routines, and restrictive practices.
 - **Clinical Trackers Setup**: Dedicated setup section to configure active clinical trackers (Bowel, Seizure, Sleep, Behaviour, Community, Nutrition, Mealtime Management, Hygiene) on a participant's care plan, dynamically controlling which trackers are shown during shift note documentation.
 - **Optimized Saving**: Uses `json-diff-ts` to only update changed fields.
 

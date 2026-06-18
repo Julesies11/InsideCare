@@ -126,18 +126,6 @@ export const PARTICIPANT_TEMPLATE_TAGS: TemplateTag[] = [
   { name: '{{provider_email1}}', description: 'Provider 1 Email', category: 'Service Providers', example: 'info@healthcare.com' },
   { name: '{{provider_notes1}}', description: 'Provider 1 Notes', category: 'Service Providers', example: 'Prefers bookings on Tuesdays' },
 
-  // Funding Flat Indexed Tags
-  { name: '{{funding_source1}}', description: 'Funding 1 Source', category: 'Funding', example: 'NDIS' },
-  { name: '{{funding_type1}}', description: 'Funding 1 Type', category: 'Funding', example: 'Core Supports' },
-  { name: '{{funding_code1}}', description: 'Funding 1 Code', category: 'Funding', example: '1234' },
-  { name: '{{funding_recipient1}}', description: 'Funding 1 Invoice Recipient', category: 'Funding', example: 'Plan Manager' },
-  { name: '{{funding_end_date1}}', description: 'Funding 1 End Date', category: 'Funding', example: '30/06/2026' },
-  { name: '{{funding_allocated_amount1}}', description: 'Funding 1 Allocated Amount', category: 'Funding', example: '$50,000.00' },
-  { name: '{{funding_total_budget1}}', description: 'Funding 1 Total Budget', category: 'Funding', example: '$50,000.00' },
-  { name: '{{funding_used_amount1}}', description: 'Funding 1 Used Amount', category: 'Funding', example: '$26,550.00' },
-  { name: '{{funding_remaining_amount1}}', description: 'Funding 1 Remaining Amount', category: 'Funding', example: '$23,450.00' },
-  { name: '{{funding_remaining_budget1}}', description: 'Funding 1 Remaining Budget', category: 'Funding', example: '$23,450.00' },
-  { name: '{{funding_notes1}}', description: 'Funding 1 Notes', category: 'Funding', example: 'Excludes travel expenses' },
 ];
 
 /**
@@ -151,7 +139,6 @@ export function mapParticipantToTags(
     goals?: any[];
     contacts?: any[];
     providers?: any[];
-    funding?: any[];
   }
 ) {
   const [firstName, ...lastNameParts] = (participant.participant_name || '').split(' ');
@@ -198,25 +185,6 @@ export function mapParticipantToTags(
       email: p.email || '',
       notes: p.notes || '',
     }));
-
-  const mappedFunding = (relatedData?.funding || [])
-    .filter((f: any) => f.status?.toLowerCase() === 'active')
-    .map((f: any) => {
-      const formatCurrency = (val: any) => val ? `$${Number(val).toLocaleString('en-AU', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : '-';
-      return {
-        funding_source: f.funding_source_info?.funding_source_name || '',
-        funding_type: f.funding_type_info?.funding_type_name || '',
-        code: f.code || '',
-        invoice_recipient: f.invoice_recipient || '',
-        end_date: formatDate(f.end_date),
-        allocated_amount: formatCurrency(f.allocated_amount),
-        total_budget: formatCurrency(f.allocated_amount), // alias
-        used_amount: formatCurrency(f.used_amount),
-        remaining_amount: formatCurrency(f.remaining_amount),
-        remaining_budget: formatCurrency(f.remaining_amount), // alias
-        notes: f.notes || '',
-      };
-    });
 
   return {
     // Personal Details
@@ -313,7 +281,6 @@ export function mapParticipantToTags(
     goals: mappedGoals,
     contacts: mappedContacts,
     providers: mappedProviders,
-    funding: mappedFunding,
 
     // Flat Indexed Tags (1-10)
     ...flattenMappedArray(mappedMedications, {
@@ -341,19 +308,6 @@ export function mapParticipantToTags(
       phone: 'provider_phone',
       email: 'provider_email',
       notes: 'provider_notes',
-    }),
-    ...flattenMappedArray(mappedFunding, {
-      funding_source: 'funding_source',
-      funding_type: 'funding_type',
-      code: 'funding_code',
-      invoice_recipient: 'funding_recipient',
-      end_date: 'funding_end_date',
-      allocated_amount: 'funding_allocated_amount',
-      total_budget: 'funding_total_budget',
-      used_amount: 'funding_used_amount',
-      remaining_amount: 'funding_remaining_amount',
-      remaining_budget: 'funding_remaining_budget',
-      notes: 'funding_notes',
     }),
   };
 }
