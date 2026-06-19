@@ -113,6 +113,9 @@ const StaffProfile = lazy(() =>
 const StaffChecklists = lazy(() =>
   import('@/pages/staff').then((m) => ({ default: m.StaffChecklists })),
 );
+const MyAvailabilityPage = lazy(() =>
+  import('@/pages/staff').then((m) => ({ default: m.MyAvailabilityPage })),
+);
 
 const ChecklistMasterPage = lazy(() =>
   import('@/pages/admin/checklists/checklist-master-page').then((m) => ({
@@ -283,6 +286,17 @@ export function AppRoutingSetup() {
               <Route
                 path={`${ROUTES.MY_LEAVE}/:id/edit`}
                 element={<StaffLeaveForm />}
+              />
+            </Route>
+
+            <Route
+              element={
+                <RequirePermission module={RBAC_MODULES.STAFF_AVAILABILITY} />
+              }
+            >
+              <Route
+                path={ROUTES.MY_AVAILABILITY}
+                element={<MyAvailabilityPage />}
               />
             </Route>
 

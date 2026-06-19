@@ -6,3 +6,5 @@ export { StaffLeaveList } from './staff-leave-list';
 export { StaffLeaveForm } from './staff-leave-form';
 export { StaffProfile } from './staff-profile';
 export { StaffChecklists } from './staff-checklists';
+export { MyAvailabilityPage } from './my-availability-page';
+

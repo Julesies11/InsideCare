@@ -6056,6 +6056,68 @@ export type Database = {
           },
         ]
       }
+      ic_staff_availability: {
+        Row: {
+          created_at: string | null
+          created_by: string | null
+          day_of_week: number | null
+          end_date: string | null
+          end_time: string
+          id: string
+          is_active: boolean
+          is_available: boolean
+          notes: string | null
+          staff_id: string
+          start_date: string | null
+          start_time: string
+          type: string
+          updated_at: string | null
+          updated_by: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          created_by?: string | null
+          day_of_week?: number | null
+          end_date?: string | null
+          end_time?: string
+          id?: string
+          is_active?: boolean
+          is_available?: boolean
+          notes?: string | null
+          staff_id: string
+          start_date?: string | null
+          start_time?: string
+          type: string
+          updated_at?: string | null
+          updated_by?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string | null
+          day_of_week?: number | null
+          end_date?: string | null
+          end_time?: string
+          id?: string
+          is_active?: boolean
+          is_available?: boolean
+          notes?: string | null
+          staff_id?: string
+          start_date?: string | null
+          start_time?: string
+          type?: string
+          updated_at?: string | null
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ic_staff_availability_staff_id_fkey"
+            columns: ["staff_id"]
+            isOneToOne: false
+            referencedRelation: "ic_staff"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       ic_staff_compliance: {
         Row: {
           comments: string | null

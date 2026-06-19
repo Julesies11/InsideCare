@@ -64,6 +64,7 @@ export function StaffRoster() {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [showLeave, setShowLeave] = useState(true);
   const [showEvents, setShowEvents] = useState(false);
+  const [showAvailability, setShowAvailability] = useState(false);
 
   // Pagination state
   const [pagination, setPagination] = useState({ pageIndex: 0, pageSize: 50 });
@@ -318,6 +319,8 @@ export function StaffRoster() {
                     onShowLeaveChange={setShowLeave}
                     showEvents={showEvents}
                     onShowEventsChange={setShowEvents}
+                    showAvailability={showAvailability}
+                    onShowAvailabilityChange={setShowAvailability}
                   />
                 </CardContent>
               </Card>
@@ -331,6 +334,7 @@ export function StaffRoster() {
                 canEdit={false}
                 showLeave={showLeave}
                 includeEvents={showEvents}
+                showAvailability={showAvailability}
                 isPersonal={true}
                 checklists={[]}
                 onEditLeave={(leave) => handleEditLeave(leave.id)}

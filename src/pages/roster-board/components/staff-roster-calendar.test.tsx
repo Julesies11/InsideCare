@@ -30,6 +30,7 @@ vi.mock('@/components/roster/use-roster-data', () => ({
     isLoading: false,
   })),
   useLeaveRequestsQuery: vi.fn(() => ({ data: [] })),
+  useStaffAvailabilityQuery: vi.fn(() => ({ data: [] })),
 }));
 
 vi.mock('@/api/roster.api', () => ({

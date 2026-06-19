@@ -1,6 +1,7 @@
 import { renderWithProviders, screen, waitFor } from '@/test/test-utils';
 import { describe, expect, it, vi } from 'vitest';
 import {
+  MyAvailabilityPage,
   StaffChecklists,
   StaffDashboard,
   StaffLeaveForm,
@@ -112,6 +113,13 @@ describe('Staff Pages Smoke Tests', () => {
     await waitFor(() => {
       expect(screen.getByText(/My Profile/i)).toBeInTheDocument();
       expect(screen.getByText(/Account Security/i)).toBeInTheDocument();
+    });
+  });
+
+  it('renders My Availability Page without crashing', async () => {
+    renderWithProviders(<MyAvailabilityPage />);
+    await waitFor(() => {
+      expect(screen.getByText(/My Availability/i)).toBeInTheDocument();
     });
   });
 });
