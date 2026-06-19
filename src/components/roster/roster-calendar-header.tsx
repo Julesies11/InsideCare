@@ -51,6 +51,10 @@ interface RosterCalendarHeaderProps {
   showEvents?: boolean;
   onShowEventsChange?: (value: boolean) => void;
 
+  // Availability filter
+  showAvailability?: boolean;
+  onShowAvailabilityChange?: (value: boolean) => void;
+
   // Template actions
   onPopulateRoster?: () => void;
   onBulkAction?: () => void;
@@ -83,6 +87,8 @@ export function RosterCalendarHeader({
   onShowLeaveChange,
   showEvents = false,
   onShowEventsChange,
+  showAvailability = false,
+  onShowAvailabilityChange,
   onPopulateRoster: _onPopulateRoster,
   onBulkAction: _onBulkAction,
   isCopying: _isCopying = false,
@@ -171,6 +177,23 @@ export function RosterCalendarHeader({
               className="font-bold text-[10px] uppercase tracking-wider cursor-pointer text-muted-foreground"
             >
               Meetings
+            </Label>
+          </div>
+        )}
+
+        {onShowAvailabilityChange && (
+          <div className="flex items-center gap-2 mr-2">
+            <Switch
+              id="header-show-availability"
+              checked={showAvailability}
+              onCheckedChange={onShowAvailabilityChange}
+              size="sm"
+            />
+            <Label
+              htmlFor="header-show-availability"
+              className="font-bold text-[10px] uppercase tracking-wider cursor-pointer text-muted-foreground"
+            >
+              Availability
             </Label>
           </div>
         )}

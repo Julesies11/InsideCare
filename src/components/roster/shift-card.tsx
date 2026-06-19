@@ -1,3 +1,5 @@
+import { useMemo } from 'react';
+import { checkRosterConflict } from '@/utils/conflict-detector';
 import {
   Calendar,
   CheckCircle2,
@@ -57,6 +59,9 @@ interface ShiftCardProps {
   onNotesClick?: (shift: ShiftCardData) => void;
   staffList?: Array<{ id: string; name: string }>;
   onQuickAssign?: (shiftId: string, staffId: string) => void;
+  availabilityBlocks?: any[];
+  leaveBlocks?: any[];
+  existingShifts?: any[];
 }
 
 export function ShiftCard({
@@ -69,10 +74,53 @@ export function ShiftCard({
   onNotesClick,
   staffList,
   onQuickAssign,
+  availabilityBlocks = [],
+  leaveBlocks = [],
+  existingShifts = [],
 }: ShiftCardProps) {
   const isEvent = shift.entry_type === 'event';
   const participantCount = shift.participants?.length || 0;
   const isUnassigned = !shift.staff_id;
+
+  const conflictsMap = useMemo(() => {
+    if (!staffList || !onQuickAssign || !isUnassigned) return new Map();
+    const map = new Map<string, { isConflict: boolean; type?: string; reason?: string }>();
+    staffList.forEach((s) => {
+      const conflict = checkRosterConflict({
+        shiftId: shift.id,
+        staffId: s.id,
+        startDate: shift.start_date,
+        startTime: shift.start_time,
+        endTime: shift.end_time,
+        endDate: shift.end_date || shift.start_date,
+        availabilityBlocks,
+        leaveRequests: leaveBlocks,
+        existingShifts,
+      });
+      map.set(s.id, conflict);
+    });
+    return map;
+  }, [staffList, onQuickAssign, isUnassigned, shift, availabilityBlocks, leaveBlocks, existingShifts]);
+
+  const sortedStaffList = useMemo(() => {
+    if (!staffList) return [];
+    return [...staffList].sort((a, b) => {
+      const conflictA = conflictsMap.get(a.id)?.isConflict ? 1 : 0;
+      const conflictB = conflictsMap.get(b.id)?.isConflict ? 1 : 0;
+      if (conflictA !== conflictB) return conflictA - conflictB;
+      const nameA = a.staff_name || (a as any).name || '';
+      const nameB = b.staff_name || (b as any).name || '';
+      return nameA.localeCompare(nameB);
+    });
+  }, [staffList, conflictsMap]);
+
+  const handleQuickAssignSelect = (staffIdVal: string, staffName: string, conflict: any) => {
+    if (conflict?.isConflict) {
+      const confirmMsg = `WARNING: ${staffName} has a scheduling conflict:\n${conflict.reason}\n\nAre you sure you want to assign them anyway?`;
+      if (!window.confirm(confirmMsg)) return;
+    }
+    onQuickAssign?.(shift.id, staffIdVal);
+  };
 
   const shiftThemeClasses = isEvent
     ? shift.type_color === 'red'
@@ -174,21 +222,41 @@ export function ShiftCard({
                 </DropdownMenuTrigger>
                 <DropdownMenuContent
                   align="start"
-                  className="w-48 max-h-[300px] overflow-y-auto"
+                  className="w-56 max-h-[300px] overflow-y-auto"
                 >
-                  {staffList.length > 0 ? (
-                    staffList.map((s) => (
-                      <DropdownMenuItem
-                        key={s.id}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          onQuickAssign(shift.id, s.id);
-                        }}
-                        className="text-xs cursor-pointer"
-                      >
-                        {s.staff_name}
-                      </DropdownMenuItem>
-                    ))
+                  {sortedStaffList.length > 0 ? (
+                    sortedStaffList.map((s) => {
+                      const conflict = conflictsMap.get(s.id);
+                      const name = s.staff_name || (s as any).name || 'Unnamed';
+                      return (
+                        <DropdownMenuItem
+                          key={s.id}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleQuickAssignSelect(s.id, name, conflict);
+                          }}
+                          className="text-xs cursor-pointer flex flex-col items-start gap-0.5 py-1.5 px-2"
+                        >
+                          <div className="flex items-center gap-1.5 font-medium w-full">
+                            <span className="select-none">
+                              {conflict?.isConflict
+                                ? conflict.type === 'unavailability'
+                                  ? '🔴'
+                                  : conflict.type === 'overlap'
+                                    ? '⚠️'
+                                    : '🏖'
+                                : '🟢'}
+                            </span>
+                            <span className="truncate">{name}</span>
+                          </div>
+                          {conflict?.isConflict && (
+                            <span className="text-[8px] text-muted-foreground leading-tight line-clamp-1 pl-[18px]">
+                              {conflict.reason}
+                            </span>
+                          )}
+                        </DropdownMenuItem>
+                      );
+                    })
                   ) : (
                     <div className="px-2 py-2 text-[10px] text-muted-foreground italic">
                       No staff assigned to this house
@@ -386,19 +454,39 @@ export function ShiftCard({
                     align="start"
                     className="w-56 max-h-[300px] overflow-y-auto"
                   >
-                    {staffList.length > 0 ? (
-                      staffList.map((s) => (
-                        <DropdownMenuItem
-                          key={s.id}
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            onQuickAssign(shift.id, s.id);
-                          }}
-                          className="text-sm cursor-pointer"
-                        >
-                          {s.staff_name}
-                        </DropdownMenuItem>
-                      ))
+                    {sortedStaffList.length > 0 ? (
+                      sortedStaffList.map((s) => {
+                        const conflict = conflictsMap.get(s.id);
+                        const name = s.staff_name || (s as any).name || 'Unnamed';
+                        return (
+                          <DropdownMenuItem
+                            key={s.id}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleQuickAssignSelect(s.id, name, conflict);
+                            }}
+                            className="text-xs cursor-pointer flex flex-col items-start gap-0.5 py-1.5 px-2"
+                          >
+                            <div className="flex items-center gap-1.5 font-medium w-full">
+                              <span className="select-none">
+                                {conflict?.isConflict
+                                  ? conflict.type === 'unavailability'
+                                    ? '🔴'
+                                    : conflict.type === 'overlap'
+                                      ? '⚠️'
+                                      : '🏖'
+                                  : '🟢'}
+                              </span>
+                              <span className="truncate">{name}</span>
+                            </div>
+                            {conflict?.isConflict && (
+                              <span className="text-[8px] text-muted-foreground leading-tight line-clamp-1 pl-[18px]">
+                                {conflict.reason}
+                              </span>
+                            )}
+                          </DropdownMenuItem>
+                        );
+                      })
                     ) : (
                       <div className="px-2 py-3 text-xs text-muted-foreground italic text-center">
                         No staff assigned to this house

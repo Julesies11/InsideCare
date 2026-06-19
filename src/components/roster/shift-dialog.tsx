@@ -11,6 +11,7 @@ import {
   Trash2,
   User,
   Zap,
+  AlertTriangle,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { STORAGE_BUCKETS } from '@/config/storage-buckets';
@@ -21,6 +22,12 @@ import { useHouseStaffAssignments } from '@/hooks/use-house-staff-assignments';
 import { useActiveHouses } from '@/hooks/use-houses';
 import { useActiveParticipants } from '@/hooks/use-participants';
 import { useActiveStaff } from '@/hooks/use-staff';
+import {
+  useStaffAvailabilityQuery,
+  useLeaveRequestsQuery,
+  useShiftsQuery,
+} from './use-roster-data';
+import { checkRosterConflict } from '@/utils/conflict-detector';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import {
@@ -83,7 +90,9 @@ interface ShiftDialogProps {
   houses?: any[];
   participants?: any[];
   checklists?: any[];
-  scrollToNotes?: boolean;
+  allAvailabilityBlocks?: any[];
+  allLeaveBlocks?: any[];
+  allShifts?: any[];
 }
 
 export function ShiftDialog({
@@ -103,6 +112,9 @@ export function ShiftDialog({
   participants: passedParticipants,
   checklists: passedChecklists,
   scrollToNotes = false,
+  allAvailabilityBlocks = [],
+  allLeaveBlocks = [],
+  allShifts = [],
 }: ShiftDialogProps) {
   const { user, isAdmin } = useAuth();
   const isEdit = !!shift;
@@ -195,6 +207,47 @@ export function ShiftDialog({
     return list;
   }, [formData.house_id, formData.staff_id, staffList, houseStaffAssignments]);
 
+  const conflictsMap = useMemo(() => {
+    if (!filteredStaffList || !formData.start_date || !formData.start_time || !formData.end_time) {
+      return new Map();
+    }
+    const map = new Map<string, { isConflict: boolean; type?: string; reason?: string }>();
+    filteredStaffList.forEach((s) => {
+      const conflict = checkRosterConflict({
+        shiftId: shift?.id,
+        staffId: s.id,
+        startDate: formData.start_date,
+        startTime: formData.start_time,
+        endTime: formData.end_time,
+        endDate: formData.end_date || formData.start_date,
+        availabilityBlocks: allAvailabilityBlocks,
+        leaveRequests: allLeaveBlocks,
+        existingShifts: allShifts,
+      });
+      map.set(s.id, conflict);
+    });
+    return map;
+  }, [
+    filteredStaffList,
+    formData.start_date,
+    formData.start_time,
+    formData.end_time,
+    formData.end_date,
+    shift?.id,
+    allAvailabilityBlocks,
+    allLeaveBlocks,
+    allShifts,
+  ]);
+
+  const sortedStaffList = useMemo(() => {
+    return [...filteredStaffList].sort((a, b) => {
+      const conflictA = conflictsMap.get(a.id)?.isConflict ? 1 : 0;
+      const conflictB = conflictsMap.get(b.id)?.isConflict ? 1 : 0;
+      if (conflictA !== conflictB) return conflictA - conflictB;
+      return (a.staff_name || '').localeCompare(b.staff_name || '');
+    });
+  }, [filteredStaffList, conflictsMap]);
+
   const { shiftTemplates } = useHouseShiftTemplates(
     open && formData.house_id ? formData.house_id : undefined,
   );
@@ -204,6 +257,56 @@ export function ShiftDialog({
       (h) => h.id === (formData.house_id || preSelectedHouseId),
     );
   }, [houses, formData.house_id, preSelectedHouseId]);
+
+  // Conflict Checking Queries
+  const checkEnabled = open && !!formData.staff_id && formData.staff_id !== 'none';
+  
+  const { data: staffAvailability = [] } = useStaffAvailabilityQuery(
+    checkEnabled ? formData.staff_id! : 'skip'
+  );
+
+  const { data: staffLeave = [] } = useLeaveRequestsQuery(
+    checkEnabled ? formData.staff_id! : 'skip',
+    formData.start_date || '2026-01-01',
+    formData.end_date || formData.start_date || '2026-01-01'
+  );
+
+  const { shifts: staffShifts = [] } = useShiftsQuery(
+    checkEnabled ? formData.staff_id! : 'skip',
+    formData.start_date || '2026-01-01',
+    formData.end_date || formData.start_date || '2026-01-01',
+    undefined,
+    false,
+    { includeMetadata: false }
+  );
+
+  const conflict = useMemo(() => {
+    if (!checkEnabled || !formData.start_date || !formData.start_time || !formData.end_time) {
+      return { isConflict: false };
+    }
+    return checkRosterConflict({
+      shiftId: shift?.id || null,
+      staffId: formData.staff_id,
+      startDate: formData.start_date,
+      startTime: formData.start_time,
+      endTime: formData.end_time,
+      endDate: formData.end_date || formData.start_date,
+      availabilityBlocks: staffAvailability,
+      leaveRequests: staffLeave,
+      existingShifts: staffShifts,
+    });
+  }, [
+    checkEnabled,
+    shift?.id,
+    formData.staff_id,
+    formData.start_date,
+    formData.start_time,
+    formData.end_time,
+    formData.end_date,
+    staffAvailability,
+    staffLeave,
+    staffShifts,
+  ]);
 
   useEffect(() => {
     if (open) {
@@ -333,6 +436,12 @@ export function ShiftDialog({
     if (!formData.start_date || !formData.start_time || !formData.end_time) {
       toast.error('Please fill in required date and time fields');
       return;
+    }
+    if (conflict.isConflict) {
+      const confirmMsg = `Warning: ${conflict.reason}\n\nAre you sure you want to schedule this staff member anyway?`;
+      if (!window.confirm(confirmMsg)) {
+        return;
+      }
     }
     setSaving(true);
     try {
@@ -468,6 +577,20 @@ export function ShiftDialog({
             </div>
           )}
 
+          {conflict.isConflict && (
+            <div className="p-4 bg-rose-50 border border-rose-200 rounded-xl flex items-start gap-3 text-rose-900 animate-fadeIn">
+              <AlertTriangle className="size-5 text-rose-600 shrink-0 mt-0.5" />
+              <div>
+                <h4 className="text-xs font-black uppercase tracking-wider text-rose-800">
+                  Scheduling Conflict Warning
+                </h4>
+                <p className="text-xs mt-1 leading-normal font-semibold">
+                  {conflict.reason}
+                </p>
+              </div>
+            </div>
+          )}
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-5">
             <div className="space-y-1.5">
               <Label className="text-[10px] font-bold uppercase tracking-widest text-gray-500 ml-1 flex items-center gap-1.5">
@@ -496,21 +619,36 @@ export function ShiftDialog({
                   >
                     Open Shift (Unassigned)
                   </SelectItem>
-                  {filteredStaffList.map((s) => (
-                    <SelectItem key={s.id} value={s.id}>
-                      <div className="flex items-center gap-2">
-                        <SecureAvatar
-                          src={s.photo_url || undefined}
-                          initials={
-                            s.staff_name?.substring(0, 2).toUpperCase() ?? '?'
-                          }
-                          className="size-5 sm:size-6"
-                          bucket={STORAGE_BUCKETS.STAFF_PHOTOS}
-                        />
-                        <span className="text-sm">{s.staff_name}</span>
-                      </div>
-                    </SelectItem>
-                  ))}
+                  {sortedStaffList.map((s) => {
+                    const conflict = conflictsMap.get(s.id);
+                    return (
+                      <SelectItem key={s.id} value={s.id}>
+                        <div className="flex flex-col items-start py-0.5 w-full">
+                          <div className="flex items-center gap-2">
+                            <SecureAvatar
+                              src={s.photo_url || undefined}
+                              initials={
+                                s.staff_name?.substring(0, 2).toUpperCase() ?? '?'
+                              }
+                              className="size-5 sm:size-6"
+                              bucket={STORAGE_BUCKETS.STAFF_PHOTOS}
+                            />
+                            <span className="text-sm font-medium">{s.staff_name}</span>
+                            <span className="text-xs select-none">
+                              {conflict?.isConflict ? (
+                                conflict.type === 'unavailability' ? '🔴' : conflict.type === 'overlap' ? '⚠️' : '🏖'
+                              ) : '🟢'}
+                            </span>
+                          </div>
+                          {conflict?.isConflict && (
+                            <span className="text-[9px] text-muted-foreground leading-normal mt-0.5 line-clamp-1 max-w-[280px] pl-[28px]">
+                              {conflict.reason}
+                            </span>
+                          )}
+                        </div>
+                      </SelectItem>
+                    );
+                  })}
                 </SelectContent>
               </Select>
             </div>

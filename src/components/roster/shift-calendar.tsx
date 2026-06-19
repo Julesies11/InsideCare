@@ -20,6 +20,9 @@ export interface ShiftCalendarProps {
   loading: boolean;
   canEdit: boolean;
   leaveBlocks?: LeaveBlock[];
+  availabilityBlocks?: any[];
+  existingShifts?: ShiftCardData[];
+  showAvailability?: boolean;
   onAddShift: (date: Date, houseId?: string) => void;
   onEditShift: (shift: ShiftCardData) => void;
   onWriteNote?: (shift: ShiftCardData) => void;
@@ -76,6 +79,40 @@ function LeaveBlockBadge({
   );
 }
 
+function AvailabilityBlockBadge({
+  block,
+  staffName,
+}: {
+  block: any;
+  staffName?: string;
+}) {
+  const isAvailable = block.is_available;
+  const startClean = (block.start_time || '00:00').substring(0, 5);
+  const endClean = (block.end_time || '23:59').substring(0, 5);
+  const timeLabel =
+    startClean === '00:00' && endClean === '23:59'
+      ? 'All Day'
+      : `${startClean} - ${endClean}`;
+
+  return (
+    <div
+      className={`text-[9px] px-1.5 py-0.5 rounded font-bold uppercase tracking-tight flex items-start gap-1.5 border leading-tight ${
+        isAvailable
+          ? 'bg-emerald-50 text-emerald-800 border-emerald-200'
+          : 'bg-rose-50/50 text-rose-800 border-rose-200'
+      }`}
+      title={`${staffName ? `${staffName} - ` : ''}${isAvailable ? 'Preferred Hours' : 'Unavailable'}${block.notes ? `: ${block.notes}` : ''}`}
+    >
+      <span className="shrink-0 select-none pt-[1px]">{isAvailable ? '🟢' : '🔴'}</span>
+      <span className="whitespace-normal break-words w-full">
+        {staffName ? `${staffName}: ` : ''}
+        {isAvailable ? 'Preferred' : 'Unavailable'} ({timeLabel})
+        {block.notes ? ` - ${block.notes}` : ''}
+      </span>
+    </div>
+  );
+}
+
 export function ShiftCalendar({
   staffId,
   viewMode,
@@ -84,6 +121,9 @@ export function ShiftCalendar({
   loading,
   canEdit,
   leaveBlocks = [],
+  availabilityBlocks = [],
+  existingShifts = [],
+  showAvailability = false,
   onAddShift,
   onEditShift,
   onWriteNote,
@@ -129,6 +169,87 @@ export function ShiftCalendar({
       new Map(filtered.map((l) => [l.id, l])).values(),
     );
     return uniqueLeave;
+  };
+
+  const getAvailabilityForDate = (date: Date) => {
+    if (!showAvailability || !staffId || staffId === 'all') return [];
+
+    const dateStr = format(date, 'yyyy-MM-dd');
+    const dayOfWeek = date.getDay();
+    const staffBlocks = availabilityBlocks.filter(
+      (b) => b.staff_id === staffId && b.is_active !== false,
+    );
+
+    // 1. Check date-specific overrides
+    const dateOverrides = staffBlocks.filter(
+      (b) =>
+        b.type === 'date_specific' &&
+        b.start_date &&
+        b.end_date &&
+        dateStr >= b.start_date &&
+        dateStr <= b.end_date,
+    );
+
+    if (dateOverrides.length > 0) {
+      return dateOverrides;
+    }
+
+    // 2. Weekly recurring
+    return staffBlocks.filter(
+      (b) => b.type === 'recurring' && b.day_of_week === dayOfWeek,
+    );
+  };
+
+  const getAvailabilityForHouseAndDate = (
+    date: Date,
+    houseStaffList: Array<{ id: string }>,
+    houseId: string,
+  ) => {
+    if (!showAvailability) return [];
+    if (houseId === 'unassigned' && (!staffId || staffId === 'all')) return [];
+
+    const dateStr = format(date, 'yyyy-MM-dd');
+    const dayOfWeek = date.getDay();
+
+    // Determine target staff IDs to check
+    const targetStaffIds =
+      staffId && staffId !== 'all'
+        ? [staffId]
+        : houseStaffList.map((s) => s.id);
+
+    if (targetStaffIds.length === 0) return [];
+
+    const staffBlocks = availabilityBlocks.filter(
+      (b) => targetStaffIds.includes(b.staff_id) && b.is_active !== false,
+    );
+
+    // Filter blocks active on this day
+    const dateSpecific = staffBlocks.filter(
+      (b) =>
+        b.type === 'date_specific' &&
+        b.start_date &&
+        b.end_date &&
+        dateStr >= b.start_date &&
+        dateStr <= b.end_date,
+    );
+
+    const recurring = staffBlocks.filter(
+      (b) => b.type === 'recurring' && b.day_of_week === dayOfWeek,
+    );
+
+    // Group by staff_id, date_specific overrides take precedence over recurring for each staff member
+    const result: any[] = [];
+    targetStaffIds.forEach((sId) => {
+      const sDateSpecific = dateSpecific.filter((b) => b.staff_id === sId);
+      if (sDateSpecific.length > 0) {
+        result.push(...sDateSpecific);
+      } else {
+        const sRecurring = recurring.filter((b) => b.staff_id === sId);
+        result.push(...sRecurring);
+      }
+    });
+
+    return result;
   };
 
   const getShiftsForHouseAndDate = (houseId: string, date: Date) => {
@@ -239,6 +360,9 @@ export function ShiftCalendar({
             customStaffList !== undefined ? customStaffList : staffList
           }
           onQuickAssign={onQuickAssign}
+          availabilityBlocks={availabilityBlocks}
+          leaveBlocks={leaveBlocks}
+          existingShifts={existingShifts.length > 0 ? existingShifts : shifts}
         />
       </div>
     );
@@ -312,6 +436,13 @@ export function ShiftCalendar({
                       onClick={
                         onEditLeave ? () => onEditLeave(leave) : undefined
                       }
+                    />
+                  ))}
+
+                  {getAvailabilityForDate(day).map((block) => (
+                    <AvailabilityBlockBadge
+                      key={block.id || `${block.day_of_week}-${block.start_time}`}
+                      block={block}
                     />
                   ))}
 
@@ -422,13 +553,20 @@ export function ShiftCalendar({
                     onClick={onEditLeave ? () => onEditLeave(leave) : undefined}
                   />
                 ))}
+                {getAvailabilityForDate(day).map((block) => (
+                  <AvailabilityBlockBadge
+                    key={block.id || `${block.day_of_week}-${block.start_time}`}
+                    block={block}
+                  />
+                ))}
                 {dayShifts.map((shift) => (
                   <div key={shift.id} onClick={(e) => e.stopPropagation()}>
                     {renderShiftCardWithWarning(shift, day, false, true)}
                   </div>
                 ))}
                 {dayShifts.length === 0 &&
-                  getLeaveForDate(day).length === 0 && (
+                  getLeaveForDate(day).length === 0 &&
+                  getAvailabilityForDate(day).length === 0 && (
                     <div className="text-center py-8 bg-gray-50/50 rounded-xl border border-dashed border-gray-100">
                       <span className="text-[10px] font-medium text-muted-foreground italic uppercase tracking-widest opacity-40">
                         No shifts
@@ -667,6 +805,19 @@ export function ShiftCalendar({
                             ));
                           })()}
 
+                          {getAvailabilityForHouseAndDate(day, houseStaffList, house.id).map((block) => (
+                            <AvailabilityBlockBadge
+                              key={block.id || `${block.day_of_week}-${block.start_time}`}
+                              block={block}
+                              staffName={
+                                staffId === 'all'
+                                  ? staffList?.find((s) => s.id === block.staff_id)
+                                      ?.name
+                                  : undefined
+                              }
+                            />
+                          ))}
+
                           {houseShifts.map((shift) => (
                             <div
                               key={shift.id}
@@ -681,7 +832,8 @@ export function ShiftCalendar({
                               )}
                             </div>
                           ))}
-                          {houseShifts.length === 0 && (
+                          {houseShifts.length === 0 &&
+                            getAvailabilityForHouseAndDate(day, houseStaffList, house.id).length === 0 && (
                             <div className="text-center py-6 opacity-0 group-hover/cell:opacity-20 transition-opacity">
                               <span className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">
                                 Empty

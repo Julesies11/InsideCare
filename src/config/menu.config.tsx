@@ -32,6 +32,7 @@ export const MENU_SIDEBAR: MenuItemConfig[] = [
       RBAC_MODULES.MY_ROSTER,
       RBAC_MODULES.MY_LEAVE,
       RBAC_MODULES.MY_TIMESHEETS,
+      RBAC_MODULES.STAFF_AVAILABILITY,
     ],
   },
   {
@@ -45,6 +46,12 @@ export const MENU_SIDEBAR: MenuItemConfig[] = [
     icon: Calendar,
     path: ROUTES.MY_ROSTER,
     permission: RBAC_MODULES.MY_ROSTER,
+  },
+  {
+    title: 'My Availability',
+    icon: Clock,
+    path: ROUTES.MY_AVAILABILITY,
+    permission: RBAC_MODULES.STAFF_AVAILABILITY,
   },
   {
     title: 'My Leave',

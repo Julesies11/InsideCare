@@ -7,6 +7,7 @@ import { QUERY_KEYS } from '@/config/query-keys';
 import { useActiveHouses } from '@/hooks/use-houses';
 import { useActiveParticipants } from '@/hooks/use-participants';
 import { useActiveStaff } from '@/hooks/use-staff';
+import { availabilityApi } from '@/api/availability.api';
 
 export interface StaffShift {
   id: string;
@@ -60,6 +61,33 @@ export function useGlobalShiftTemplatesQuery() {
     queryFn: () => rosterApi.listGlobalShiftTemplates(),
     staleTime: 1000 * 60 * 30, // 30 minutes
   });
+}
+
+export function useStaffAvailabilityQuery(staffId: string) {
+  const query = useQuery({
+    queryKey: ['staff-availability', staffId],
+    queryFn: async () => {
+      if (!staffId) return [];
+      if (staffId === 'all') {
+        return availabilityApi.listAll();
+      }
+      return availabilityApi.listForStaff(staffId);
+    },
+    enabled:
+      !!staffId &&
+      staffId !== 'skip' &&
+      staffId !== 'undefined' &&
+      staffId !== 'null',
+    staleTime: 1000 * 60 * 5, // 5 minutes
+  });
+
+  return useMemo(
+    () => ({
+      ...query,
+      data: query.data || [],
+    }),
+    [query],
+  );
 }
 
 export function useLeaveRequestsQuery(
@@ -133,7 +161,11 @@ export function useShiftsQuery(
         houseId,
         includeEvents,
       }),
-    enabled: !!staffId && staffId !== 'undefined' && staffId !== 'null',
+    enabled:
+      !!staffId &&
+      staffId !== 'skip' &&
+      staffId !== 'undefined' &&
+      staffId !== 'null',
     staleTime: 1000 * 60 * 5,
   });
 

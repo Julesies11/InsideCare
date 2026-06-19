@@ -19,6 +19,7 @@ export const ROUTES = {
   MY_CHECKLISTS: '/my-checklists',
   MY_TIMESHEETS: '/my-timesheets',
   MY_LEAVE: '/my-leave',
+  MY_AVAILABILITY: '/my-availability',
 
   // People & Houses
   STAFF: '/staff',

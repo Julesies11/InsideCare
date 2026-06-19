@@ -51,6 +51,7 @@ export const TABLES = {
   STAFF_DOCUMENT_ROLES: 'ic_staff_document_roles',
   STAFF_ONBOARDING: 'ic_staff_onboarding',
   STAFF_SHIFTS: 'ic_staff_shifts',
+  STAFF_AVAILABILITY: 'ic_staff_availability',
 
   // Operations
   SHIFT_PARTICIPANTS: 'ic_shift_participants',

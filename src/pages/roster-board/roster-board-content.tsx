@@ -55,6 +55,10 @@ export function RosterBoardContent() {
     () => searchParams.get('showLeave') !== 'false',
     [searchParams],
   );
+  const showAvailability = useMemo(
+    () => searchParams.get('showAvailability') === 'true',
+    [searchParams],
+  );
   const houseFilter = useMemo(
     () => searchParams.get('houseFilter') || 'all',
     [searchParams],
@@ -77,7 +81,8 @@ export function RosterBoardContent() {
         value === null ||
         value === 'all' ||
         value === '' ||
-        (key === 'showLeave' && value === true)
+        (key === 'showLeave' && value === true) ||
+        (key === 'showAvailability' && value === false)
       ) {
         newParams.delete(key);
       } else {
@@ -118,6 +123,13 @@ export function RosterBoardContent() {
   const setShowLeave = useCallback(
     (val: boolean) => {
       updateUrlParam('showLeave', val);
+    },
+    [updateUrlParam],
+  );
+
+  const setShowAvailability = useCallback(
+    (val: boolean) => {
+      updateUrlParam('showAvailability', val);
     },
     [updateUrlParam],
   );
@@ -287,6 +299,8 @@ export function RosterBoardContent() {
             shiftTemplateList={shiftTemplates}
             showLeave={showLeave}
             onShowLeaveChange={setShowLeave}
+            showAvailability={showAvailability}
+            onShowAvailabilityChange={setShowAvailability}
             onPopulateRoster={() => handleOpenPopulateModal()}
             onBulkAction={() => handleOpenBulkModal()}
             isCopying={isCopying}
@@ -307,6 +321,7 @@ export function RosterBoardContent() {
           canEdit={canEdit}
           groupByHouse={true}
           showLeave={showLeave}
+          showAvailability={showAvailability}
           includeEvents={false}
           onBulkAction={handleOpenBulkModal}
           onPopulateRoster={handleOpenPopulateModal}

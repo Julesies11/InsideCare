@@ -29,6 +29,7 @@ export interface StaffPersonalCalendarProps {
   loading: boolean;
   canEdit: boolean;
   leaveBlocks?: LeaveBlock[];
+  availabilityBlocks?: any[];
   onAddShift: (date: Date, houseId?: string) => void;
   onEditShift: (shift: ShiftCardData) => void;
   onWriteNote?: (shift: ShiftCardData) => void;
@@ -69,6 +70,33 @@ function LeaveBlockBadge({
   );
 }
 
+function AvailabilityBlockBadge({ block }: { block: any }) {
+  const isAvailable = block.is_available;
+  const startClean = (block.start_time || '00:00').substring(0, 5);
+  const endClean = (block.end_time || '23:59').substring(0, 5);
+  const timeLabel =
+    startClean === '00:00' && endClean === '23:59'
+      ? 'All Day'
+      : `${startClean} - ${endClean}`;
+
+  return (
+    <div
+      className={`text-[9px] px-1.5 py-0.5 rounded font-bold uppercase tracking-tight flex items-start gap-1.5 border leading-tight ${
+        isAvailable
+          ? 'bg-emerald-50 text-emerald-800 border-emerald-200'
+          : 'bg-rose-50/50 text-rose-800 border-rose-200'
+      }`}
+      title={`${isAvailable ? 'Preferred Hours' : 'Unavailable'}${block.notes ? `: ${block.notes}` : ''}`}
+    >
+      <span className="shrink-0 select-none pt-[1px]">{isAvailable ? '🟢' : '🔴'}</span>
+      <span className="whitespace-normal break-words w-full">
+        {isAvailable ? 'Preferred' : 'Unavailable'} ({timeLabel})
+        {block.notes ? ` - ${block.notes}` : ''}
+      </span>
+    </div>
+  );
+}
+
 export function StaffPersonalCalendar({
   staffId,
   viewMode,
@@ -77,6 +105,7 @@ export function StaffPersonalCalendar({
   loading,
   canEdit,
   leaveBlocks = [],
+  availabilityBlocks = [],
   onAddShift,
   onEditShift,
   onWriteNote,
@@ -115,6 +144,27 @@ export function StaffPersonalCalendar({
       new Map(filtered.map((l) => [l.id, l])).values(),
     );
     return uniqueLeave;
+  };
+
+  const getAvailabilityForDate = (date: Date) => {
+    const dateStr = format(date, 'yyyy-MM-dd');
+    const dayOfWeek = date.getDay();
+    const staffBlocks = availabilityBlocks.filter((b) => b.is_active !== false);
+
+    const dateSpecific = staffBlocks.filter(
+      (b) =>
+        b.type === 'date_specific' &&
+        b.start_date &&
+        b.end_date &&
+        dateStr >= b.start_date &&
+        dateStr <= b.end_date,
+    );
+    if (dateSpecific.length > 0) return dateSpecific;
+
+    // 2. Weekly recurring blocks
+    return staffBlocks.filter(
+      (b) => b.type === 'recurring' && b.day_of_week === dayOfWeek,
+    );
   };
 
   const getConflictingShifts = (
@@ -279,6 +329,13 @@ export function StaffPersonalCalendar({
                     />
                   ))}
 
+                  {getAvailabilityForDate(day).map((block) => (
+                    <AvailabilityBlockBadge
+                      key={block.id || `${block.day_of_week}-${block.start_time}`}
+                      block={block}
+                    />
+                  ))}
+
                   {dayShifts.map((shift) => (
                     <div key={shift.id} onClick={(e) => e.stopPropagation()}>
                       {renderShiftCardWithWarning(shift, day, true, true)}
@@ -341,6 +398,12 @@ export function StaffPersonalCalendar({
                     key={leave.id}
                     leave={leave}
                     onClick={onEditLeave ? () => onEditLeave(leave) : undefined}
+                  />
+                ))}
+                {getAvailabilityForDate(day).map((block) => (
+                  <AvailabilityBlockBadge
+                    key={block.id || `${block.day_of_week}-${block.start_time}`}
+                    block={block}
                   />
                 ))}
                 {dayShifts.map((shift) => (

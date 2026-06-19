@@ -15,6 +15,7 @@ import {
   useLeaveRequestsQuery,
   useRosterData,
   useShiftsQuery,
+  useStaffAvailabilityQuery,
 } from '@/components/roster/use-roster-data';
 import { ViewLeaveDialog } from '@/components/roster/view-leave-dialog';
 import { ViewShiftDialog } from '@/components/roster/view-shift-dialog';
@@ -38,6 +39,7 @@ interface StaffRosterCalendarProps {
   shiftTemplateFilter: string;
   canEdit: boolean;
   showLeave?: boolean;
+  showAvailability?: boolean;
   onBulkAction?: (houseId: string) => void;
   onPopulateRoster?: (houseId: string) => void;
   checklists: any[];
@@ -69,6 +71,7 @@ export const StaffRosterCalendar = forwardRef<
       shiftTemplateFilter,
       canEdit,
       showLeave = false,
+      showAvailability = false,
       onBulkAction,
       onPopulateRoster,
       checklists,
@@ -130,6 +133,10 @@ export const StaffRosterCalendar = forwardRef<
       showLeave ? staffId : 'skip',
       startDate,
       endDate,
+    );
+
+    const { data: availabilityBlocks = [] } = useStaffAvailabilityQuery(
+      staffId
     );
 
     const filteredShifts = useMemo(() => {
@@ -483,6 +490,7 @@ export const StaffRosterCalendar = forwardRef<
             loading={shiftsLoading || isCopying || saving}
             canEdit={canEdit}
             leaveBlocks={showLeave ? (leaveBlocks as LeaveBlock[]) : []}
+            availabilityBlocks={showAvailability ? availabilityBlocks : []}
             onAddShift={handleAddShift}
             onEditShift={handleEditShift}
             onWriteNote={handleWriteNote}
@@ -499,6 +507,9 @@ export const StaffRosterCalendar = forwardRef<
             loading={shiftsLoading || isCopying || saving}
             canEdit={canEdit}
             leaveBlocks={showLeave ? (leaveBlocks as LeaveBlock[]) : []}
+            availabilityBlocks={availabilityBlocks}
+            existingShifts={shifts}
+            showAvailability={showAvailability}
             shiftTemplates={shiftTemplates}
             onAddShift={handleAddShift}
             onEditShift={handleEditShift}
@@ -548,6 +559,9 @@ export const StaffRosterCalendar = forwardRef<
             onDelete={selectedShift ? handleDeleteShift : undefined}
             scrollToNotes={scrollToNotes}
             readOnly={false}
+            allAvailabilityBlocks={availabilityBlocks}
+            allLeaveBlocks={leaveBlocks}
+            allShifts={shifts}
           />
         ) : (
           <ViewShiftDialog

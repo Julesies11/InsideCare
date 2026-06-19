@@ -16,6 +16,7 @@ export function StaffRoster({ staffId, canEdit }: StaffRosterProps) {
 
   const [showLeave, setShowLeave] = useState<boolean>(true);
   const [showEvents, setShowEvents] = useState<boolean>(false);
+  const [showAvailability, setShowAvailability] = useState<boolean>(false);
 
   const navigatePeriod = (direction: 'prev' | 'next') => {
     if (viewMode === 'today') {
@@ -60,6 +61,8 @@ export function StaffRoster({ staffId, canEdit }: StaffRosterProps) {
           onShowLeaveChange={setShowLeave}
           showEvents={showEvents}
           onShowEventsChange={setShowEvents}
+          showAvailability={showAvailability}
+          onShowAvailabilityChange={setShowAvailability}
         />
 
         <RosterCalendarView
@@ -72,6 +75,7 @@ export function StaffRoster({ staffId, canEdit }: StaffRosterProps) {
           canEdit={canEdit}
           showLeave={showLeave}
           includeEvents={showEvents}
+          showAvailability={showAvailability}
           isPersonal={true}
           checklists={[]}
         />
