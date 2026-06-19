@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useAuth } from '@/auth/context/auth-context';
+import { handleSupabaseError } from '@/errors/error-handler';
 import { availabilityApi, StaffAvailabilityRow } from '@/api/availability.api';
 import {
   Toolbar,
@@ -201,7 +202,7 @@ export function MyAvailabilityPage() {
       setBlocks(local);
       setOriginalBlockIds(new Set(data.map((b) => b.id)));
     } catch (err: any) {
-      toast.error('Failed to load availability', { description: err.message });
+      handleSupabaseError(err, 'Failed to load availability');
     } finally {
       setLoading(false);
     }
@@ -320,7 +321,7 @@ export function MyAvailabilityPage() {
       toast.success('Availability updated successfully.');
       await fetchAvailability();
     } catch (err: any) {
-      toast.error('Failed to save availability changes', { description: err.message });
+      handleSupabaseError(err, 'Failed to save availability changes');
     } finally {
       setSaving(false);
     }
