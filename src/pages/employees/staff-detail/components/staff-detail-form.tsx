@@ -129,16 +129,6 @@ export function StaffDetailForm({
         />
       )}
 
-      {/* 3. Onboarding */}
-      {canViewOnboarding && (
-        <StaffOnboardingSection
-          staffId={staffId}
-          canEdit={canEditOnboarding}
-          pendingChanges={pendingChanges}
-          onPendingChangesChange={onPendingChangesChange}
-        />
-      )}
-
       {/* 3. Availability */}
       {canViewAvailability && (
         <StaffAvailability
@@ -154,6 +144,16 @@ export function StaffDetailForm({
           formData={formData}
           onFormChange={handleFormChange}
           canEdit={canEditEmergency}
+        />
+      )}
+
+      {/* 3. Onboarding */}
+      {canViewOnboarding && (
+        <StaffOnboardingSection
+          staffId={staffId}
+          canEdit={canEditOnboarding}
+          pendingChanges={pendingChanges}
+          onPendingChangesChange={onPendingChangesChange}
         />
       )}
 

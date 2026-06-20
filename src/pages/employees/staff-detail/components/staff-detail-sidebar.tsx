@@ -27,14 +27,6 @@ export function StaffDetailSidebar() {
       }),
     },
     {
-      title: 'Onboarding',
-      target: 'staff_onboarding',
-      hidden: !hasAccess({
-        resource: RBAC_MODULES.STAFF_ONBOARDING,
-        requiredLevel: ACCESS_LEVEL.CONTEXT_READ_ONLY,
-      }),
-    },
-    {
       title: 'Availability',
       target: 'staff_availability',
       hidden: !hasAccess({
@@ -47,6 +39,14 @@ export function StaffDetailSidebar() {
       target: 'emergency_contact',
       hidden: !hasAccess({
         resource: RBAC_MODULES.STAFF_EMERGENCY,
+        requiredLevel: ACCESS_LEVEL.CONTEXT_READ_ONLY,
+      }),
+    },
+    {
+      title: 'Onboarding',
+      target: 'staff_onboarding',
+      hidden: !hasAccess({
+        resource: RBAC_MODULES.STAFF_ONBOARDING,
         requiredLevel: ACCESS_LEVEL.CONTEXT_READ_ONLY,
       }),
     },
