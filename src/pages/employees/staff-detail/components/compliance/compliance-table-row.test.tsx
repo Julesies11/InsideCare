@@ -1,5 +1,5 @@
 import { ResolvedComplianceItem } from '@/models/compliance.types';
-import { render, screen } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 import { ComplianceTableRow } from './compliance-table-row';
 
@@ -49,6 +49,9 @@ describe('ComplianceTableRow', () => {
 
     expect(screen.getByText('Standard Requirement')).toBeInTheDocument();
     expect(screen.getByText('Test description')).toBeInTheDocument();
+
+    // Toggle details to expand
+    fireEvent.click(screen.getByText(/View \/ Edit Details/i));
     expect(screen.getByDisplayValue('REF-123')).toBeInTheDocument();
   });
 
@@ -99,6 +102,9 @@ describe('ComplianceTableRow', () => {
         </tbody>
       </table>,
     );
+
+    // Toggle details to expand
+    fireEvent.click(screen.getByText(/View \/ Edit Details/i));
 
     // Should show the reason block and the Textarea with the comments value
     expect(screen.getByText(/marked as Not Applicable/i)).toBeInTheDocument();
