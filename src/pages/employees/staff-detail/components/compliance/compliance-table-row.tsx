@@ -5,6 +5,8 @@ import { FileText } from 'lucide-react';
 import { toast } from 'sonner';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
 import { TableCell, TableRow } from '@/components/ui/table';
 import { ComplianceAttachmentsList } from './compliance-attachments-list';
 import { ComplianceDetailsForm } from './compliance-details-form';
@@ -326,37 +328,36 @@ export const ComplianceTableRow = React.memo(function ComplianceTableRow({
 
           {/* Not Applicable State Message */}
           {isNotApplicable && (
-            <div className="mt-3 p-3 bg-slate-50 border border-slate-200 border-dashed rounded-lg w-full">
+            <div className="mt-3 p-3 bg-slate-50 border border-slate-200 border-dashed rounded-lg w-full space-y-3">
               <p className="text-xs text-slate-500 italic">
                 This requirement has been marked as{' '}
                 <strong>Not Applicable</strong> for this staff member.
-                {item.comments ? (
-                  <span className="block mt-1 font-medium text-slate-600">
-                    Reason: {item.comments}
-                  </span>
-                ) : (
-                  <span className="block mt-1">
-                    Please provide a reason in the comments field.
-                  </span>
-                )}
               </p>
-              {isNotApplicable && (
-                <div className="mt-3 pt-3 border-t border-slate-200/60">
-                  <ComplianceDetailsForm
-                    item={item}
-                    canEdit={canEdit}
-                    onFieldChange={(field, value) =>
-                      onFieldChange(
-                        item.requirementId,
-                        item.recordId,
-                        item.complianceName,
-                        field,
-                        value,
-                      )
-                    }
-                  />
-                </div>
-              )}
+              <div className="space-y-1">
+                <Label
+                  htmlFor={`reason-${item.requirementId}`}
+                  className="text-[10px] uppercase font-bold text-slate-500 tracking-wider"
+                >
+                  Reason
+                </Label>
+                <Textarea
+                  id={`reason-${item.requirementId}`}
+                  value={item.comments || ''}
+                  onChange={(e) =>
+                    onFieldChange(
+                      item.requirementId,
+                      item.recordId,
+                      item.complianceName,
+                      'comments',
+                      e.target.value,
+                    )
+                  }
+                  placeholder="Provide a reason why this is not applicable..."
+                  maxLength={1000}
+                  className="text-xs min-h-[60px] resize-none bg-white focus:bg-white"
+                  disabled={!canEdit}
+                />
+              </div>
             </div>
           )}
         </div>
@@ -458,7 +459,7 @@ export const ComplianceTableRow = React.memo(function ComplianceTableRow({
       </TableCell>
 
       <TableCell className="py-5.5! px-2 text-center align-top pt-4.5">
-        {item.expiryDateApplicable ? (
+        {item.expiryDateApplicable && !isNotApplicable ? (
           <>
             <Input
               type="date"
@@ -475,8 +476,7 @@ export const ComplianceTableRow = React.memo(function ComplianceTableRow({
               disabled={
                 !canEdit ||
                 (!shouldShowDetails && !item.expiryDate) ||
-                isIDVerification ||
-                isNotApplicable
+                isIDVerification
               }
               className="max-w-[135px] mx-auto text-center h-8 text-xs bg-white focus:bg-white"
             />
