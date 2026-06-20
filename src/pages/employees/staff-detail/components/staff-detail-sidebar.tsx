@@ -27,6 +27,14 @@ export function StaffDetailSidebar() {
       }),
     },
     {
+      title: 'House Assignments',
+      target: 'house_assignments',
+      hidden: !hasAccess({
+        resource: RBAC_MODULES.HOUSE_STAFF,
+        requiredLevel: ACCESS_LEVEL.CONTEXT_READ_ONLY,
+      }),
+    },
+    {
       title: 'Availability',
       target: 'staff_availability',
       hidden: !hasAccess({

@@ -459,6 +459,41 @@ export const staffDetailsApi = {
     },
   },
 
+  houses: {
+    async listAssignments(staffId: string) {
+      if (!staffId || staffId === 'undefined' || staffId === 'null') return [];
+      const { data, error } = await supabase
+        .from(TABLES.HOUSE_STAFF_ASSIGNMENTS)
+        .select(`
+          id,
+          house_id,
+          staff_id,
+          is_primary,
+          start_date,
+          end_date,
+          notes,
+          created_at,
+          updated_at,
+          house:${TABLES.HOUSES}(id, house_name, status)
+        `)
+        .eq('staff_id', staffId)
+        .order('start_date', { ascending: false });
+
+      if (error) throw error;
+      return (data || []).map((assignment: any) => {
+        if (assignment.house) {
+          return {
+            ...assignment,
+            house: Array.isArray(assignment.house)
+              ? assignment.house[0]
+              : assignment.house,
+          };
+        }
+        return assignment;
+      });
+    },
+  },
+
   /**
    * Bulk synchronizes all pending changes for a staff member.
    */
@@ -826,6 +861,46 @@ export const staffDetailsApi = {
         if (error)
           errors.push(`Qualification Delete ${d.id}: ${error.message}`);
       }
+    }
+
+    // 5. Process House Assignments
+    if (pending?.houseAssignments?.toAdd?.length > 0) {
+      const inserts = pending.houseAssignments.toAdd.map((a) => {
+        const { tempId, house_name, ...rest } = a as any;
+        return {
+          ...rest,
+          staff_id: staffId,
+          start_date: normalizeDate(rest.start_date),
+          end_date: normalizeDate(rest.end_date),
+        };
+      });
+      const { error } = await supabase
+        .from(TABLES.HOUSE_STAFF_ASSIGNMENTS)
+        .insert(inserts);
+      if (error) errors.push(`House Assignments Add: ${error.message}`);
+    }
+
+    if (pending?.houseAssignments?.toUpdate?.length > 0) {
+      for (const a of pending.houseAssignments.toUpdate) {
+        const { error } = await supabase
+          .from(TABLES.HOUSE_STAFF_ASSIGNMENTS)
+          .update({
+            is_primary: a.is_primary,
+            start_date: normalizeDate(a.start_date),
+            end_date: normalizeDate(a.end_date),
+            notes: a.notes,
+          })
+          .eq('id', a.id);
+        if (error) errors.push(`House Assignments Update ${a.id}: ${error.message}`);
+      }
+    }
+
+    if (pending?.houseAssignments?.toDelete?.length > 0) {
+      const { error } = await supabase
+        .from(TABLES.HOUSE_STAFF_ASSIGNMENTS)
+        .delete()
+        .in('id', pending.houseAssignments.toDelete);
+      if (error) errors.push(`House Assignments Delete: ${error.message}`);
     }
 
     if (errors.length > 0) {

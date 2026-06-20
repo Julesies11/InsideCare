@@ -214,6 +214,15 @@ export function StaffDetailContent({
     requiredLevel: ACCESS_LEVEL.CONTEXT_READ_WRITE,
   });
 
+  const canViewHouseAssignments = hasAccess({
+    resource: RBAC_MODULES.HOUSE_STAFF,
+    requiredLevel: ACCESS_LEVEL.CONTEXT_READ_ONLY,
+  });
+  const canEditHouseAssignments = hasAccess({
+    resource: RBAC_MODULES.HOUSE_STAFF,
+    requiredLevel: ACCESS_LEVEL.CONTEXT_READ_WRITE,
+  });
+
   const canViewActivityLog = hasAccess({
     resource: RBAC_MODULES.STAFF_ACTIVITY_LOG,
     requiredLevel: ACCESS_LEVEL.CONTEXT_READ_ONLY,
@@ -507,6 +516,12 @@ export function StaffDetailContent({
       queryClient.invalidateQueries({
         queryKey: [QUERY_KEYS.STAFF_DOCUMENTS, staffId],
       });
+      queryClient.invalidateQueries({
+        queryKey: [QUERY_KEYS.HOUSE_STAFF_ASSIGNMENTS],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ['staff-assigned-houses', staffId],
+      });
 
       setRefreshKeys((prev) => ({
         compliance: prev.compliance + 1,
@@ -618,6 +633,7 @@ export function StaffDetailContent({
           canEditRoster={canEditRoster}
           canEditLeave={canEditLeave}
           canEditWarnings={canEditWarnings}
+          canEditHouseAssignments={canEditHouseAssignments}
           canViewPersonal={canViewPersonal}
           canViewEmployment={canViewEmployment}
           canViewAvailability={canViewAvailability}
@@ -629,6 +645,7 @@ export function StaffDetailContent({
           canViewRoster={canViewRoster}
           canViewLeave={canViewLeave}
           canViewWarnings={canViewWarnings}
+          canViewHouseAssignments={canViewHouseAssignments}
           canViewActivityLog={canViewActivityLog}
           pendingChanges={pendingChanges}
           onPendingChangesChange={onPendingChangesChange}
