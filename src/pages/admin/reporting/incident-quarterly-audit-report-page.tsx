@@ -39,11 +39,19 @@ import { Textarea } from '@/components/ui/textarea';
 const YEARS = Array.from({ length: 6 }, (_, i) => (new Date().getFullYear() - 3 + i).toString()).reverse();
 
 const QUARTERS = [
-  { value: '1', label: 'Q1 (Jan - Mar)' },
-  { value: '2', label: 'Q2 (Apr - Jun)' },
-  { value: '3', label: 'Q3 (Jul - Sep)' },
-  { value: '4', label: 'Q4 (Oct - Dec)' },
+  { value: '1', label: 'Q1 (Jul - Sep)' },
+  { value: '2', label: 'Q2 (Oct - Dec)' },
+  { value: '3', label: 'Q3 (Jan - Mar)' },
+  { value: '4', label: 'Q4 (Apr - Jun)' },
 ];
+
+const getCurrentQuarter = () => {
+  const month = new Date().getMonth();
+  if (month >= 6 && month <= 8) return '1';
+  if (month >= 9 && month <= 11) return '2';
+  if (month >= 0 && month <= 2) return '3';
+  return '4';
+};
 
 export function IncidentQuarterlyAuditReportPage() {
   const navigate = useNavigate();
@@ -51,8 +59,7 @@ export function IncidentQuarterlyAuditReportPage() {
 
   // URL State
   const [selectedQuarter, setSelectedQuarter] = useState<string>(
-    searchParams.get('quarter') ||
-      Math.ceil((new Date().getMonth() + 1) / 3).toString(),
+    searchParams.get('quarter') || getCurrentQuarter(),
   );
   const [selectedYear, setSelectedYear] = useState<string>(
     searchParams.get('year') || new Date().getFullYear().toString(),
@@ -66,7 +73,11 @@ export function IncidentQuarterlyAuditReportPage() {
   const dateRange = useMemo(() => {
     const yearNum = parseInt(selectedYear);
     const qNum = parseInt(selectedQuarter);
-    const startMonth = (qNum - 1) * 3;
+    let startMonth = 6; // default to Q1 (Jul)
+    if (qNum === 2) startMonth = 9; // Q2 (Oct)
+    else if (qNum === 3) startMonth = 0; // Q3 (Jan)
+    else if (qNum === 4) startMonth = 3; // Q4 (Apr)
+
     const baseDate = new Date(yearNum, startMonth, 1);
     return {
       from: startOfQuarter(baseDate),

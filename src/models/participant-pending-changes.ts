@@ -40,6 +40,7 @@ export interface PendingContact {
   address?: string;
   notes?: string;
   is_active: boolean;
+  is_emergency_contact?: boolean;
 }
 
 export interface PendingShiftNote {

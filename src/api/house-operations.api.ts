@@ -805,9 +805,6 @@ export const houseOperationsApi = {
           category: res.category,
           type: res.type,
           description: res.description,
-          priority: res.priority,
-          phone: res.phone,
-          address: res.address,
           notes: res.notes,
           file_url,
           file_name,
@@ -825,9 +822,6 @@ export const houseOperationsApi = {
           category: res.category,
           type: res.type,
           description: res.description,
-          priority: res.priority,
-          phone: res.phone,
-          address: res.address,
           notes: res.notes,
         };
 

@@ -2059,7 +2059,6 @@ export type Database = {
       }
       ic_house_resources: {
         Row: {
-          address: string | null
           category: string
           created_at: string | null
           created_by: string | null
@@ -2071,15 +2070,12 @@ export type Database = {
           id: string
           is_active: boolean | null
           notes: string | null
-          phone: string | null
-          priority: string | null
           title: string
           type: string
           updated_at: string | null
           updated_by: string | null
         }
         Insert: {
-          address?: string | null
           category: string
           created_at?: string | null
           created_by?: string | null
@@ -2091,15 +2087,12 @@ export type Database = {
           id?: string
           is_active?: boolean | null
           notes?: string | null
-          phone?: string | null
-          priority?: string | null
           title: string
           type: string
           updated_at?: string | null
           updated_by?: string | null
         }
         Update: {
-          address?: string | null
           category?: string
           created_at?: string | null
           created_by?: string | null
@@ -2111,8 +2104,6 @@ export type Database = {
           id?: string
           is_active?: boolean | null
           notes?: string | null
-          phone?: string | null
-          priority?: string | null
           title?: string
           type?: string
           updated_at?: string | null
@@ -3441,6 +3432,7 @@ export type Database = {
           email: string | null
           id: string
           is_active: boolean | null
+          is_emergency_contact: boolean
           notes: string | null
           participant_id: string
           phone: string | null
@@ -3456,6 +3448,7 @@ export type Database = {
           email?: string | null
           id?: string
           is_active?: boolean | null
+          is_emergency_contact?: boolean
           notes?: string | null
           participant_id: string
           phone?: string | null
@@ -3471,6 +3464,7 @@ export type Database = {
           email?: string | null
           id?: string
           is_active?: boolean | null
+          is_emergency_contact?: boolean
           notes?: string | null
           participant_id?: string
           phone?: string | null

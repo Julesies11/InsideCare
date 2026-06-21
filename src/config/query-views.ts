@@ -144,6 +144,7 @@ export const PARTICIPANT_VIEWS = {
     address, 
     notes, 
     is_active, 
+    is_emergency_contact,
     created_at, 
     updated_at,
     contact_type_info:${TABLES.CONTACT_TYPES_MASTER}!contact_type_id(id, contact_type_name)
@@ -302,7 +303,7 @@ export const HOUSE_VIEWS = {
    * View for house resources and documentation.
    */
   RESOURCES: `
-    id, house_id, title, category, type, description, priority, phone, address, notes, file_url, file_name, file_size, is_active, created_at, updated_at
+    id, house_id, title, category, type, description, notes, file_url, file_name, file_size, is_active, created_at, updated_at
   `,
 
   /**

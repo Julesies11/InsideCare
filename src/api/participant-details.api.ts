@@ -618,6 +618,7 @@ export const participantDetailsApi = {
           address: c.address,
           notes: c.notes,
           is_active: c.is_active,
+          is_emergency_contact: c.is_emergency_contact ?? false,
         })),
       );
       if (error) errors.push(`Contacts Add: ${error.message}`);
@@ -634,6 +635,7 @@ export const participantDetailsApi = {
             address: c.address,
             notes: c.notes,
             is_active: c.is_active,
+            is_emergency_contact: c.is_emergency_contact,
           })
           .eq('id', c.id);
         if (error) errors.push(`Contact Update ${c.id}: ${error.message}`);
