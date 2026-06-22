@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import {
   Activity,
   Brain,
@@ -6,6 +7,7 @@ import {
   Navigation,
   ShowerHead,
   Utensils,
+  Plus,
 } from 'lucide-react';
 import { useClinicalTrackersMaster } from '@/hooks/use-clinical-trackers-master';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -21,6 +23,11 @@ import {
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { BristolScalePicker } from '../bristol-scale-picker';
+import { Button } from '@/components/ui/button';
+import { ClinicalTrackerMasterDialog } from '@/pages/admin/clinical-trackers/components/clinical-tracker-master-dialog';
+import { TABLES } from '@/config/db-tables';
+import { useRBAC, ACCESS_LEVEL } from '@/hooks/useRBAC';
+import { RBAC_MODULES } from '@/config/rbac-modules';
 
 interface ShiftNoteTrackersSectionProps {
   canEdit: boolean;
@@ -36,6 +43,18 @@ export function ShiftNoteTrackersSection({
   const { data: trackerMasters = {} as any } = useClinicalTrackersMaster();
 
   const disabled = !canEdit;
+
+  const { hasAccess } = useRBAC();
+  const canManageMasterLists = hasAccess({
+    resource: RBAC_MODULES.MASTER_LISTS,
+    requiredLevel: ACCESS_LEVEL.FULL,
+  });
+
+  const [selectedTaxonomy, setSelectedTaxonomy] = useState<{
+    id: string;
+    label: string;
+    table: keyof typeof TABLES;
+  } | null>(null);
 
   const participant = formData.participant as any;
   const showBowel = !!participant?.track_bowel;
@@ -87,56 +106,100 @@ export function ShiftNoteTrackersSection({
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="bowel_amount_id">Amount</Label>
-                    <Select
-                      value={(formData.bowel_amount_id as string) || 'none'}
-                      onValueChange={(val) =>
-                        onFormChange(
-                          'bowel_amount_id',
-                          val === 'none' ? null : val,
-                        )
-                      }
-                      disabled={disabled}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select amount" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="none">Select amount...</SelectItem>
-                        {trackerMasters.BOWEL_AMOUNTS_MASTER?.map((item: any) => (
-                          <SelectItem key={item.id} value={item.id}>
-                            {item.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    <div className="flex items-center gap-1.5">
+                      <div className="flex-1">
+                        <Select
+                          value={(formData.bowel_amount_id as string) || 'none'}
+                          onValueChange={(val) =>
+                            onFormChange(
+                              'bowel_amount_id',
+                              val === 'none' ? null : val,
+                            )
+                          }
+                          disabled={disabled}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select amount" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="none">Select amount...</SelectItem>
+                            {trackerMasters.BOWEL_AMOUNTS_MASTER?.map((item: any) => (
+                              <SelectItem key={item.id} value={item.id}>
+                                {item.name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      {!disabled && canManageMasterLists && (
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="icon"
+                          className="size-9 shrink-0"
+                          onClick={() =>
+                            setSelectedTaxonomy({
+                              id: 'BOWEL_AMOUNTS_MASTER',
+                              label: 'Bowel Amount',
+                              table: 'BOWEL_AMOUNTS_MASTER',
+                            })
+                          }
+                          title="Manage Bowel Amounts"
+                        >
+                          <Plus className="size-4" />
+                        </Button>
+                      )}
+                    </div>
                   </div>
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="bowel_assistance_id">
                     Assistance Required
                   </Label>
-                  <Select
-                    value={(formData.bowel_assistance_id as string) || 'none'}
-                    onValueChange={(val) =>
-                      onFormChange(
-                        'bowel_assistance_id',
-                        val === 'none' ? null : val,
-                      )
-                    }
-                    disabled={disabled}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select assistance" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="none">Select assistance...</SelectItem>
-                      {trackerMasters.BOWEL_ASSISTANCE_MASTER?.map((item: any) => (
-                        <SelectItem key={item.id} value={item.id}>
-                          {item.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <div className="flex items-center gap-1.5">
+                    <div className="flex-1">
+                      <Select
+                        value={(formData.bowel_assistance_id as string) || 'none'}
+                        onValueChange={(val) =>
+                          onFormChange(
+                            'bowel_assistance_id',
+                            val === 'none' ? null : val,
+                          )
+                        }
+                        disabled={disabled}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select assistance" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="none">Select assistance...</SelectItem>
+                          {trackerMasters.BOWEL_ASSISTANCE_MASTER?.map((item: any) => (
+                            <SelectItem key={item.id} value={item.id}>
+                              {item.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    {!disabled && canManageMasterLists && (
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="icon"
+                        className="size-9 shrink-0"
+                        onClick={() =>
+                          setSelectedTaxonomy({
+                            id: 'BOWEL_ASSISTANCE_MASTER',
+                            label: 'Bowel Assistance',
+                            table: 'BOWEL_ASSISTANCE_MASTER',
+                          })
+                        }
+                        title="Manage Bowel Assistance"
+                      >
+                        <Plus className="size-4" />
+                      </Button>
+                    )}
+                  </div>
                 </div>
               </div>
             </div>
@@ -201,25 +264,47 @@ export function ShiftNoteTrackersSection({
               </div>
               <div className="space-y-2 lg:col-span-2">
                 <Label htmlFor="seizure_type_id">Seizure Type</Label>
-                <Select
-                  value={(formData.seizure_type_id as string) || 'none'}
-                  onValueChange={(val) =>
-                    onFormChange('seizure_type_id', val === 'none' ? null : val)
-                  }
-                  disabled={disabled}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select type" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="none">Select type...</SelectItem>
-                    {trackerMasters.SEIZURE_TYPES_MASTER?.map((t: any) => (
-                      <SelectItem key={t.id} value={t.id}>
-                        {t.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <div className="flex items-center gap-1.5">
+                  <div className="flex-1">
+                    <Select
+                      value={(formData.seizure_type_id as string) || 'none'}
+                      onValueChange={(val) =>
+                        onFormChange('seizure_type_id', val === 'none' ? null : val)
+                      }
+                      disabled={disabled}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select type" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="none">Select type...</SelectItem>
+                        {trackerMasters.SEIZURE_TYPES_MASTER?.map((t: any) => (
+                          <SelectItem key={t.id} value={t.id}>
+                            {t.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  {!disabled && canManageMasterLists && (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="icon"
+                      className="size-9 shrink-0"
+                      onClick={() =>
+                        setSelectedTaxonomy({
+                          id: 'SEIZURE_TYPES_MASTER',
+                          label: 'Seizure Type',
+                          table: 'SEIZURE_TYPES_MASTER',
+                        })
+                      }
+                      title="Manage Seizure Types"
+                    >
+                      <Plus className="size-4" />
+                    </Button>
+                  )}
+                </div>
               </div>
             </div>
 
@@ -392,28 +477,50 @@ export function ShiftNoteTrackersSection({
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="sleep_type_id">Sleep Type</Label>
-                <Select
-                  value={(formData.sleep_type_id as string) || 'none'}
-                  onValueChange={(val) =>
-                    onFormChange(
-                      'sleep_type_id',
-                      val === 'none' ? null : val,
-                    )
-                  }
-                  disabled={disabled}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="none">Select...</SelectItem>
-                    {trackerMasters.SLEEP_TYPES_MASTER?.map((item: any) => (
-                      <SelectItem key={item.id} value={item.id}>
-                        {item.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <div className="flex items-center gap-1.5">
+                  <div className="flex-1">
+                    <Select
+                      value={(formData.sleep_type_id as string) || 'none'}
+                      onValueChange={(val) =>
+                        onFormChange(
+                          'sleep_type_id',
+                          val === 'none' ? null : val,
+                        )
+                      }
+                      disabled={disabled}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="none">Select...</SelectItem>
+                        {trackerMasters.SLEEP_TYPES_MASTER?.map((item: any) => (
+                          <SelectItem key={item.id} value={item.id}>
+                            {item.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  {!disabled && canManageMasterLists && (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="icon"
+                      className="size-9 shrink-0"
+                      onClick={() =>
+                        setSelectedTaxonomy({
+                          id: 'SLEEP_TYPES_MASTER',
+                          label: 'Sleep Type',
+                          table: 'SLEEP_TYPES_MASTER',
+                        })
+                      }
+                      title="Manage Sleep Types"
+                    >
+                      <Plus className="size-4" />
+                    </Button>
+                  )}
+                </div>
               </div>
               <div className="space-y-2">
                 <Label htmlFor="sleep_start_time">Sleep Start Time</Label>
@@ -441,28 +548,50 @@ export function ShiftNoteTrackersSection({
               </div>
               <div className="space-y-2">
                 <Label htmlFor="sleep_quality_id">Sleep Quality</Label>
-                <Select
-                  value={(formData.sleep_quality_id as string) || 'none'}
-                  onValueChange={(val) =>
-                    onFormChange(
-                      'sleep_quality_id',
-                      val === 'none' ? null : val,
-                    )
-                  }
-                  disabled={disabled}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="none">Select...</SelectItem>
-                    {trackerMasters.SLEEP_QUALITY_MASTER?.map((item: any) => (
-                      <SelectItem key={item.id} value={item.id}>
-                        {item.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <div className="flex items-center gap-1.5">
+                  <div className="flex-1">
+                    <Select
+                      value={(formData.sleep_quality_id as string) || 'none'}
+                      onValueChange={(val) =>
+                        onFormChange(
+                          'sleep_quality_id',
+                          val === 'none' ? null : val,
+                        )
+                      }
+                      disabled={disabled}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="none">Select...</SelectItem>
+                        {trackerMasters.SLEEP_QUALITY_MASTER?.map((item: any) => (
+                          <SelectItem key={item.id} value={item.id}>
+                            {item.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  {!disabled && canManageMasterLists && (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="icon"
+                      className="size-9 shrink-0"
+                      onClick={() =>
+                        setSelectedTaxonomy({
+                          id: 'SLEEP_QUALITY_MASTER',
+                          label: 'Sleep Quality',
+                          table: 'SLEEP_QUALITY_MASTER',
+                        })
+                      }
+                      title="Manage Sleep Quality"
+                    >
+                      <Plus className="size-4" />
+                    </Button>
+                  )}
+                </div>
               </div>
             </div>
             <div className="space-y-2">
@@ -500,53 +629,97 @@ export function ShiftNoteTrackersSection({
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="behaviour_type_id">Behaviour Type</Label>
-                <Select
-                  value={(formData.behaviour_type_id as string) || 'none'}
-                  onValueChange={(val) =>
-                    onFormChange(
-                      'behaviour_type_id',
-                      val === 'none' ? null : val,
-                    )
-                  }
-                  disabled={disabled}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select type..." />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="none">Select type...</SelectItem>
-                    {trackerMasters.BEHAVIOUR_TYPES_MASTER?.map((t: any) => (
-                      <SelectItem key={t.id} value={t.id}>
-                        {t.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <div className="flex items-center gap-1.5">
+                  <div className="flex-1">
+                    <Select
+                      value={(formData.behaviour_type_id as string) || 'none'}
+                      onValueChange={(val) =>
+                        onFormChange(
+                          'behaviour_type_id',
+                          val === 'none' ? null : val,
+                        )
+                      }
+                      disabled={disabled}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select type..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="none">Select type...</SelectItem>
+                        {trackerMasters.BEHAVIOUR_TYPES_MASTER?.map((t: any) => (
+                          <SelectItem key={t.id} value={t.id}>
+                            {t.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  {!disabled && canManageMasterLists && (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="icon"
+                      className="size-9 shrink-0"
+                      onClick={() =>
+                        setSelectedTaxonomy({
+                          id: 'BEHAVIOUR_TYPES_MASTER',
+                          label: 'Behaviour Type',
+                          table: 'BEHAVIOUR_TYPES_MASTER',
+                        })
+                      }
+                      title="Manage Behaviour Types"
+                    >
+                      <Plus className="size-4" />
+                    </Button>
+                  )}
+                </div>
               </div>
               <div className="space-y-2">
                 <Label htmlFor="behaviour_intensity_id">Intensity</Label>
-                <Select
-                  value={(formData.behaviour_intensity_id as string) || 'none'}
-                  onValueChange={(val) =>
-                    onFormChange(
-                      'behaviour_intensity_id',
-                      val === 'none' ? null : val,
-                    )
-                  }
-                  disabled={disabled}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select intensity" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="none">Select intensity...</SelectItem>
-                    {trackerMasters.BEHAVIOUR_INTENSITY_MASTER?.map((item: any) => (
-                      <SelectItem key={item.id} value={item.id}>
-                        {item.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <div className="flex items-center gap-1.5">
+                  <div className="flex-1">
+                    <Select
+                      value={(formData.behaviour_intensity_id as string) || 'none'}
+                      onValueChange={(val) =>
+                        onFormChange(
+                          'behaviour_intensity_id',
+                          val === 'none' ? null : val,
+                        )
+                      }
+                      disabled={disabled}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select intensity" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="none">Select intensity...</SelectItem>
+                        {trackerMasters.BEHAVIOUR_INTENSITY_MASTER?.map((item: any) => (
+                          <SelectItem key={item.id} value={item.id}>
+                            {item.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  {!disabled && canManageMasterLists && (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="icon"
+                      className="size-9 shrink-0"
+                      onClick={() =>
+                        setSelectedTaxonomy({
+                          id: 'BEHAVIOUR_INTENSITY_MASTER',
+                          label: 'Behaviour Intensity',
+                          table: 'BEHAVIOUR_INTENSITY_MASTER',
+                        })
+                      }
+                      title="Manage Behaviour Intensity"
+                    >
+                      <Plus className="size-4" />
+                    </Button>
+                  )}
+                </div>
               </div>
             </div>
             <div className="space-y-2">
@@ -652,53 +825,97 @@ export function ShiftNoteTrackersSection({
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="nutrition_meal_type_id">Meal Type</Label>
-                <Select
-                  value={(formData.nutrition_meal_type_id as string) || 'none'}
-                  onValueChange={(val) =>
-                    onFormChange(
-                      'nutrition_meal_type_id',
-                      val === 'none' ? null : val,
-                    )
-                  }
-                  disabled={disabled}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="none">Select...</SelectItem>
-                    {trackerMasters.NUTRITION_MEAL_TYPES_MASTER?.map((item: any) => (
-                      <SelectItem key={item.id} value={item.id}>
-                        {item.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <div className="flex items-center gap-1.5">
+                  <div className="flex-1">
+                    <Select
+                      value={(formData.nutrition_meal_type_id as string) || 'none'}
+                      onValueChange={(val) =>
+                        onFormChange(
+                          'nutrition_meal_type_id',
+                          val === 'none' ? null : val,
+                        )
+                      }
+                      disabled={disabled}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="none">Select...</SelectItem>
+                        {trackerMasters.NUTRITION_MEAL_TYPES_MASTER?.map((item: any) => (
+                          <SelectItem key={item.id} value={item.id}>
+                            {item.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  {!disabled && canManageMasterLists && (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="icon"
+                      className="size-9 shrink-0"
+                      onClick={() =>
+                        setSelectedTaxonomy({
+                          id: 'NUTRITION_MEAL_TYPES_MASTER',
+                          label: 'Nutrition Meal Type',
+                          table: 'NUTRITION_MEAL_TYPES_MASTER',
+                        })
+                      }
+                      title="Manage Nutrition Meal Types"
+                    >
+                      <Plus className="size-4" />
+                    </Button>
+                  )}
+                </div>
               </div>
               <div className="space-y-2">
                 <Label htmlFor="nutrition_intake_id">Intake</Label>
-                <Select
-                  value={(formData.nutrition_intake_id as string) || 'none'}
-                  onValueChange={(val) =>
-                    onFormChange(
-                      'nutrition_intake_id',
-                      val === 'none' ? null : val,
-                    )
-                  }
-                  disabled={disabled}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="none">Select...</SelectItem>
-                    {trackerMasters.NUTRITION_INTAKE_MASTER?.map((item: any) => (
-                      <SelectItem key={item.id} value={item.id}>
-                        {item.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <div className="flex items-center gap-1.5">
+                  <div className="flex-1">
+                    <Select
+                      value={(formData.nutrition_intake_id as string) || 'none'}
+                      onValueChange={(val) =>
+                        onFormChange(
+                          'nutrition_intake_id',
+                          val === 'none' ? null : val,
+                        )
+                      }
+                      disabled={disabled}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="none">Select...</SelectItem>
+                        {trackerMasters.NUTRITION_INTAKE_MASTER?.map((item: any) => (
+                          <SelectItem key={item.id} value={item.id}>
+                            {item.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  {!disabled && canManageMasterLists && (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="icon"
+                      className="size-9 shrink-0"
+                      onClick={() =>
+                        setSelectedTaxonomy({
+                          id: 'NUTRITION_INTAKE_MASTER',
+                          label: 'Nutrition Intake',
+                          table: 'NUTRITION_INTAKE_MASTER',
+                        })
+                      }
+                      title="Manage Nutrition Intake"
+                    >
+                      <Plus className="size-4" />
+                    </Button>
+                  )}
+                </div>
               </div>
               <div className="space-y-2">
                 <Label htmlFor="nutrition_fluids_intake">Fluids Intake</Label>
@@ -781,47 +998,91 @@ export function ShiftNoteTrackersSection({
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="mtm_diet_type_id">Diet Type</Label>
-                <Select
-                  value={(formData.mtm_diet_type_id as string) || 'none'}
-                  onValueChange={(val) =>
-                    onFormChange('mtm_diet_type_id', val === 'none' ? null : val)
-                  }
-                  disabled={disabled}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select diet..." />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="none">Select diet...</SelectItem>
-                    {trackerMasters.MTM_DIET_TYPES_MASTER?.map((item: any) => (
-                      <SelectItem key={item.id} value={item.id}>
-                        {item.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <div className="flex items-center gap-1.5">
+                  <div className="flex-1">
+                    <Select
+                      value={(formData.mtm_diet_type_id as string) || 'none'}
+                      onValueChange={(val) =>
+                        onFormChange('mtm_diet_type_id', val === 'none' ? null : val)
+                      }
+                      disabled={disabled}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select diet..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="none">Select diet...</SelectItem>
+                        {trackerMasters.MTM_DIET_TYPES_MASTER?.map((item: any) => (
+                          <SelectItem key={item.id} value={item.id}>
+                            {item.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  {!disabled && canManageMasterLists && (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="icon"
+                      className="size-9 shrink-0"
+                      onClick={() =>
+                        setSelectedTaxonomy({
+                          id: 'MTM_DIET_TYPES_MASTER',
+                          label: 'MTM Diet Type',
+                          table: 'MTM_DIET_TYPES_MASTER',
+                        })
+                      }
+                      title="Manage MTM Diet Types"
+                    >
+                      <Plus className="size-4" />
+                    </Button>
+                  )}
+                </div>
               </div>
               <div className="space-y-2">
                 <Label htmlFor="mtm_fluids_id">Fluids Consistency</Label>
-                <Select
-                  value={(formData.mtm_fluids_id as string) || 'none'}
-                  onValueChange={(val) =>
-                    onFormChange('mtm_fluids_id', val === 'none' ? null : val)
-                  }
-                  disabled={disabled}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select consistency..." />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="none">Select consistency...</SelectItem>
-                    {trackerMasters.MTM_FLUIDS_MASTER?.map((item: any) => (
-                      <SelectItem key={item.id} value={item.id}>
-                        {item.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <div className="flex items-center gap-1.5">
+                  <div className="flex-1">
+                    <Select
+                      value={(formData.mtm_fluids_id as string) || 'none'}
+                      onValueChange={(val) =>
+                        onFormChange('mtm_fluids_id', val === 'none' ? null : val)
+                      }
+                      disabled={disabled}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select consistency..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="none">Select consistency...</SelectItem>
+                        {trackerMasters.MTM_FLUIDS_MASTER?.map((item: any) => (
+                          <SelectItem key={item.id} value={item.id}>
+                            {item.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  {!disabled && canManageMasterLists && (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="icon"
+                      className="size-9 shrink-0"
+                      onClick={() =>
+                        setSelectedTaxonomy({
+                          id: 'MTM_FLUIDS_MASTER',
+                          label: 'MTM Fluids Consistency',
+                          table: 'MTM_FLUIDS_MASTER',
+                        })
+                      }
+                      title="Manage MTM Fluids Consistency"
+                    >
+                      <Plus className="size-4" />
+                    </Button>
+                  )}
+                </div>
               </div>
             </div>
 
@@ -1093,53 +1354,97 @@ export function ShiftNoteTrackersSection({
               <Label htmlFor="mtm_swallowing_concerns_id">
                 Any swallowing concerns?
               </Label>
-              <Select
-                value={(formData.mtm_swallowing_concerns_id as string) || 'none'}
-                onValueChange={(val) =>
-                  onFormChange('mtm_swallowing_concerns_id', val === 'none' ? null : val)
-                }
-                disabled={disabled}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select..." />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="none">Select...</SelectItem>
-                  {trackerMasters.MTM_SWALLOWING_CONCERNS_MASTER?.map((item: any) => (
-                    <SelectItem key={item.id} value={item.id}>
-                      {item.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="mtm_meal_intake_id">Meal Intake</Label>
+              <div className="flex items-center gap-1.5">
+                <div className="flex-1">
                   <Select
-                    value={(formData.mtm_meal_intake_id as string) || 'none'}
+                    value={(formData.mtm_swallowing_concerns_id as string) || 'none'}
                     onValueChange={(val) =>
-                      onFormChange(
-                        'mtm_meal_intake_id',
-                        val === 'none' ? null : val,
-                      )
+                      onFormChange('mtm_swallowing_concerns_id', val === 'none' ? null : val)
                     }
                     disabled={disabled}
                   >
                     <SelectTrigger>
-                      <SelectValue placeholder="Select intake..." />
+                      <SelectValue placeholder="Select..." />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="none">Select intake...</SelectItem>
-                      {trackerMasters.MTM_MEAL_INTAKE_MASTER?.map((item: any) => (
+                      <SelectItem value="none">Select...</SelectItem>
+                      {trackerMasters.MTM_SWALLOWING_CONCERNS_MASTER?.map((item: any) => (
                         <SelectItem key={item.id} value={item.id}>
                           {item.name}
                         </SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
+                </div>
+                {!disabled && canManageMasterLists && (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="icon"
+                    className="size-9 shrink-0"
+                    onClick={() =>
+                      setSelectedTaxonomy({
+                        id: 'MTM_SWALLOWING_CONCERNS_MASTER',
+                        label: 'MTM Swallowing Concern',
+                        table: 'MTM_SWALLOWING_CONCERNS_MASTER',
+                      })
+                    }
+                    title="Manage Swallowing Concerns"
+                  >
+                    <Plus className="size-4" />
+                  </Button>
+                )}
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="mtm_meal_intake_id">Meal Intake</Label>
+                  <div className="flex items-center gap-1.5">
+                    <div className="flex-1">
+                      <Select
+                        value={(formData.mtm_meal_intake_id as string) || 'none'}
+                        onValueChange={(val) =>
+                          onFormChange(
+                            'mtm_meal_intake_id',
+                            val === 'none' ? null : val,
+                          )
+                        }
+                        disabled={disabled}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select intake..." />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="none">Select intake...</SelectItem>
+                          {trackerMasters.MTM_MEAL_INTAKE_MASTER?.map((item: any) => (
+                            <SelectItem key={item.id} value={item.id}>
+                              {item.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    {!disabled && canManageMasterLists && (
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="icon"
+                        className="size-9 shrink-0"
+                        onClick={() =>
+                          setSelectedTaxonomy({
+                            id: 'MTM_MEAL_INTAKE_MASTER',
+                            label: 'MTM Meal Intake',
+                            table: 'MTM_MEAL_INTAKE_MASTER',
+                          })
+                        }
+                        title="Manage MTM Meal Intake"
+                      >
+                        <Plus className="size-4" />
+                      </Button>
+                    )}
+                  </div>
                 </div>
                 <Input
                   placeholder="Intake notes..."
@@ -1153,28 +1458,50 @@ export function ShiftNoteTrackersSection({
               <div className="space-y-4">
                 <div className="space-y-2">
                   <Label htmlFor="mtm_fluid_intake_id">Fluid Intake</Label>
-                  <Select
-                    value={(formData.mtm_fluid_intake_id as string) || 'none'}
-                    onValueChange={(val) =>
-                      onFormChange(
-                        'mtm_fluid_intake_id',
-                        val === 'none' ? null : val,
-                      )
-                    }
-                    disabled={disabled}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select intake..." />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="none">Select intake...</SelectItem>
-                      {trackerMasters.MTM_FLUID_INTAKE_MASTER?.map((item: any) => (
-                        <SelectItem key={item.id} value={item.id}>
-                          {item.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <div className="flex items-center gap-1.5">
+                    <div className="flex-1">
+                      <Select
+                        value={(formData.mtm_fluid_intake_id as string) || 'none'}
+                        onValueChange={(val) =>
+                          onFormChange(
+                            'mtm_fluid_intake_id',
+                            val === 'none' ? null : val,
+                          )
+                        }
+                        disabled={disabled}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select intake..." />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="none">Select intake...</SelectItem>
+                          {trackerMasters.MTM_FLUID_INTAKE_MASTER?.map((item: any) => (
+                            <SelectItem key={item.id} value={item.id}>
+                              {item.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    {!disabled && canManageMasterLists && (
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="icon"
+                        className="size-9 shrink-0"
+                        onClick={() =>
+                          setSelectedTaxonomy({
+                            id: 'MTM_FLUID_INTAKE_MASTER',
+                            label: 'MTM Fluid Intake',
+                            table: 'MTM_FLUID_INTAKE_MASTER',
+                          })
+                        }
+                        title="Manage MTM Fluid Intake"
+                      >
+                        <Plus className="size-4" />
+                      </Button>
+                    )}
+                  </div>
                 </div>
                 <Input
                   placeholder="Fluid intake notes..."
@@ -1218,100 +1545,188 @@ export function ShiftNoteTrackersSection({
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="hygiene_shower_id">Shower</Label>
-                <Select
-                  value={(formData.hygiene_shower_id as string) || 'none'}
-                  onValueChange={(val) =>
-                    onFormChange('hygiene_shower_id', val === 'none' ? null : val)
-                  }
-                  disabled={disabled}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select..." />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="none">Select...</SelectItem>
-                    {trackerMasters.HYGIENE_LEVELS_MASTER?.map((item: any) => (
-                      <SelectItem key={item.id} value={item.id}>
-                        {item.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <div className="flex items-center gap-1.5">
+                  <div className="flex-1">
+                    <Select
+                      value={(formData.hygiene_shower_id as string) || 'none'}
+                      onValueChange={(val) =>
+                        onFormChange('hygiene_shower_id', val === 'none' ? null : val)
+                      }
+                      disabled={disabled}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="none">Select...</SelectItem>
+                        {trackerMasters.HYGIENE_LEVELS_MASTER?.map((item: any) => (
+                          <SelectItem key={item.id} value={item.id}>
+                            {item.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  {!disabled && canManageMasterLists && (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="icon"
+                      className="size-9 shrink-0"
+                      onClick={() =>
+                        setSelectedTaxonomy({
+                          id: 'HYGIENE_LEVELS_MASTER',
+                          label: 'Hygiene Support Level',
+                          table: 'HYGIENE_LEVELS_MASTER',
+                        })
+                      }
+                      title="Manage Hygiene Support Levels"
+                    >
+                      <Plus className="size-4" />
+                    </Button>
+                  )}
+                </div>
               </div>
               <div className="space-y-2">
                 <Label htmlFor="hygiene_oral_care_id">Oral Care</Label>
-                <Select
-                  value={(formData.hygiene_oral_care_id as string) || 'none'}
-                  onValueChange={(val) =>
-                    onFormChange(
-                      'hygiene_oral_care_id',
-                      val === 'none' ? null : val,
-                    )
-                  }
-                  disabled={disabled}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select..." />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="none">Select...</SelectItem>
-                    {trackerMasters.HYGIENE_LEVELS_MASTER?.map((item: any) => (
-                      <SelectItem key={item.id} value={item.id}>
-                        {item.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <div className="flex items-center gap-1.5">
+                  <div className="flex-1">
+                    <Select
+                      value={(formData.hygiene_oral_care_id as string) || 'none'}
+                      onValueChange={(val) =>
+                        onFormChange(
+                          'hygiene_oral_care_id',
+                          val === 'none' ? null : val,
+                        )
+                      }
+                      disabled={disabled}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="none">Select...</SelectItem>
+                        {trackerMasters.HYGIENE_LEVELS_MASTER?.map((item: any) => (
+                          <SelectItem key={item.id} value={item.id}>
+                            {item.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  {!disabled && canManageMasterLists && (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="icon"
+                      className="size-9 shrink-0"
+                      onClick={() =>
+                        setSelectedTaxonomy({
+                          id: 'HYGIENE_LEVELS_MASTER',
+                          label: 'Hygiene Support Level',
+                          table: 'HYGIENE_LEVELS_MASTER',
+                        })
+                      }
+                      title="Manage Hygiene Support Levels"
+                    >
+                      <Plus className="size-4" />
+                    </Button>
+                  )}
+                </div>
               </div>
               <div className="space-y-2">
                 <Label htmlFor="hygiene_toileting_id">Toileting</Label>
-                <Select
-                  value={(formData.hygiene_toileting_id as string) || 'none'}
-                  onValueChange={(val) =>
-                    onFormChange(
-                      'hygiene_toileting_id',
-                      val === 'none' ? null : val,
-                    )
-                  }
-                  disabled={disabled}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select..." />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="none">Select...</SelectItem>
-                    {trackerMasters.HYGIENE_LEVELS_MASTER?.map((item: any) => (
-                      <SelectItem key={item.id} value={item.id}>
-                        {item.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <div className="flex items-center gap-1.5">
+                  <div className="flex-1">
+                    <Select
+                      value={(formData.hygiene_toileting_id as string) || 'none'}
+                      onValueChange={(val) =>
+                        onFormChange(
+                          'hygiene_toileting_id',
+                          val === 'none' ? null : val,
+                        )
+                      }
+                      disabled={disabled}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="none">Select...</SelectItem>
+                        {trackerMasters.HYGIENE_LEVELS_MASTER?.map((item: any) => (
+                          <SelectItem key={item.id} value={item.id}>
+                            {item.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  {!disabled && canManageMasterLists && (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="icon"
+                      className="size-9 shrink-0"
+                      onClick={() =>
+                        setSelectedTaxonomy({
+                          id: 'HYGIENE_LEVELS_MASTER',
+                          label: 'Hygiene Support Level',
+                          table: 'HYGIENE_LEVELS_MASTER',
+                        })
+                      }
+                      title="Manage Hygiene Support Levels"
+                    >
+                      <Plus className="size-4" />
+                    </Button>
+                  )}
+                </div>
               </div>
               <div className="space-y-2">
                 <Label htmlFor="hygiene_grooming_id">Grooming</Label>
-                <Select
-                  value={(formData.hygiene_grooming_id as string) || 'none'}
-                  onValueChange={(val) =>
-                    onFormChange(
-                      'hygiene_grooming_id',
-                      val === 'none' ? null : val,
-                    )
-                  }
-                  disabled={disabled}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select..." />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="none">Select...</SelectItem>
-                    {trackerMasters.HYGIENE_LEVELS_MASTER?.map((item: any) => (
-                      <SelectItem key={item.id} value={item.id}>
-                        {item.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <div className="flex items-center gap-1.5">
+                  <div className="flex-1">
+                    <Select
+                      value={(formData.hygiene_grooming_id as string) || 'none'}
+                      onValueChange={(val) =>
+                        onFormChange(
+                          'hygiene_grooming_id',
+                          val === 'none' ? null : val,
+                        )
+                      }
+                      disabled={disabled}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="none">Select...</SelectItem>
+                        {trackerMasters.HYGIENE_LEVELS_MASTER?.map((item: any) => (
+                          <SelectItem key={item.id} value={item.id}>
+                            {item.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  {!disabled && canManageMasterLists && (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="icon"
+                      className="size-9 shrink-0"
+                      onClick={() =>
+                        setSelectedTaxonomy({
+                          id: 'HYGIENE_LEVELS_MASTER',
+                          label: 'Hygiene Support Level',
+                          table: 'HYGIENE_LEVELS_MASTER',
+                        })
+                      }
+                      title="Manage Hygiene Support Levels"
+                    >
+                      <Plus className="size-4" />
+                    </Button>
+                  )}
+                </div>
               </div>
             </div>
             <div className="space-y-2">
@@ -1343,6 +1758,13 @@ export function ShiftNoteTrackersSection({
         </Card>
       )}
 
+      {canManageMasterLists && selectedTaxonomy && (
+        <ClinicalTrackerMasterDialog
+          open={!!selectedTaxonomy}
+          onClose={() => setSelectedTaxonomy(null)}
+          taxonomy={selectedTaxonomy}
+        />
+      )}
     </div>
   );
 }

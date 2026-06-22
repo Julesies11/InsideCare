@@ -3886,6 +3886,7 @@ export type Database = {
           dosage: string | null
           id: string
           is_active: boolean | null
+          is_prn: boolean
           medication_id: string | null
           participant_id: string
           updated_at: string | null
@@ -3897,6 +3898,7 @@ export type Database = {
           dosage?: string | null
           id?: string
           is_active?: boolean | null
+          is_prn?: boolean
           medication_id?: string | null
           participant_id: string
           updated_at?: string | null
@@ -3908,6 +3910,7 @@ export type Database = {
           dosage?: string | null
           id?: string
           is_active?: boolean | null
+          is_prn?: boolean
           medication_id?: string | null
           participant_id?: string
           updated_at?: string | null

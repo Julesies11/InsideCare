@@ -28,6 +28,7 @@ export interface PendingMedication {
   dosage?: string;
   frequency?: string;
   is_active: boolean;
+  is_prn: boolean;
 }
 
 export interface PendingContact {

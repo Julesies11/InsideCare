@@ -121,6 +121,7 @@ export const PARTICIPANT_VIEWS = {
     medication_id, 
     dosage, 
     is_active, 
+    is_prn,
     created_at, 
     updated_at,
     medication_info:${TABLES.MEDICATIONS_MASTER}!medication_id(

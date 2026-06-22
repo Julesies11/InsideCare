@@ -105,6 +105,7 @@ export const PARTICIPANT_TEMPLATE_TAGS: TemplateTag[] = [
   { name: '{{brand_name1}}', description: 'Medication 1 Brand Name', category: 'Medications', example: 'Panadol' },
   { name: '{{dosage1}}', description: 'Medication 1 Dosage', category: 'Medications', example: '500mg' },
   { name: '{{medication_type1}}', description: 'Medication 1 Type', category: 'Medications', example: 'Analgesic' },
+  { name: '{{medication_schedule1}}', description: 'Medication 1 Schedule (Regular/PRN)', category: 'Medications', example: 'Regular' },
 
   // Goals Flat Indexed Tags
   { name: '{{goal_type1}}', description: 'Goal 1 Type', category: 'Goals', example: 'ndis' },
@@ -155,6 +156,7 @@ export function mapParticipantToTags(
       brand_name: m.medication_info?.brand_name || '',
       dosage: m.dosage || '',
       medication_type: m.medication_info?.medication_type?.medication_type_name || '',
+      medication_schedule: m.is_prn ? 'PRN' : 'Regular',
     }));
 
   const mappedGoals = (relatedData?.goals || [])
@@ -288,6 +290,7 @@ export function mapParticipantToTags(
       brand_name: 'brand_name',
       dosage: 'dosage',
       medication_type: 'medication_type',
+      medication_schedule: 'medication_schedule',
     }),
     ...flattenMappedArray(mappedGoals, {
       goal_type: 'goal_type',

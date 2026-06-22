@@ -570,6 +570,7 @@ export const participantDetailsApi = {
             medication_id: m.medication_id,
             dosage: m.dosage,
             is_active: m.is_active,
+            is_prn: m.is_prn,
           },
           ['frequency', 'instructions'],
         ),
@@ -587,6 +588,7 @@ export const participantDetailsApi = {
             medication_id: m.medication_id,
             dosage: m.dosage,
             is_active: m.is_active,
+            is_prn: m.is_prn,
           },
           ['frequency', 'instructions'],
         );

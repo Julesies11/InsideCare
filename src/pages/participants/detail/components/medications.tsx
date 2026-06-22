@@ -9,6 +9,7 @@ import { cn } from '@/lib/utils';
 import { useMedicationsMaster } from '@/hooks/use-medications-master';
 import { useParticipantMedications } from '@/hooks/use-participant-medications';
 import { Badge } from '@/components/ui/badge';
+import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
@@ -28,6 +29,7 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Switch } from '@/components/ui/switch';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import {
   Table,
   TableBody,
@@ -57,6 +59,7 @@ interface MedicationsProps {
 const medicationSchema = z.object({
   medication_id: z.string().min(1, 'Medication is required'),
   is_active: z.boolean().default(true),
+  is_prn: z.boolean().default(false),
 });
 
 type MedicationFormValues = z.infer<typeof medicationSchema>;
@@ -76,6 +79,7 @@ export function Medications({
     tempId?: string;
     medication_id: string;
     is_active: boolean;
+    is_prn: boolean;
   } | null>(null);
 
   const {
@@ -96,6 +100,7 @@ export function Medications({
     defaultValues: {
       medication_id: '',
       is_active: true,
+      is_prn: false,
     },
   });
 
@@ -104,11 +109,13 @@ export function Medications({
       form.reset({
         medication_id: editingMedication.medication_id,
         is_active: editingMedication.is_active,
+        is_prn: editingMedication.is_prn ?? false,
       });
     } else if (showDialog) {
       form.reset({
         medication_id: '',
         is_active: true,
+        is_prn: false,
       });
     }
   }, [showDialog, editingMedication, form]);
@@ -123,8 +130,15 @@ export function Medications({
     tempId?: string;
     medication_id: string;
     is_active: boolean;
+    is_prn?: boolean;
   }) => {
-    setEditingMedication(medication);
+    setEditingMedication({
+      id: medication.id,
+      tempId: medication.tempId,
+      medication_id: medication.medication_id,
+      is_active: medication.is_active,
+      is_prn: medication.is_prn ?? false,
+    });
     setShowDialog(true);
   };
 
@@ -274,6 +288,7 @@ export function Medications({
                 <TableRow>
                   <TableHead>Medication</TableHead>
                   <TableHead>Type</TableHead>
+                  <TableHead>Category</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
@@ -341,6 +356,23 @@ export function Medications({
                         )}
                       >
                         {getMedicationType(med.medication_id)}
+                      </TableCell>
+                      <TableCell
+                        className={cn(
+                          isPendingDelete &&
+                            'text-muted-foreground line-through',
+                        )}
+                      >
+                        <Badge
+                          variant={med.is_prn ? 'outline' : 'secondary'}
+                          className={cn(
+                            med.is_prn
+                              ? 'border-orange-300 text-orange-700 bg-orange-50 dark:text-orange-400 dark:bg-orange-950/20'
+                              : 'border-blue-300 text-blue-700 bg-blue-50 dark:text-blue-400 dark:bg-blue-950/20',
+                          )}
+                        >
+                          {med.is_prn ? 'PRN' : 'Regular'}
+                        </Badge>
                       </TableCell>
                       <TableCell>
                         <Badge
@@ -443,6 +475,37 @@ export function Medications({
                         onChange={field.onChange}
                         canEdit={canEdit}
                       />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="is_prn"
+                render={({ field }) => (
+                  <FormItem className="space-y-2">
+                    <FormLabel>Schedule / Type</FormLabel>
+                    <FormControl>
+                      <RadioGroup
+                        onValueChange={(val) => field.onChange(val === 'prn')}
+                        value={field.value ? 'prn' : 'regular'}
+                        className="flex items-center gap-4 border rounded-lg p-3 shadow-sm bg-white dark:bg-zinc-950"
+                      >
+                        <div className="flex items-center gap-2">
+                          <RadioGroupItem value="regular" id="med_regular" />
+                          <Label htmlFor="med_regular" className="cursor-pointer font-normal text-sm">
+                            Regular
+                          </Label>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <RadioGroupItem value="prn" id="med_prn" />
+                          <Label htmlFor="med_prn" className="cursor-pointer font-normal text-sm">
+                            PRN (as needed)
+                          </Label>
+                        </div>
+                      </RadioGroup>
                     </FormControl>
                     <FormMessage />
                   </FormItem>
