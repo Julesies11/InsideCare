@@ -466,7 +466,7 @@ export const houseOperationsApi = {
     // 1. Staff Assignments
     if (pending?.staff?.toAdd?.length > 0) {
       const staffInserts = pending.staff.toAdd.map((s) => {
-        const { tempId, staff_name, ...rest } = s as any;
+        const { tempId, staff_name, staff, ...rest } = s as any;
         return {
           ...rest,
           house_id: houseId,
@@ -805,9 +805,6 @@ export const houseOperationsApi = {
           category: res.category,
           type: res.type,
           description: res.description,
-          priority: res.priority,
-          phone: res.phone,
-          address: res.address,
           notes: res.notes,
           file_url,
           file_name,
@@ -825,9 +822,6 @@ export const houseOperationsApi = {
           category: res.category,
           type: res.type,
           description: res.description,
-          priority: res.priority,
-          phone: res.phone,
-          address: res.address,
           notes: res.notes,
         };
 

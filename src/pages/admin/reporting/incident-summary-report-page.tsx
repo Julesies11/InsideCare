@@ -80,19 +80,27 @@ const MONTHS = [
 ];
 
 const QUARTERS = [
-  { value: '1', label: 'Q1 (Jan - Mar)' },
-  { value: '2', label: 'Q2 (Apr - Jun)' },
-  { value: '3', label: 'Q3 (Jul - Sep)' },
-  { value: '4', label: 'Q4 (Oct - Dec)' },
+  { value: '1', label: 'Q1 (Jul - Sep)' },
+  { value: '2', label: 'Q2 (Oct - Dec)' },
+  { value: '3', label: 'Q3 (Jan - Mar)' },
+  { value: '4', label: 'Q4 (Apr - Jun)' },
 ];
 
 const FINANCIAL_YEARS = Array.from({ length: 11 }, (_, i) => {
   const start = 2020 + i;
   return {
     value: start.toString(),
-    label: `FY ${start} - ${start + 1}`,
+    label: `FY ${start}-${(start + 1).toString().substring(2)}`,
   };
 }).reverse();
+
+const getCurrentQuarter = () => {
+  const month = new Date().getMonth();
+  if (month >= 6 && month <= 8) return '1';
+  if (month >= 9 && month <= 11) return '2';
+  if (month >= 0 && month <= 2) return '3';
+  return '4';
+};
 
 /**
  * Calculates the previous period based on the current period and period type.
@@ -143,8 +151,7 @@ export function IncidentSummaryReportPage() {
     searchParams.get('month') || (new Date().getMonth() + 1).toString(),
   );
   const [selectedQuarter, setSelectedQuarter] = useState<string>(
-    searchParams.get('quarter') ||
-      Math.ceil((new Date().getMonth() + 1) / 3).toString(),
+    searchParams.get('quarter') || getCurrentQuarter(),
   );
   const [selectedYear, setSelectedYear] = useState<string>(
     searchParams.get('year') || new Date().getFullYear().toString(),
@@ -182,7 +189,11 @@ export function IncidentSummaryReportPage() {
       }
       case 'quarterly': {
         const qNum = parseInt(selectedQuarter);
-        const startMonth = (qNum - 1) * 3;
+        let startMonth = 6; // default to Q1 (Jul)
+        if (qNum === 2) startMonth = 9; // Q2 (Oct)
+        else if (qNum === 3) startMonth = 0; // Q3 (Jan)
+        else if (qNum === 4) startMonth = 3; // Q4 (Apr)
+
         const baseDate = new Date(yearNum, startMonth, 1);
         return {
           from: startOfQuarter(baseDate),

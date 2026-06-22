@@ -37,6 +37,7 @@ describe('useParticipantMedications', () => {
               medication_id: 'master-med-1',
               dosage: '10mg',
               is_active: true,
+              is_prn: false,
               medication_info: {
                 id: 'master-med-1',
                 medication_name: 'Paracetamol',

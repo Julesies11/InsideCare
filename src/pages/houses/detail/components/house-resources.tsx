@@ -3,8 +3,6 @@ import { HousePendingChanges } from '@/models/house-pending-changes';
 import {
   Clock,
   FileText,
-  MapPin,
-  Phone,
   Plus,
   Upload,
   X,
@@ -415,8 +413,6 @@ export function HouseResources({
                   <TableRow>
                     <TableHead>Title</TableHead>
                     <TableHead>Category</TableHead>
-                    <TableHead>Priority</TableHead>
-                    <TableHead>Contact</TableHead>
                     <TableHead>File</TableHead>
                     <TableHead>Status</TableHead>
                   </TableRow>
@@ -512,32 +508,6 @@ export function HouseResources({
                           </Badge>
                         </TableCell>
                         <TableCell>
-                          <Badge
-                            variant="outline"
-                            className={`text-xs border-${getPriorityColor(mergedResource.priority)}-500 text-${getPriorityColor(mergedResource.priority)}-700`}
-                          >
-                            {mergedResource.priority}
-                          </Badge>
-                        </TableCell>
-                        <TableCell>
-                          <div className="text-sm space-y-1">
-                            {mergedResource.phone && (
-                              <div className="flex items-center gap-2">
-                                <Phone className="size-4 text-muted-foreground" />
-                                <span>{mergedResource.phone}</span>
-                              </div>
-                            )}
-                            {mergedResource.address && (
-                              <div className="flex items-center gap-2">
-                                <MapPin className="size-4 text-muted-foreground" />
-                                <span className="line-clamp-2">
-                                  {mergedResource.address}
-                                </span>
-                              </div>
-                            )}
-                          </div>
-                        </TableCell>
-                        <TableCell>
                           <div className="text-sm">
                             {fileName ? (
                               <button
@@ -608,18 +578,18 @@ export function HouseResources({
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="title">Title *</Label>
+              <Input
+                id="title"
+                value={formData.title}
+                onChange={(e) =>
+                  setFormData({ ...formData, title: e.target.value })
+                }
+                placeholder="Resource title"
+              />
+            </div>
             <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="title">Title *</Label>
-                <Input
-                  id="title"
-                  value={formData.title}
-                  onChange={(e) =>
-                    setFormData({ ...formData, title: e.target.value })
-                  }
-                  placeholder="Resource title"
-                />
-              </div>
               <div className="space-y-2">
                 <Label htmlFor="category">Category *</Label>
                 <Select
@@ -642,8 +612,6 @@ export function HouseResources({
                   </SelectContent>
                 </Select>
               </div>
-            </div>
-            <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="type">Type *</Label>
                 <Input
@@ -654,24 +622,6 @@ export function HouseResources({
                   }
                   placeholder="Resource type"
                 />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="priority">Priority</Label>
-                <Select
-                  value={formData.priority}
-                  onValueChange={(value) =>
-                    setFormData({ ...formData, priority: value })
-                  }
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select priority" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="High">High</SelectItem>
-                    <SelectItem value="Medium">Medium</SelectItem>
-                    <SelectItem value="Low">Low</SelectItem>
-                  </SelectContent>
-                </Select>
               </div>
             </div>
             <div className="space-y-2">
@@ -685,30 +635,6 @@ export function HouseResources({
                 placeholder="Describe this resource"
                 rows={3}
               />
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="phone">Phone</Label>
-                <Input
-                  id="phone"
-                  value={formData.phone}
-                  onChange={(e) =>
-                    setFormData({ ...formData, phone: e.target.value })
-                  }
-                  placeholder="Contact phone number"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="address">Address</Label>
-                <Input
-                  id="address"
-                  value={formData.address}
-                  onChange={(e) =>
-                    setFormData({ ...formData, address: e.target.value })
-                  }
-                  placeholder="Physical address"
-                />
-              </div>
             </div>
             <div className="space-y-2">
               <Label htmlFor="notes">Notes</Label>

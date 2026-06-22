@@ -50,12 +50,12 @@ export function ChecklistMasterPage() {
 
   const canEdit = hasAccess({
     resource: RBAC_MODULES.MASTER_LISTS,
-    requiredLevel: ACCESS_LEVEL.CONTEXT_READ_WRITE,
+    requiredLevel: ACCESS_LEVEL.FULL,
   });
 
   const canAdd = hasAccess({
     resource: RBAC_MODULES.MASTER_LISTS,
-    requiredLevel: ACCESS_LEVEL.CONTEXT_READ_WRITE,
+    requiredLevel: ACCESS_LEVEL.FULL,
   });
 
   const [searchTerm, setSearchTerm] = useState('');

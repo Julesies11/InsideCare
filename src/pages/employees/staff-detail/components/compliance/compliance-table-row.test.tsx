@@ -1,5 +1,5 @@
 import { ResolvedComplianceItem } from '@/models/compliance.types';
-import { render, screen } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 import { ComplianceTableRow } from './compliance-table-row';
 
@@ -49,6 +49,9 @@ describe('ComplianceTableRow', () => {
 
     expect(screen.getByText('Standard Requirement')).toBeInTheDocument();
     expect(screen.getByText('Test description')).toBeInTheDocument();
+
+    // Toggle details to expand
+    fireEvent.click(screen.getByText(/View \/ Edit Details/i));
     expect(screen.getByDisplayValue('REF-123')).toBeInTheDocument();
   });
 
@@ -83,5 +86,37 @@ describe('ComplianceTableRow', () => {
     expect(screen.getByTitle('Mark as Complete')).toBeInTheDocument();
     expect(screen.getByTitle('Mark as In Progress')).toBeInTheDocument();
     expect(screen.getByTitle('Mark as Not Applicable')).toBeInTheDocument();
+  });
+
+  it('renders N/A state correctly showing Reason field and no other fields', () => {
+    const naItem: ResolvedComplianceItem = {
+      ...mockItem,
+      status: 'not_applicable',
+      comments: 'Not needed for part-time',
+    };
+
+    render(
+      <table>
+        <tbody>
+          <ComplianceTableRow {...mockProps} item={naItem} />
+        </tbody>
+      </table>,
+    );
+
+    // Toggle details to expand
+    fireEvent.click(screen.getByText(/View \/ Edit Details/i));
+
+    // Should show the reason block and the Textarea with the comments value
+    expect(screen.getByText(/marked as Not Applicable/i)).toBeInTheDocument();
+    expect(screen.getByLabelText('Reason')).toBeInTheDocument();
+    expect(screen.getByDisplayValue('Not needed for part-time')).toBeInTheDocument();
+
+    // Document number input field should not be rendered
+    expect(screen.queryByPlaceholderText('e.g. LIC123456')).not.toBeInTheDocument();
+
+    // Expiry date input field should not be rendered
+    const inputs = screen.queryAllByRole('textbox');
+    const dateInputs = inputs.filter(input => input.getAttribute('type') === 'date');
+    expect(dateInputs.length).toBe(0);
   });
 });

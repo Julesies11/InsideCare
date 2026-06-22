@@ -27,10 +27,10 @@ export function StaffDetailSidebar() {
       }),
     },
     {
-      title: 'Onboarding',
-      target: 'staff_onboarding',
+      title: 'House Assignments',
+      target: 'house_assignments',
       hidden: !hasAccess({
-        resource: RBAC_MODULES.STAFF_ONBOARDING,
+        resource: RBAC_MODULES.HOUSE_STAFF,
         requiredLevel: ACCESS_LEVEL.CONTEXT_READ_ONLY,
       }),
     },
@@ -47,6 +47,14 @@ export function StaffDetailSidebar() {
       target: 'emergency_contact',
       hidden: !hasAccess({
         resource: RBAC_MODULES.STAFF_EMERGENCY,
+        requiredLevel: ACCESS_LEVEL.CONTEXT_READ_ONLY,
+      }),
+    },
+    {
+      title: 'Onboarding',
+      target: 'staff_onboarding',
+      hidden: !hasAccess({
+        resource: RBAC_MODULES.STAFF_ONBOARDING,
         requiredLevel: ACCESS_LEVEL.CONTEXT_READ_ONLY,
       }),
     },

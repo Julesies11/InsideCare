@@ -570,6 +570,7 @@ export const participantDetailsApi = {
             medication_id: m.medication_id,
             dosage: m.dosage,
             is_active: m.is_active,
+            is_prn: m.is_prn,
           },
           ['frequency', 'instructions'],
         ),
@@ -587,6 +588,7 @@ export const participantDetailsApi = {
             medication_id: m.medication_id,
             dosage: m.dosage,
             is_active: m.is_active,
+            is_prn: m.is_prn,
           },
           ['frequency', 'instructions'],
         );
@@ -618,6 +620,7 @@ export const participantDetailsApi = {
           address: c.address,
           notes: c.notes,
           is_active: c.is_active,
+          is_emergency_contact: c.is_emergency_contact ?? false,
         })),
       );
       if (error) errors.push(`Contacts Add: ${error.message}`);
@@ -634,6 +637,7 @@ export const participantDetailsApi = {
             address: c.address,
             notes: c.notes,
             is_active: c.is_active,
+            is_emergency_contact: c.is_emergency_contact,
           })
           .eq('id', c.id);
         if (error) errors.push(`Contact Update ${c.id}: ${error.message}`);

@@ -3,6 +3,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 
 interface BehaviourSupportProps {
   canEdit: boolean;
@@ -113,17 +114,46 @@ export function BehaviourSupport({
         </div>
 
         {/* Restrictive Practice Authorisation */}
-        <div className="flex items-center gap-2.5">
+        <div className="flex items-center justify-between">
           <Label className="w-full max-w-56">
             Restrictive Practice Authorisation
           </Label>
-          <Checkbox
-            checked={formData.restrictive_practice_authorisation || false}
-            disabled={!canEdit}
-            onCheckedChange={(val) =>
-              onFormChange('restrictive_practice_authorisation', val === true)
+          <RadioGroup
+            value={
+              formData.restrictive_practice_authorisation === true
+                ? 'authorised'
+                : formData.restrictive_practice_authorisation === false
+                  ? 'not_authorised'
+                  : ''
             }
-          />
+            onValueChange={(val) =>
+              onFormChange(
+                'restrictive_practice_authorisation',
+                val === 'authorised' ? true : val === 'not_authorised' ? false : null,
+              )
+            }
+            disabled={!canEdit}
+            className="flex items-center gap-4"
+          >
+            <div className="flex items-center gap-2">
+              <RadioGroupItem value="authorised" id="rp_authorised" />
+              <Label
+                htmlFor="rp_authorised"
+                className="font-normal cursor-pointer text-sm"
+              >
+                Authorised
+              </Label>
+            </div>
+            <div className="flex items-center gap-2">
+              <RadioGroupItem value="not_authorised" id="rp_not_authorised" />
+              <Label
+                htmlFor="rp_not_authorised"
+                className="font-normal cursor-pointer text-sm"
+              >
+                Not Authorised
+              </Label>
+            </div>
+          </RadioGroup>
         </div>
 
         {/* Restrictive Practice Details */}

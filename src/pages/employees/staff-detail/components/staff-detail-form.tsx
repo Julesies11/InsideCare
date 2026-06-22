@@ -13,6 +13,7 @@ import { StaffComplianceSection } from './staff-compliance';
 import { StaffRoster } from './staff-roster';
 import { StaffTrainingSection } from './staff-training';
 import { StaffQualificationsSection } from './staff-qualifications';
+import { StaffHousesSection } from './staff-houses';
 
 interface StaffDetailFormProps {
   staffId: string;
@@ -30,7 +31,9 @@ interface StaffDetailFormProps {
   canEditRoster?: boolean;
   canEditLeave?: boolean;
   canEditWarnings?: boolean;
+  canEditHouseAssignments?: boolean;
   canViewPersonal?: boolean;
+  canViewHouseAssignments?: boolean;
   canViewEmployment?: boolean;
   canViewAvailability?: boolean;
   canViewEmergency?: boolean;
@@ -66,7 +69,9 @@ export function StaffDetailForm({
   canEditRoster = false,
   canEditLeave = false,
   canEditWarnings = false,
+  canEditHouseAssignments = false,
   canViewPersonal = false,
+  canViewHouseAssignments = false,
   canViewEmployment = false,
   canViewAvailability = false,
   canViewEmergency = false,
@@ -129,11 +134,11 @@ export function StaffDetailForm({
         />
       )}
 
-      {/* 3. Onboarding */}
-      {canViewOnboarding && (
-        <StaffOnboardingSection
+      {/* House Assignments */}
+      {canViewHouseAssignments && (
+        <StaffHousesSection
           staffId={staffId}
-          canEdit={canEditOnboarding}
+          canEdit={canEditHouseAssignments}
           pendingChanges={pendingChanges}
           onPendingChangesChange={onPendingChangesChange}
         />
@@ -154,6 +159,16 @@ export function StaffDetailForm({
           formData={formData}
           onFormChange={handleFormChange}
           canEdit={canEditEmergency}
+        />
+      )}
+
+      {/* 3. Onboarding */}
+      {canViewOnboarding && (
+        <StaffOnboardingSection
+          staffId={staffId}
+          canEdit={canEditOnboarding}
+          pendingChanges={pendingChanges}
+          onPendingChangesChange={onPendingChangesChange}
         />
       )}
 

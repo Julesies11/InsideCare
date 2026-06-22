@@ -69,6 +69,7 @@ export function Contacts({
     address?: string;
     notes?: string;
     is_active: boolean;
+    is_emergency_contact?: boolean;
   } | null>(null);
   const [formData, setFormData] = useState({
     contact_name: '',
@@ -78,6 +79,7 @@ export function Contacts({
     address: '',
     notes: '',
     is_active: true,
+    is_emergency_contact: false,
   });
 
   const {
@@ -103,6 +105,7 @@ export function Contacts({
       address: '',
       notes: '',
       is_active: true,
+      is_emergency_contact: false,
     });
     setShowDialog(true);
   };
@@ -117,6 +120,7 @@ export function Contacts({
       address: contact.address || '',
       notes: contact.notes || '',
       is_active: contact.is_active,
+      is_emergency_contact: contact.is_emergency_contact || false,
     });
     setShowDialog(true);
   };
@@ -286,6 +290,14 @@ export function Contacts({
                           >
                             {contact.contact_name}
                           </button>
+                          {contact.is_emergency_contact && (
+                            <Badge
+                              variant="destructive"
+                              className="text-[10px] uppercase font-bold tracking-tight bg-red-100 text-red-700 border-red-200 hover:bg-red-200"
+                            >
+                              Emergency
+                            </Badge>
+                          )}
                           {isPendingAdd && (
                             <Badge
                               variant="outline"
@@ -475,15 +487,29 @@ export function Contacts({
                 }
               />
             </div>
-            <div className="flex items-center gap-2">
-              <Switch
-                id="contact_active"
-                checked={formData.is_active}
-                onCheckedChange={(checked) =>
-                  setFormData({ ...formData, is_active: checked })
-                }
-              />
-              <Label htmlFor="contact_active">Active Contact</Label>
+            <div className="flex flex-col gap-3 border-t pt-4 mt-2">
+              <div className="flex items-center gap-2">
+                <Switch
+                  id="contact_emergency"
+                  checked={formData.is_emergency_contact}
+                  onCheckedChange={(checked) =>
+                    setFormData({ ...formData, is_emergency_contact: checked })
+                  }
+                />
+                <Label htmlFor="contact_emergency" className="font-semibold text-destructive cursor-pointer">
+                  Emergency Contact
+                </Label>
+              </div>
+              <div className="flex items-center gap-2">
+                <Switch
+                  id="contact_active"
+                  checked={formData.is_active}
+                  onCheckedChange={(checked) =>
+                    setFormData({ ...formData, is_active: checked })
+                  }
+                />
+                <Label htmlFor="contact_active" className="cursor-pointer">Active Contact</Label>
+              </div>
             </div>
           </div>
           <DialogFooter>

@@ -183,9 +183,6 @@ export interface HousePendingChanges {
       category: string;
       type: string;
       description?: string;
-      priority: string;
-      phone?: string;
-      address?: string;
       file?: File;
       file_url?: string;
       file_name?: string;
@@ -198,9 +195,6 @@ export interface HousePendingChanges {
       category?: string;
       type?: string;
       description?: string;
-      priority?: string;
-      phone?: string;
-      address?: string;
       file?: File;
       toDeleteFile?: boolean;
       is_active?: boolean;

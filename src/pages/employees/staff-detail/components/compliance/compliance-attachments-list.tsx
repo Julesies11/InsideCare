@@ -1,10 +1,40 @@
 import React, { useState } from 'react';
 import { staffDetailsApi } from '@/api/staff-details.api';
 import { ResolvedComplianceItem } from '@/models/compliance.types';
-import { FileText, Loader2, Plus, Trash2 } from 'lucide-react';
+import { Loader2, Plus, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
+import { toAbsoluteUrl } from '@/lib/helpers';
+
+const getFileIcon = (fileName?: string) => {
+  if (!fileName) return 'doc.svg';
+  const extension = fileName.split('.').pop()?.toLowerCase();
+  switch (extension) {
+    case 'pdf':
+      return 'pdf.svg';
+    case 'doc':
+    case 'docx':
+      return 'word.svg';
+    case 'xls':
+    case 'xlsx':
+      return 'excel.svg';
+    case 'jpg':
+    case 'jpeg':
+    case 'png':
+    case 'svg':
+    case 'webp':
+      return 'image.svg';
+    case 'txt':
+      return 'text.svg';
+    case 'zip':
+    case 'rar':
+    case '7z':
+      return 'zip.svg';
+    default:
+      return 'doc.svg';
+  }
+};
 
 interface ComplianceAttachmentsListProps {
   staffId: string;
@@ -78,10 +108,21 @@ export const ComplianceAttachmentsList = React.memo(
                       onClick={() =>
                         doc.file_path && handleViewDocument(doc.file_path)
                       }
-                      className="flex items-center gap-1.5 text-primary hover:underline font-medium truncate"
+                      className="flex items-center gap-2 max-w-[280px] group cursor-pointer text-start truncate min-w-0"
                     >
-                      <FileText className="size-3.5 shrink-0" />
-                      {doc.file_name}
+                      <img
+                        src={toAbsoluteUrl(
+                          `/media/file-types/${getFileIcon(doc.file_name || '')}`,
+                        )}
+                        className="size-5 shrink-0 transition-opacity group-hover:opacity-80"
+                        alt="file icon"
+                      />
+                      <span
+                        className="text-[11px] text-muted-foreground truncate group-hover:text-primary group-hover:underline transition-colors"
+                        title={doc.file_name || 'File'}
+                      >
+                        {doc.file_name}
+                      </span>
                     </button>
                     {canEdit && (
                       <button

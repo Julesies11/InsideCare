@@ -80,7 +80,7 @@ export function StaffLeaveForm() {
 
   const canManageLeaveTypes = hasAccess({
     resource: RBAC_MODULES.MASTER_LISTS,
-    requiredLevel: ACCESS_LEVEL.CONTEXT_READ_WRITE,
+    requiredLevel: ACCESS_LEVEL.FULL,
   });
 
   // Conflict detection

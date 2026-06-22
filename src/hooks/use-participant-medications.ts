@@ -17,6 +17,7 @@ export interface ParticipantMedication {
   };
   dosage?: string;
   is_active?: boolean;
+  is_prn?: boolean;
   created_at?: string;
   updated_at?: string;
 }

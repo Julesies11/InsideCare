@@ -28,6 +28,7 @@ export interface PendingMedication {
   dosage?: string;
   frequency?: string;
   is_active: boolean;
+  is_prn: boolean;
 }
 
 export interface PendingContact {
@@ -40,6 +41,7 @@ export interface PendingContact {
   address?: string;
   notes?: string;
   is_active: boolean;
+  is_emergency_contact?: boolean;
 }
 
 export interface PendingShiftNote {

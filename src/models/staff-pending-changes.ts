@@ -67,6 +67,17 @@ export interface PendingDocumentDelete {
   fileName: string;
 }
 
+export interface PendingHouseAssignment {
+  tempId?: string;
+  id?: string;
+  house_id: string;
+  is_primary?: boolean;
+  start_date?: string | null;
+  end_date?: string | null;
+  notes?: string | null;
+  house_name?: string;
+}
+
 export interface StaffPendingChanges {
   documents: {
     toAdd: PendingDocument[];
@@ -90,6 +101,11 @@ export interface StaffPendingChanges {
     toAdd: PendingStaffQualification[];
     toUpdate: PendingStaffQualification[];
     toDelete: Array<{ id: string; filePath?: string; fileName?: string }>;
+  };
+  houseAssignments: {
+    toAdd: PendingHouseAssignment[];
+    toUpdate: PendingHouseAssignment[];
+    toDelete: string[];
   };
 }
 
@@ -117,6 +133,11 @@ export const emptyStaffPendingChanges: StaffPendingChanges = {
     toUpdate: [],
     toDelete: [],
   },
+  houseAssignments: {
+    toAdd: [],
+    toUpdate: [],
+    toDelete: [],
+  },
 };
 
 // Helper to check if there are any pending changes for staff
@@ -134,7 +155,10 @@ export function hasStaffPendingChanges(pending: StaffPendingChanges): boolean {
     pending.training.toDelete.length > 0 ||
     pending.qualifications.toAdd.length > 0 ||
     pending.qualifications.toUpdate.length > 0 ||
-    pending.qualifications.toDelete.length > 0
+    pending.qualifications.toDelete.length > 0 ||
+    pending.houseAssignments.toAdd.length > 0 ||
+    pending.houseAssignments.toUpdate.length > 0 ||
+    pending.houseAssignments.toDelete.length > 0
   );
 }
 
@@ -153,6 +177,9 @@ export function countStaffPendingChanges(pending: StaffPendingChanges): number {
     pending.training.toDelete.length +
     pending.qualifications.toAdd.length +
     pending.qualifications.toUpdate.length +
-    pending.qualifications.toDelete.length
+    pending.qualifications.toDelete.length +
+    pending.houseAssignments.toAdd.length +
+    pending.houseAssignments.toUpdate.length +
+    pending.houseAssignments.toDelete.length
   );
 }
