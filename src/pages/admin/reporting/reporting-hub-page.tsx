@@ -256,6 +256,26 @@ export function ReportingHubPage() {
         implemented: true,
       },
       {
+        title: 'Incident Word Reports',
+        description:
+          'Merge incident report data into custom MS Word templates for compliance and audit submission.',
+        icon: FileText,
+        path: ROUTES.REPORTING_WORD_TEMPLATES_INCIDENTS,
+        category: 'Clinical',
+        permission: RBAC_MODULES.REPORTING_CLINICAL,
+        implemented: true,
+      },
+      {
+        title: 'Shift Note Word Reports',
+        description:
+          'Merge shift note data and clinical trackers into custom MS Word templates for participant files.',
+        icon: FileText,
+        path: ROUTES.REPORTING_WORD_TEMPLATES_SHIFT_NOTES,
+        category: 'Clinical',
+        permission: RBAC_MODULES.REPORTING_CLINICAL,
+        implemented: true,
+      },
+      {
         title: 'Staff Word Reports',
         description:
           'Merge staff data into custom MS Word templates for employment contracts and notices.',

@@ -53,6 +53,8 @@ export const ROUTES = {
   REPORTING_WORD_TEMPLATES: '/reporting/clinical/word-templates',
   REPORTING_WORD_TEMPLATES_STAFF: '/reporting/staff/word-templates',
   REPORTING_WORD_TEMPLATES_HOUSES: '/reporting/houses/word-templates',
+  REPORTING_WORD_TEMPLATES_INCIDENTS: '/reporting/clinical/word-templates-incidents',
+  REPORTING_WORD_TEMPLATES_SHIFT_NOTES: '/reporting/clinical/word-templates-shift-notes',
   REPORT_COMPLIANCE: '/reporting/compliance',
   REPORT_ONBOARDING: '/reporting/onboarding',
 

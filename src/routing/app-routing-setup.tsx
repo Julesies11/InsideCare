@@ -207,6 +207,16 @@ const HouseWordTemplatesPage = lazy(() =>
     default: m.HouseWordTemplatesPage,
   })),
 );
+const IncidentWordTemplatesPage = lazy(() =>
+  import('@/pages/admin/reporting/incident-word-templates-page').then((m) => ({
+    default: m.IncidentWordTemplatesPage,
+  })),
+);
+const ShiftNoteWordTemplatesPage = lazy(() =>
+  import('@/pages/admin/reporting/shift-note-word-templates-page').then((m) => ({
+    default: m.ShiftNoteWordTemplatesPage,
+  })),
+);
 const OnboardingReportPage = lazy(() =>
   import('@/pages/admin/reporting/onboarding-report-page').then((m) => ({
     default: m.OnboardingReportPage,
@@ -442,6 +452,14 @@ export function AppRoutingSetup() {
               <Route
                 path={ROUTES.REPORTING_WORD_TEMPLATES}
                 element={<WordTemplatesReportPage />}
+              />
+              <Route
+                path={ROUTES.REPORTING_WORD_TEMPLATES_INCIDENTS}
+                element={<IncidentWordTemplatesPage />}
+              />
+              <Route
+                path={ROUTES.REPORTING_WORD_TEMPLATES_SHIFT_NOTES}
+                element={<ShiftNoteWordTemplatesPage />}
               />
             </Route>
 

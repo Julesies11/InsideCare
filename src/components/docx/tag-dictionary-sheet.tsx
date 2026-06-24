@@ -25,7 +25,7 @@ import { cn } from '@/lib/utils';
 
 interface TagDictionarySheetProps {
   tags: TemplateTag[];
-  entityType: 'participant' | 'staff' | 'house';
+  entityType: 'participant' | 'staff' | 'house' | 'incident' | 'shift_note';
 }
 
 export function TagDictionarySheet({ tags, entityType }: TagDictionarySheetProps) {
@@ -60,6 +60,22 @@ export function TagDictionarySheet({ tags, entityType }: TagDictionarySheetProps
       badge: 'bg-indigo-100 text-indigo-800 dark:bg-indigo-900/30 dark:text-indigo-300',
       accent: 'indigo',
     },
+    incident: {
+      text: 'text-rose-600',
+      border: 'border-rose-200',
+      bg: 'bg-rose-50/50',
+      hoverBg: 'hover:bg-rose-50/30',
+      badge: 'bg-rose-100 text-rose-800 dark:bg-rose-900/30 dark:text-rose-300',
+      accent: 'rose',
+    },
+    shift_note: {
+      text: 'text-violet-600',
+      border: 'border-violet-200',
+      bg: 'bg-violet-50/50',
+      hoverBg: 'hover:bg-violet-50/30',
+      badge: 'bg-violet-100 text-violet-800 dark:bg-violet-900/30 dark:text-violet-300',
+      accent: 'violet',
+    },
   }[entityType];
 
   const handleCopy = (tagText: string) => {
@@ -89,7 +105,9 @@ export function TagDictionarySheet({ tags, entityType }: TagDictionarySheetProps
             'h-11 shadow-xs border transition-colors',
             entityType === 'participant' && 'border-blue-200 hover:bg-blue-50/50 hover:text-blue-700',
             entityType === 'staff' && 'border-emerald-200 hover:bg-emerald-50/50 hover:text-emerald-700',
-            entityType === 'house' && 'border-indigo-200 hover:bg-indigo-50/50 hover:text-indigo-700'
+            entityType === 'house' && 'border-indigo-200 hover:bg-indigo-50/50 hover:text-indigo-700',
+            entityType === 'incident' && 'border-rose-200 hover:bg-rose-50/50 hover:text-rose-700',
+            entityType === 'shift_note' && 'border-violet-200 hover:bg-violet-50/50 hover:text-violet-700'
           )}
         >
           <Info className={cn('size-4 me-2', theme.text)} />
@@ -125,11 +143,11 @@ export function TagDictionarySheet({ tags, entityType }: TagDictionarySheetProps
             <div>
               <span className="font-bold text-slate-900 block mb-0.5">Repeating Lists (Indexed Tags)</span>
               For repeating lists, add suffixes starting from 1 (e.g., <code className="font-mono bg-white px-1 border rounded font-semibold text-slate-700">{`{{${
-                entityType === 'participant' ? 'contact_name' : entityType === 'staff' ? 'qualification_title' : 'participant_name'
+                entityType === 'participant' ? 'contact_name' : entityType === 'staff' ? 'qualification_title' : entityType === 'house' ? 'participant_name' : 'witness_name'
               }1}}`}</code>, <code className="font-mono bg-white px-1 border rounded font-semibold text-slate-700">{`{{${
-                entityType === 'participant' ? 'contact_name' : entityType === 'staff' ? 'qualification_title' : 'participant_name'
+                entityType === 'participant' ? 'contact_name' : entityType === 'staff' ? 'qualification_title' : entityType === 'house' ? 'participant_name' : 'witness_name'
               }2}}`}</code>, <code className="font-mono bg-white px-1 border rounded font-semibold text-slate-700">{`{{${
-                entityType === 'participant' ? 'contact_name' : entityType === 'staff' ? 'qualification_title' : 'participant_name'
+                entityType === 'participant' ? 'contact_name' : entityType === 'staff' ? 'qualification_title' : entityType === 'house' ? 'participant_name' : 'witness_name'
               }3}}`}</code>) directly into separate rows of your Word document table. Any redundant or empty rows will be left blank after generating and should be manually deleted.
             </div>
           </div>

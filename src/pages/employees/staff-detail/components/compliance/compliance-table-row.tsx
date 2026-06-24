@@ -575,33 +575,25 @@ export const ComplianceTableRow = React.memo(function ComplianceTableRow({
       </TableCell>
 
       <TableCell className="py-3! px-2 text-center align-top">
-        {item.expiryDateApplicable && !isNotApplicable ? (
-          <>
-            <Input
-              type="date"
-              value={item.expiryDate || ''}
-              onChange={(e) =>
-                onFieldChange(
-                  item.requirementId,
-                  item.recordId,
-                  item.complianceName,
-                  'expiry_date',
-                  e.target.value,
-                )
-              }
-              disabled={
-                !canEdit ||
-                (!shouldShowDetails && !item.expiryDate) ||
-                isIDVerification
-              }
-              className="max-w-[135px] mx-auto text-center h-8 text-xs bg-white focus:bg-white"
-            />
-            {isIDVerification && isComplete && (
-              <span className="text-[9px] text-muted-foreground block mt-1.5 font-medium">
-                Auto-calculated
-              </span>
-            )}
-          </>
+        {item.expiryDateApplicable && !isNotApplicable && !isIDVerification ? (
+          <Input
+            type="date"
+            value={item.expiryDate || ''}
+            onChange={(e) =>
+              onFieldChange(
+                item.requirementId,
+                item.recordId,
+                item.complianceName,
+                'expiry_date',
+                e.target.value,
+              )
+            }
+            disabled={
+              !canEdit ||
+              (!shouldShowDetails && !item.expiryDate)
+            }
+            className="max-w-[135px] mx-auto text-center h-8 text-xs bg-white focus:bg-white"
+          />
         ) : (
           <span className="text-slate-400 text-xs">-</span>
         )}
