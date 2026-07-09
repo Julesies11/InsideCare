@@ -10,10 +10,462 @@ export type Database = {
   // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
-    PostgrestVersion: "13.0.5"
+    PostgrestVersion: "14.1"
   }
   public: {
     Tables: {
+      es_crm_contacts: {
+        Row: {
+          created_at: string
+          id: string
+          notes: string | null
+          organizer_id: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          notes?: string | null
+          organizer_id: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          notes?: string | null
+          organizer_id?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "es_crm_contacts_organizer_id_fkey"
+            columns: ["organizer_id"]
+            isOneToOne: false
+            referencedRelation: "es_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "es_crm_contacts_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "es_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      es_donations: {
+        Row: {
+          amount: number
+          campaign_id: string
+          created_at: string
+          donor_name: string | null
+          id: string
+          status: Database["public"]["Enums"]["donation_status"]
+        }
+        Insert: {
+          amount: number
+          campaign_id: string
+          created_at?: string
+          donor_name?: string | null
+          id?: string
+          status?: Database["public"]["Enums"]["donation_status"]
+        }
+        Update: {
+          amount?: number
+          campaign_id?: string
+          created_at?: string
+          donor_name?: string | null
+          id?: string
+          status?: Database["public"]["Enums"]["donation_status"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "es_donations_campaign_id_fkey"
+            columns: ["campaign_id"]
+            isOneToOne: false
+            referencedRelation: "es_fundraising_campaigns"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      es_events: {
+        Row: {
+          created_at: string
+          description: string | null
+          end_date: string | null
+          hero_image_url: string | null
+          id: string
+          location_address: string | null
+          location_name: string | null
+          name: string
+          organizer_id: string
+          slug: string
+          start_date: string
+          status: Database["public"]["Enums"]["event_status"]
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          end_date?: string | null
+          hero_image_url?: string | null
+          id?: string
+          location_address?: string | null
+          location_name?: string | null
+          name: string
+          organizer_id: string
+          slug: string
+          start_date: string
+          status?: Database["public"]["Enums"]["event_status"]
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          end_date?: string | null
+          hero_image_url?: string | null
+          id?: string
+          location_address?: string | null
+          location_name?: string | null
+          name?: string
+          organizer_id?: string
+          slug?: string
+          start_date?: string
+          status?: Database["public"]["Enums"]["event_status"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "es_events_organizer_id_fkey"
+            columns: ["organizer_id"]
+            isOneToOne: false
+            referencedRelation: "es_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      es_fundraising_campaigns: {
+        Row: {
+          created_at: string
+          current_amount: number
+          event_id: string
+          goal_amount: number
+          id: string
+          participant_id: string
+          story: string | null
+        }
+        Insert: {
+          created_at?: string
+          current_amount?: number
+          event_id: string
+          goal_amount?: number
+          id?: string
+          participant_id: string
+          story?: string | null
+        }
+        Update: {
+          created_at?: string
+          current_amount?: number
+          event_id?: string
+          goal_amount?: number
+          id?: string
+          participant_id?: string
+          story?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "es_fundraising_campaigns_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "es_events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "es_fundraising_campaigns_participant_id_fkey"
+            columns: ["participant_id"]
+            isOneToOne: false
+            referencedRelation: "es_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      es_merchandise: {
+        Row: {
+          created_at: string
+          event_id: string
+          id: string
+          inventory_count: number
+          name: string
+          price: number
+        }
+        Insert: {
+          created_at?: string
+          event_id: string
+          id?: string
+          inventory_count?: number
+          name: string
+          price: number
+        }
+        Update: {
+          created_at?: string
+          event_id?: string
+          id?: string
+          inventory_count?: number
+          name?: string
+          price?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "es_merchandise_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "es_events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      es_profiles: {
+        Row: {
+          avatar_url: string | null
+          created_at: string
+          email: string
+          first_name: string | null
+          id: string
+          last_name: string | null
+          role: Database["public"]["Enums"]["user_role"]
+          updated_at: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string
+          email: string
+          first_name?: string | null
+          id: string
+          last_name?: string | null
+          role?: Database["public"]["Enums"]["user_role"]
+          updated_at?: string
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string
+          email?: string
+          first_name?: string | null
+          id?: string
+          last_name?: string | null
+          role?: Database["public"]["Enums"]["user_role"]
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      es_registrations: {
+        Row: {
+          amount_paid: number
+          bib_number: string | null
+          created_at: string
+          event_id: string
+          id: string
+          participant_id: string
+          payment_intent_id: string | null
+          status: Database["public"]["Enums"]["reg_status"]
+          sub_event_id: string
+          updated_at: string
+        }
+        Insert: {
+          amount_paid?: number
+          bib_number?: string | null
+          created_at?: string
+          event_id: string
+          id?: string
+          participant_id: string
+          payment_intent_id?: string | null
+          status?: Database["public"]["Enums"]["reg_status"]
+          sub_event_id: string
+          updated_at?: string
+        }
+        Update: {
+          amount_paid?: number
+          bib_number?: string | null
+          created_at?: string
+          event_id?: string
+          id?: string
+          participant_id?: string
+          payment_intent_id?: string | null
+          status?: Database["public"]["Enums"]["reg_status"]
+          sub_event_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "es_registrations_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "es_events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "es_registrations_participant_id_fkey"
+            columns: ["participant_id"]
+            isOneToOne: false
+            referencedRelation: "es_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "es_registrations_sub_event_id_fkey"
+            columns: ["sub_event_id"]
+            isOneToOne: false
+            referencedRelation: "es_sub_events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      es_results: {
+        Row: {
+          age_group_rank: number | null
+          created_at: string
+          finish_time: string
+          gender_rank: number | null
+          id: string
+          overall_rank: number | null
+          registration_id: string
+        }
+        Insert: {
+          age_group_rank?: number | null
+          created_at?: string
+          finish_time: string
+          gender_rank?: number | null
+          id?: string
+          overall_rank?: number | null
+          registration_id: string
+        }
+        Update: {
+          age_group_rank?: number | null
+          created_at?: string
+          finish_time?: string
+          gender_rank?: number | null
+          id?: string
+          overall_rank?: number | null
+          registration_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "es_results_registration_id_fkey"
+            columns: ["registration_id"]
+            isOneToOne: true
+            referencedRelation: "es_registrations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      es_sub_events: {
+        Row: {
+          capacity_limit: number | null
+          created_at: string
+          distance: number | null
+          event_id: string
+          id: string
+          name: string
+          price: number
+        }
+        Insert: {
+          capacity_limit?: number | null
+          created_at?: string
+          distance?: number | null
+          event_id: string
+          id?: string
+          name: string
+          price?: number
+        }
+        Update: {
+          capacity_limit?: number | null
+          created_at?: string
+          distance?: number | null
+          event_id?: string
+          id?: string
+          name?: string
+          price?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "es_sub_events_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "es_events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      es_team_members: {
+        Row: {
+          registration_id: string
+          team_id: string
+        }
+        Insert: {
+          registration_id: string
+          team_id: string
+        }
+        Update: {
+          registration_id?: string
+          team_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "es_team_members_registration_id_fkey"
+            columns: ["registration_id"]
+            isOneToOne: false
+            referencedRelation: "es_registrations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "es_team_members_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "es_teams"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      es_teams: {
+        Row: {
+          captain_id: string
+          created_at: string
+          event_id: string
+          id: string
+          name: string
+          type: Database["public"]["Enums"]["team_type"]
+        }
+        Insert: {
+          captain_id: string
+          created_at?: string
+          event_id: string
+          id?: string
+          name: string
+          type?: Database["public"]["Enums"]["team_type"]
+        }
+        Update: {
+          captain_id?: string
+          created_at?: string
+          event_id?: string
+          id?: string
+          name?: string
+          type?: Database["public"]["Enums"]["team_type"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "es_teams_captain_id_fkey"
+            columns: ["captain_id"]
+            isOneToOne: false
+            referencedRelation: "es_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "es_teams_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "es_events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       ic_activity_log: {
         Row: {
           activity_type: string
@@ -104,70 +556,7 @@ export type Database = {
           updated_at?: string | null
           updated_by?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "ic_behaviour_intensity_master_created_by_fkey"
-            columns: ["created_by"]
-            isOneToOne: false
-            referencedRelation: "ic_staff"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "ic_behaviour_intensity_master_updated_by_fkey"
-            columns: ["updated_by"]
-            isOneToOne: false
-            referencedRelation: "ic_staff"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      ic_behaviour_types_master: {
-        Row: {
-          created_at: string | null
-          created_by: string | null
-          description: string | null
-          id: string
-          is_active: boolean | null
-          name: string
-          updated_at: string | null
-          updated_by: string | null
-        }
-        Insert: {
-          created_at?: string | null
-          created_by?: string | null
-          description?: string | null
-          id?: string
-          is_active?: boolean | null
-          name: string
-          updated_at?: string | null
-          updated_by?: string | null
-        }
-        Update: {
-          created_at?: string | null
-          created_by?: string | null
-          description?: string | null
-          id?: string
-          is_active?: boolean | null
-          name?: string
-          updated_at?: string | null
-          updated_by?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "fk_ic_behaviour_types_master_created_by"
-            columns: ["created_by"]
-            isOneToOne: false
-            referencedRelation: "ic_staff"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "fk_ic_behaviour_types_master_updated_by"
-            columns: ["updated_by"]
-            isOneToOne: false
-            referencedRelation: "ic_staff"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       ic_bowel_amounts_master: {
         Row: {
@@ -200,22 +589,7 @@ export type Database = {
           updated_at?: string | null
           updated_by?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "ic_bowel_amounts_master_created_by_fkey"
-            columns: ["created_by"]
-            isOneToOne: false
-            referencedRelation: "ic_staff"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "ic_bowel_amounts_master_updated_by_fkey"
-            columns: ["updated_by"]
-            isOneToOne: false
-            referencedRelation: "ic_staff"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       ic_bowel_assistance_master: {
         Row: {
@@ -248,22 +622,7 @@ export type Database = {
           updated_at?: string | null
           updated_by?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "ic_bowel_assistance_master_created_by_fkey"
-            columns: ["created_by"]
-            isOneToOne: false
-            referencedRelation: "ic_staff"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "ic_bowel_assistance_master_updated_by_fkey"
-            columns: ["updated_by"]
-            isOneToOne: false
-            referencedRelation: "ic_staff"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       ic_branch_policies: {
         Row: {
@@ -326,20 +685,6 @@ export type Database = {
             columns: ["branch_id"]
             isOneToOne: false
             referencedRelation: "ic_branches"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "fk_ic_branch_policies_created_by"
-            columns: ["created_by"]
-            isOneToOne: false
-            referencedRelation: "ic_staff"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "fk_ic_branch_policies_updated_by"
-            columns: ["updated_by"]
-            isOneToOne: false
-            referencedRelation: "ic_staff"
             referencedColumns: ["id"]
           },
         ]
@@ -408,22 +753,7 @@ export type Database = {
           updated_at?: string | null
           updated_by?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "fk_ic_branches_created_by"
-            columns: ["created_by"]
-            isOneToOne: false
-            referencedRelation: "ic_staff"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "fk_ic_branches_updated_by"
-            columns: ["updated_by"]
-            isOneToOne: false
-            referencedRelation: "ic_staff"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       ic_checklist_item_master: {
         Row: {
@@ -486,20 +816,6 @@ export type Database = {
             referencedRelation: "ic_checklist_master"
             referencedColumns: ["id"]
           },
-          {
-            foreignKeyName: "fk_ic_checklist_item_master_created_by"
-            columns: ["created_by"]
-            isOneToOne: false
-            referencedRelation: "ic_staff"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "fk_ic_checklist_item_master_updated_by"
-            columns: ["updated_by"]
-            isOneToOne: false
-            referencedRelation: "ic_staff"
-            referencedColumns: ["id"]
-          },
         ]
       }
       ic_checklist_master: {
@@ -533,22 +849,7 @@ export type Database = {
           updated_at?: string | null
           updated_by?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "fk_ic_checklist_master_created_by"
-            columns: ["created_by"]
-            isOneToOne: false
-            referencedRelation: "ic_staff"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "fk_ic_checklist_master_updated_by"
-            columns: ["updated_by"]
-            isOneToOne: false
-            referencedRelation: "ic_staff"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       ic_checklist_schedules: {
         Row: {
@@ -608,20 +909,6 @@ export type Database = {
             referencedRelation: "ic_houses"
             referencedColumns: ["id"]
           },
-          {
-            foreignKeyName: "fk_ic_checklist_schedules_created_by"
-            columns: ["created_by"]
-            isOneToOne: false
-            referencedRelation: "ic_staff"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "fk_ic_checklist_schedules_updated_by"
-            columns: ["updated_by"]
-            isOneToOne: false
-            referencedRelation: "ic_staff"
-            referencedColumns: ["id"]
-          },
         ]
       }
       ic_compliance_types_master: {
@@ -670,22 +957,7 @@ export type Database = {
           updated_at?: string | null
           updated_by?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "ic_compliance_types_master_created_by_fkey"
-            columns: ["created_by"]
-            isOneToOne: false
-            referencedRelation: "ic_staff"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "ic_compliance_types_master_updated_by_fkey"
-            columns: ["updated_by"]
-            isOneToOne: false
-            referencedRelation: "ic_staff"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       ic_contact_types_master: {
         Row: {
@@ -715,22 +987,7 @@ export type Database = {
           updated_at?: string | null
           updated_by?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "fk_ic_contact_types_master_created_by"
-            columns: ["created_by"]
-            isOneToOne: false
-            referencedRelation: "ic_staff"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "fk_ic_contact_types_master_updated_by"
-            columns: ["updated_by"]
-            isOneToOne: false
-            referencedRelation: "ic_staff"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       ic_departments: {
         Row: {
@@ -766,22 +1023,7 @@ export type Database = {
           updated_at?: string | null
           updated_by?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "fk_ic_departments_created_by"
-            columns: ["created_by"]
-            isOneToOne: false
-            referencedRelation: "ic_staff"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "fk_ic_departments_updated_by"
-            columns: ["updated_by"]
-            isOneToOne: false
-            referencedRelation: "ic_staff"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       ic_employment_types_master: {
         Row: {
@@ -814,22 +1056,7 @@ export type Database = {
           updated_at?: string | null
           updated_by?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "fk_ic_employment_types_master_created_by"
-            columns: ["created_by"]
-            isOneToOne: false
-            referencedRelation: "ic_staff"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "fk_ic_employment_types_master_updated_by"
-            columns: ["updated_by"]
-            isOneToOne: false
-            referencedRelation: "ic_staff"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       ic_error_logs: {
         Row: {
@@ -912,20 +1139,6 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "fk_ic_house_calendar_event_attachments_created_by"
-            columns: ["created_by"]
-            isOneToOne: false
-            referencedRelation: "ic_staff"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "fk_ic_house_calendar_event_attachments_updated_by"
-            columns: ["updated_by"]
-            isOneToOne: false
-            referencedRelation: "ic_staff"
-            referencedColumns: ["id"]
-          },
-          {
             foreignKeyName: "house_calendar_event_attachments_event_id_fkey"
             columns: ["event_id"]
             isOneToOne: false
@@ -963,20 +1176,6 @@ export type Database = {
           updated_by?: string | null
         }
         Relationships: [
-          {
-            foreignKeyName: "fk_ic_house_calendar_event_participants_created_by"
-            columns: ["created_by"]
-            isOneToOne: false
-            referencedRelation: "ic_staff"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "fk_ic_house_calendar_event_participants_updated_by"
-            columns: ["updated_by"]
-            isOneToOne: false
-            referencedRelation: "ic_staff"
-            referencedColumns: ["id"]
-          },
           {
             foreignKeyName: "house_calendar_event_participants_event_id_fkey"
             columns: ["event_id"]
@@ -1022,20 +1221,6 @@ export type Database = {
           updated_by?: string | null
         }
         Relationships: [
-          {
-            foreignKeyName: "fk_ic_house_calendar_event_staff_created_by"
-            columns: ["created_by"]
-            isOneToOne: false
-            referencedRelation: "ic_staff"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "fk_ic_house_calendar_event_staff_updated_by"
-            columns: ["updated_by"]
-            isOneToOne: false
-            referencedRelation: "ic_staff"
-            referencedColumns: ["id"]
-          },
           {
             foreignKeyName: "house_calendar_event_staff_event_id_fkey"
             columns: ["event_id"]
@@ -1086,22 +1271,7 @@ export type Database = {
           updated_at?: string | null
           updated_by?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "fk_ic_house_calendar_event_types_master_created_by"
-            columns: ["created_by"]
-            isOneToOne: false
-            referencedRelation: "ic_staff"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "fk_ic_house_calendar_event_types_master_updated_by"
-            columns: ["updated_by"]
-            isOneToOne: false
-            referencedRelation: "ic_staff"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       ic_house_calendar_events: {
         Row: {
@@ -1162,20 +1332,6 @@ export type Database = {
           updated_by?: string | null
         }
         Relationships: [
-          {
-            foreignKeyName: "fk_ic_house_calendar_events_created_by"
-            columns: ["created_by"]
-            isOneToOne: false
-            referencedRelation: "ic_staff"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "fk_ic_house_calendar_events_updated_by"
-            columns: ["updated_by"]
-            isOneToOne: false
-            referencedRelation: "ic_staff"
-            referencedColumns: ["id"]
-          },
           {
             foreignKeyName: "house_calendar_events_checklist_schedule_id_fkey"
             columns: ["checklist_schedule_id"]
@@ -1251,20 +1407,6 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "fk_ic_house_checklist_item_attachments_created_by"
-            columns: ["created_by"]
-            isOneToOne: false
-            referencedRelation: "ic_staff"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "fk_ic_house_checklist_item_attachments_updated_by"
-            columns: ["updated_by"]
-            isOneToOne: false
-            referencedRelation: "ic_staff"
-            referencedColumns: ["id"]
-          },
-          {
             foreignKeyName: "house_checklist_item_attachments_item_id_fkey"
             columns: ["item_id"]
             isOneToOne: false
@@ -1338,20 +1480,6 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "fk_ic_house_checklist_items_created_by"
-            columns: ["created_by"]
-            isOneToOne: false
-            referencedRelation: "ic_staff"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "fk_ic_house_checklist_items_updated_by"
-            columns: ["updated_by"]
-            isOneToOne: false
-            referencedRelation: "ic_staff"
-            referencedColumns: ["id"]
-          },
-          {
             foreignKeyName: "house_checklist_items_checklist_id_fkey"
             columns: ["checklist_id"]
             isOneToOne: false
@@ -1421,20 +1549,6 @@ export type Database = {
           updated_by?: string | null
         }
         Relationships: [
-          {
-            foreignKeyName: "fk_ic_house_checklist_submission_items_created_by"
-            columns: ["created_by"]
-            isOneToOne: false
-            referencedRelation: "ic_staff"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "fk_ic_house_checklist_submission_items_updated_by"
-            columns: ["updated_by"]
-            isOneToOne: false
-            referencedRelation: "ic_staff"
-            referencedColumns: ["id"]
-          },
           {
             foreignKeyName: "house_checklist_submission_items_completed_by_fkey"
             columns: ["completed_by"]
@@ -1525,20 +1639,6 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "fk_ic_house_checklist_submissions_created_by"
-            columns: ["created_by"]
-            isOneToOne: false
-            referencedRelation: "ic_staff"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "fk_ic_house_checklist_submissions_updated_by"
-            columns: ["updated_by"]
-            isOneToOne: false
-            referencedRelation: "ic_staff"
-            referencedColumns: ["id"]
-          },
-          {
             foreignKeyName: "house_checklist_submissions_calendar_event_id_fkey"
             columns: ["calendar_event_id"]
             isOneToOne: false
@@ -1581,7 +1681,7 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "house_checklist_submissions_shift_type_id_fkey"
+            foreignKeyName: "house_checklist_submissions_shift_template_id_fkey"
             columns: ["shift_template_id"]
             isOneToOne: false
             referencedRelation: "ic_house_shift_templates"
@@ -1641,20 +1741,6 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "fk_ic_house_checklists_created_by"
-            columns: ["created_by"]
-            isOneToOne: false
-            referencedRelation: "ic_staff"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "fk_ic_house_checklists_updated_by"
-            columns: ["updated_by"]
-            isOneToOne: false
-            referencedRelation: "ic_staff"
-            referencedColumns: ["id"]
-          },
-          {
             foreignKeyName: "house_checklists_house_id_fkey"
             columns: ["house_id"]
             isOneToOne: false
@@ -1702,20 +1788,6 @@ export type Database = {
           updated_by?: string | null
         }
         Relationships: [
-          {
-            foreignKeyName: "fk_ic_house_comms_created_by"
-            columns: ["created_by"]
-            isOneToOne: false
-            referencedRelation: "ic_staff"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "fk_ic_house_comms_updated_by"
-            columns: ["updated_by"]
-            isOneToOne: false
-            referencedRelation: "ic_staff"
-            referencedColumns: ["id"]
-          },
           {
             foreignKeyName: "house_comms_house_id_fkey"
             columns: ["house_id"]
@@ -1779,20 +1851,6 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "fk_ic_house_files_created_by"
-            columns: ["created_by"]
-            isOneToOne: false
-            referencedRelation: "ic_staff"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "fk_ic_house_files_updated_by"
-            columns: ["updated_by"]
-            isOneToOne: false
-            referencedRelation: "ic_staff"
-            referencedColumns: ["id"]
-          },
-          {
             foreignKeyName: "house_files_house_id_fkey"
             columns: ["house_id"]
             isOneToOne: false
@@ -1851,20 +1909,6 @@ export type Database = {
           updated_by?: string | null
         }
         Relationships: [
-          {
-            foreignKeyName: "fk_ic_house_form_assignments_created_by"
-            columns: ["created_by"]
-            isOneToOne: false
-            referencedRelation: "ic_staff"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "fk_ic_house_form_assignments_updated_by"
-            columns: ["updated_by"]
-            isOneToOne: false
-            referencedRelation: "ic_staff"
-            referencedColumns: ["id"]
-          },
           {
             foreignKeyName: "house_form_assignments_assigned_by_fkey"
             columns: ["assigned_by"]
@@ -1947,20 +1991,6 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "fk_ic_house_form_submissions_created_by"
-            columns: ["created_by"]
-            isOneToOne: false
-            referencedRelation: "ic_staff"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "fk_ic_house_form_submissions_updated_by"
-            columns: ["updated_by"]
-            isOneToOne: false
-            referencedRelation: "ic_staff"
-            referencedColumns: ["id"]
-          },
-          {
             foreignKeyName: "house_form_submissions_assignment_id_fkey"
             columns: ["assignment_id"]
             isOneToOne: false
@@ -2035,20 +2065,6 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "fk_ic_house_forms_created_by"
-            columns: ["created_by"]
-            isOneToOne: false
-            referencedRelation: "ic_staff"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "fk_ic_house_forms_updated_by"
-            columns: ["updated_by"]
-            isOneToOne: false
-            referencedRelation: "ic_staff"
-            referencedColumns: ["id"]
-          },
-          {
             foreignKeyName: "house_forms_house_id_fkey"
             columns: ["house_id"]
             isOneToOne: false
@@ -2111,20 +2127,6 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "fk_ic_house_resources_created_by"
-            columns: ["created_by"]
-            isOneToOne: false
-            referencedRelation: "ic_staff"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "fk_ic_house_resources_updated_by"
-            columns: ["updated_by"]
-            isOneToOne: false
-            referencedRelation: "ic_staff"
-            referencedColumns: ["id"]
-          },
-          {
             foreignKeyName: "house_resources_house_id_fkey"
             columns: ["house_id"]
             isOneToOne: false
@@ -2184,21 +2186,7 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "fk_ic_house_shift_templates_created_by"
-            columns: ["created_by"]
-            isOneToOne: false
-            referencedRelation: "ic_staff"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "fk_ic_house_shift_templates_updated_by"
-            columns: ["updated_by"]
-            isOneToOne: false
-            referencedRelation: "ic_staff"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "house_shift_types_house_id_fkey"
+            foreignKeyName: "house_shift_templates_house_id_fkey"
             columns: ["house_id"]
             isOneToOne: false
             referencedRelation: "ic_houses"
@@ -2248,20 +2236,6 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "fk_ic_house_staff_assignments_created_by"
-            columns: ["created_by"]
-            isOneToOne: false
-            referencedRelation: "ic_staff"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "fk_ic_house_staff_assignments_updated_by"
-            columns: ["updated_by"]
-            isOneToOne: false
-            referencedRelation: "ic_staff"
-            referencedColumns: ["id"]
-          },
-          {
             foreignKeyName: "house_staff_assignments_house_id_fkey"
             columns: ["house_id"]
             isOneToOne: false
@@ -2308,22 +2282,7 @@ export type Database = {
           updated_at?: string | null
           updated_by?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "fk_ic_house_types_master_created_by"
-            columns: ["created_by"]
-            isOneToOne: false
-            referencedRelation: "ic_staff"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "fk_ic_house_types_master_updated_by"
-            columns: ["updated_by"]
-            isOneToOne: false
-            referencedRelation: "ic_staff"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       ic_houses: {
         Row: {
@@ -2400,20 +2359,6 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "fk_ic_houses_created_by"
-            columns: ["created_by"]
-            isOneToOne: false
-            referencedRelation: "ic_staff"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "fk_ic_houses_updated_by"
-            columns: ["updated_by"]
-            isOneToOne: false
-            referencedRelation: "ic_staff"
-            referencedColumns: ["id"]
-          },
-          {
             foreignKeyName: "houses_branch_id_fkey"
             columns: ["branch_id"]
             isOneToOne: false
@@ -2460,22 +2405,7 @@ export type Database = {
           updated_at?: string | null
           updated_by?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "ic_hygiene_levels_master_created_by_fkey"
-            columns: ["created_by"]
-            isOneToOne: false
-            referencedRelation: "ic_staff"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "ic_hygiene_levels_master_updated_by_fkey"
-            columns: ["updated_by"]
-            isOneToOne: false
-            referencedRelation: "ic_staff"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       ic_id_document_types: {
         Row: {
@@ -2526,22 +2456,7 @@ export type Database = {
           updated_at?: string | null
           updated_by?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "ic_id_document_types_created_by_fkey"
-            columns: ["created_by"]
-            isOneToOne: false
-            referencedRelation: "ic_staff"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "ic_id_document_types_updated_by_fkey"
-            columns: ["updated_by"]
-            isOneToOne: false
-            referencedRelation: "ic_staff"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       ic_incident_reports: {
         Row: {
@@ -2557,8 +2472,8 @@ export type Database = {
           incident_date: string
           incident_type: string | null
           incident_type_id: string | null
-          involved_participant_id: string | null
-          involved_staff_id: string
+          involved_participant_id: string
+          involved_staff_id: string | null
           is_ndis_reportable: boolean
           is_restrictive_practice: boolean
           ndis_reported_date: string | null
@@ -2595,8 +2510,8 @@ export type Database = {
           incident_date: string
           incident_type?: string | null
           incident_type_id?: string | null
-          involved_participant_id?: string | null
-          involved_staff_id: string
+          involved_participant_id: string
+          involved_staff_id?: string | null
           is_ndis_reportable?: boolean
           is_restrictive_practice?: boolean
           ndis_reported_date?: string | null
@@ -2633,8 +2548,8 @@ export type Database = {
           incident_date?: string
           incident_type?: string | null
           incident_type_id?: string | null
-          involved_participant_id?: string | null
-          involved_staff_id?: string
+          involved_participant_id?: string
+          involved_staff_id?: string | null
           is_ndis_reportable?: boolean
           is_restrictive_practice?: boolean
           ndis_reported_date?: string | null
@@ -2659,20 +2574,6 @@ export type Database = {
           witnesses?: string | null
         }
         Relationships: [
-          {
-            foreignKeyName: "fk_ic_incident_reports_created_by"
-            columns: ["created_by"]
-            isOneToOne: false
-            referencedRelation: "ic_staff"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "fk_ic_incident_reports_updated_by"
-            columns: ["updated_by"]
-            isOneToOne: false
-            referencedRelation: "ic_staff"
-            referencedColumns: ["id"]
-          },
           {
             foreignKeyName: "ic_incident_reports_house_id_fkey"
             columns: ["house_id"]
@@ -2798,20 +2699,6 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "fk_ic_leave_requests_created_by"
-            columns: ["created_by"]
-            isOneToOne: false
-            referencedRelation: "ic_staff"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "fk_ic_leave_requests_updated_by"
-            columns: ["updated_by"]
-            isOneToOne: false
-            referencedRelation: "ic_staff"
-            referencedColumns: ["id"]
-          },
-          {
             foreignKeyName: "leave_requests_leave_type_id_fkey"
             columns: ["leave_type_id"]
             isOneToOne: false
@@ -2855,22 +2742,7 @@ export type Database = {
           updated_at?: string | null
           updated_by?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "fk_ic_leave_types_created_by"
-            columns: ["created_by"]
-            isOneToOne: false
-            referencedRelation: "ic_staff"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "fk_ic_leave_types_updated_by"
-            columns: ["updated_by"]
-            isOneToOne: false
-            referencedRelation: "ic_staff"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       ic_medication_types_master: {
         Row: {
@@ -2900,22 +2772,7 @@ export type Database = {
           updated_at?: string | null
           updated_by?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "ic_medication_types_master_created_by_fkey"
-            columns: ["created_by"]
-            isOneToOne: false
-            referencedRelation: "ic_staff"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "ic_medication_types_master_updated_by_fkey"
-            columns: ["updated_by"]
-            isOneToOne: false
-            referencedRelation: "ic_staff"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       ic_medications_master: {
         Row: {
@@ -2968,20 +2825,6 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "fk_ic_medications_master_created_by"
-            columns: ["created_by"]
-            isOneToOne: false
-            referencedRelation: "ic_staff"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "fk_ic_medications_master_updated_by"
-            columns: ["updated_by"]
-            isOneToOne: false
-            referencedRelation: "ic_staff"
-            referencedColumns: ["id"]
-          },
-          {
             foreignKeyName: "ic_medications_master_type_id_fkey"
             columns: ["type_id"]
             isOneToOne: false
@@ -3021,22 +2864,7 @@ export type Database = {
           updated_at?: string | null
           updated_by?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "ic_mtm_diet_types_master_created_by_fkey"
-            columns: ["created_by"]
-            isOneToOne: false
-            referencedRelation: "ic_staff"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "ic_mtm_diet_types_master_updated_by_fkey"
-            columns: ["updated_by"]
-            isOneToOne: false
-            referencedRelation: "ic_staff"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       ic_mtm_fluid_intake_master: {
         Row: {
@@ -3069,22 +2897,7 @@ export type Database = {
           updated_at?: string | null
           updated_by?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "ic_mtm_fluid_intake_master_created_by_fkey"
-            columns: ["created_by"]
-            isOneToOne: false
-            referencedRelation: "ic_staff"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "ic_mtm_fluid_intake_master_updated_by_fkey"
-            columns: ["updated_by"]
-            isOneToOne: false
-            referencedRelation: "ic_staff"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       ic_mtm_fluids_master: {
         Row: {
@@ -3117,22 +2930,7 @@ export type Database = {
           updated_at?: string | null
           updated_by?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "ic_mtm_fluids_master_created_by_fkey"
-            columns: ["created_by"]
-            isOneToOne: false
-            referencedRelation: "ic_staff"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "ic_mtm_fluids_master_updated_by_fkey"
-            columns: ["updated_by"]
-            isOneToOne: false
-            referencedRelation: "ic_staff"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       ic_mtm_meal_intake_master: {
         Row: {
@@ -3165,22 +2963,7 @@ export type Database = {
           updated_at?: string | null
           updated_by?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "ic_mtm_meal_intake_master_created_by_fkey"
-            columns: ["created_by"]
-            isOneToOne: false
-            referencedRelation: "ic_staff"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "ic_mtm_meal_intake_master_updated_by_fkey"
-            columns: ["updated_by"]
-            isOneToOne: false
-            referencedRelation: "ic_staff"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       ic_mtm_swallowing_concerns_master: {
         Row: {
@@ -3213,22 +2996,7 @@ export type Database = {
           updated_at?: string | null
           updated_by?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "ic_mtm_swallowing_concerns_master_created_by_fkey"
-            columns: ["created_by"]
-            isOneToOne: false
-            referencedRelation: "ic_staff"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "ic_mtm_swallowing_concerns_master_updated_by_fkey"
-            columns: ["updated_by"]
-            isOneToOne: false
-            referencedRelation: "ic_staff"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       ic_notifications: {
         Row: {
@@ -3273,22 +3041,7 @@ export type Database = {
           updated_by?: string | null
           user_id?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "fk_ic_notifications_created_by"
-            columns: ["created_by"]
-            isOneToOne: false
-            referencedRelation: "ic_staff"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "fk_ic_notifications_updated_by"
-            columns: ["updated_by"]
-            isOneToOne: false
-            referencedRelation: "ic_staff"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       ic_nutrition_intake_master: {
         Row: {
@@ -3321,22 +3074,7 @@ export type Database = {
           updated_at?: string | null
           updated_by?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "ic_nutrition_intake_master_created_by_fkey"
-            columns: ["created_by"]
-            isOneToOne: false
-            referencedRelation: "ic_staff"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "ic_nutrition_intake_master_updated_by_fkey"
-            columns: ["updated_by"]
-            isOneToOne: false
-            referencedRelation: "ic_staff"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       ic_nutrition_meal_types_master: {
         Row: {
@@ -3369,22 +3107,7 @@ export type Database = {
           updated_at?: string | null
           updated_by?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "ic_nutrition_meal_types_master_created_by_fkey"
-            columns: ["created_by"]
-            isOneToOne: false
-            referencedRelation: "ic_staff"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "ic_nutrition_meal_types_master_updated_by_fkey"
-            columns: ["updated_by"]
-            isOneToOne: false
-            referencedRelation: "ic_staff"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       ic_onboarding_items_master: {
         Row: {
@@ -3473,20 +3196,6 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "fk_ic_participant_contacts_created_by"
-            columns: ["created_by"]
-            isOneToOne: false
-            referencedRelation: "ic_staff"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "fk_ic_participant_contacts_updated_by"
-            columns: ["updated_by"]
-            isOneToOne: false
-            referencedRelation: "ic_staff"
-            referencedColumns: ["id"]
-          },
-          {
             foreignKeyName: "participant_contacts_contact_type_id_fkey"
             columns: ["contact_type_id"]
             isOneToOne: false
@@ -3494,7 +3203,7 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "participant_providers_participant_id_fkey"
+            foreignKeyName: "participant_contacts_participant_id_fkey"
             columns: ["participant_id"]
             isOneToOne: false
             referencedRelation: "ic_participants"
@@ -3534,20 +3243,6 @@ export type Database = {
           updated_by?: string | null
         }
         Relationships: [
-          {
-            foreignKeyName: "fk_ic_participant_document_roles_created_by"
-            columns: ["created_by"]
-            isOneToOne: false
-            referencedRelation: "ic_staff"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "fk_ic_participant_document_roles_updated_by"
-            columns: ["updated_by"]
-            isOneToOne: false
-            referencedRelation: "ic_staff"
-            referencedColumns: ["id"]
-          },
           {
             foreignKeyName: "ic_participant_document_roles_document_id_fkey"
             columns: ["document_id"]
@@ -3603,20 +3298,6 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "fk_ic_participant_documents_created_by"
-            columns: ["created_by"]
-            isOneToOne: false
-            referencedRelation: "ic_staff"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "fk_ic_participant_documents_updated_by"
-            columns: ["updated_by"]
-            isOneToOne: false
-            referencedRelation: "ic_staff"
-            referencedColumns: ["id"]
-          },
-          {
             foreignKeyName: "participant_documents_participant_id_fkey"
             columns: ["participant_id"]
             isOneToOne: false
@@ -3667,20 +3348,6 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "fk_ic_participant_forms_created_by"
-            columns: ["created_by"]
-            isOneToOne: false
-            referencedRelation: "ic_staff"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "fk_ic_participant_forms_updated_by"
-            columns: ["updated_by"]
-            isOneToOne: false
-            referencedRelation: "ic_staff"
-            referencedColumns: ["id"]
-          },
-          {
             foreignKeyName: "participant_forms_participant_id_fkey"
             columns: ["participant_id"]
             isOneToOne: false
@@ -3726,20 +3393,6 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "fk_ic_participant_goal_progress_created_by"
-            columns: ["created_by"]
-            isOneToOne: false
-            referencedRelation: "ic_staff"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "fk_ic_participant_goal_progress_updated_by"
-            columns: ["updated_by"]
-            isOneToOne: false
-            referencedRelation: "ic_staff"
-            referencedColumns: ["id"]
-          },
-          {
             foreignKeyName: "participant_goal_progress_goal_id_fkey"
             columns: ["goal_id"]
             isOneToOne: false
@@ -3783,20 +3436,6 @@ export type Database = {
           updated_by?: string | null
         }
         Relationships: [
-          {
-            foreignKeyName: "fk_ic_participant_goals_created_by"
-            columns: ["created_by"]
-            isOneToOne: false
-            referencedRelation: "ic_staff"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "fk_ic_participant_goals_updated_by"
-            columns: ["updated_by"]
-            isOneToOne: false
-            referencedRelation: "ic_staff"
-            referencedColumns: ["id"]
-          },
           {
             foreignKeyName: "participant_goals_participant_id_fkey"
             columns: ["participant_id"]
@@ -3857,20 +3496,6 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "fk_ic_participant_hygiene_routines_created_by"
-            columns: ["created_by"]
-            isOneToOne: false
-            referencedRelation: "ic_staff"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "fk_ic_participant_hygiene_routines_updated_by"
-            columns: ["updated_by"]
-            isOneToOne: false
-            referencedRelation: "ic_staff"
-            referencedColumns: ["id"]
-          },
-          {
             foreignKeyName: "participant_hygiene_routines_participant_id_fkey"
             columns: ["participant_id"]
             isOneToOne: false
@@ -3917,20 +3542,6 @@ export type Database = {
           updated_by?: string | null
         }
         Relationships: [
-          {
-            foreignKeyName: "fk_ic_participant_medications_created_by"
-            columns: ["created_by"]
-            isOneToOne: false
-            referencedRelation: "ic_staff"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "fk_ic_participant_medications_updated_by"
-            columns: ["updated_by"]
-            isOneToOne: false
-            referencedRelation: "ic_staff"
-            referencedColumns: ["id"]
-          },
           {
             foreignKeyName: "participant_medications_medication_id_fkey"
             columns: ["medication_id"]
@@ -3985,20 +3596,6 @@ export type Database = {
           updated_by?: string | null
         }
         Relationships: [
-          {
-            foreignKeyName: "fk_ic_participant_notes_created_by"
-            columns: ["created_by"]
-            isOneToOne: false
-            referencedRelation: "ic_staff"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "fk_ic_participant_notes_updated_by"
-            columns: ["updated_by"]
-            isOneToOne: false
-            referencedRelation: "ic_staff"
-            referencedColumns: ["id"]
-          },
           {
             foreignKeyName: "participant_notes_participant_id_fkey"
             columns: ["participant_id"]
@@ -4070,20 +3667,6 @@ export type Database = {
           updated_by?: string | null
         }
         Relationships: [
-          {
-            foreignKeyName: "fk_ic_participant_restrictive_practices_created_by"
-            columns: ["created_by"]
-            isOneToOne: false
-            referencedRelation: "ic_staff"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "fk_ic_participant_restrictive_practices_updated_by"
-            columns: ["updated_by"]
-            isOneToOne: false
-            referencedRelation: "ic_staff"
-            referencedColumns: ["id"]
-          },
           {
             foreignKeyName: "participant_restrictive_practices_participant_id_fkey"
             columns: ["participant_id"]
@@ -4315,20 +3898,6 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "fk_ic_participants_created_by"
-            columns: ["created_by"]
-            isOneToOne: false
-            referencedRelation: "ic_staff"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "fk_ic_participants_updated_by"
-            columns: ["updated_by"]
-            isOneToOne: false
-            referencedRelation: "ic_staff"
-            referencedColumns: ["id"]
-          },
-          {
             foreignKeyName: "participants_house_id_fkey"
             columns: ["house_id"]
             isOneToOne: false
@@ -4377,22 +3946,7 @@ export type Database = {
           updated_at?: string | null
           updated_by?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "fk_ic_permission_mappings_created_by"
-            columns: ["created_by"]
-            isOneToOne: false
-            referencedRelation: "ic_staff"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "fk_ic_permission_mappings_updated_by"
-            columns: ["updated_by"]
-            isOneToOne: false
-            referencedRelation: "ic_staff"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       ic_positions: {
         Row: {
@@ -4436,20 +3990,6 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "fk_ic_positions_created_by"
-            columns: ["created_by"]
-            isOneToOne: false
-            referencedRelation: "ic_staff"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "fk_ic_positions_updated_by"
-            columns: ["updated_by"]
-            isOneToOne: false
-            referencedRelation: "ic_staff"
-            referencedColumns: ["id"]
-          },
-          {
             foreignKeyName: "positions_department_id_fkey"
             columns: ["department_id"]
             isOneToOne: false
@@ -4487,20 +4027,6 @@ export type Database = {
           updated_by?: string | null
         }
         Relationships: [
-          {
-            foreignKeyName: "fk_ic_provider_participants_created_by"
-            columns: ["created_by"]
-            isOneToOne: false
-            referencedRelation: "ic_staff"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "fk_ic_provider_participants_updated_by"
-            columns: ["updated_by"]
-            isOneToOne: false
-            referencedRelation: "ic_staff"
-            referencedColumns: ["id"]
-          },
           {
             foreignKeyName: "provider_participants_participant_id_fkey"
             columns: ["participant_id"]
@@ -4556,22 +4082,7 @@ export type Database = {
           updated_at?: string | null
           updated_by?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "fk_ic_providers_created_by"
-            columns: ["created_by"]
-            isOneToOne: false
-            referencedRelation: "ic_staff"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "fk_ic_providers_updated_by"
-            columns: ["updated_by"]
-            isOneToOne: false
-            referencedRelation: "ic_staff"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       ic_report_preferences: {
         Row: {
@@ -4818,20 +4329,6 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "fk_ic_role_permissions_created_by"
-            columns: ["created_by"]
-            isOneToOne: false
-            referencedRelation: "ic_staff"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "fk_ic_role_permissions_updated_by"
-            columns: ["updated_by"]
-            isOneToOne: false
-            referencedRelation: "ic_staff"
-            referencedColumns: ["id"]
-          },
-          {
             foreignKeyName: "role_permissions_role_id_fkey"
             columns: ["role_id"]
             isOneToOne: true
@@ -4877,22 +4374,7 @@ export type Database = {
           updated_at?: string | null
           updated_by?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "fk_ic_roles_created_by"
-            columns: ["created_by"]
-            isOneToOne: false
-            referencedRelation: "ic_staff"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "fk_ic_roles_updated_by"
-            columns: ["updated_by"]
-            isOneToOne: false
-            referencedRelation: "ic_staff"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       ic_seizure_types_master: {
         Row: {
@@ -4925,22 +4407,7 @@ export type Database = {
           updated_at?: string | null
           updated_by?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "fk_ic_seizure_types_master_created_by"
-            columns: ["created_by"]
-            isOneToOne: false
-            referencedRelation: "ic_staff"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "fk_ic_seizure_types_master_updated_by"
-            columns: ["updated_by"]
-            isOneToOne: false
-            referencedRelation: "ic_staff"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       ic_service_participants: {
         Row: {
@@ -4971,20 +4438,6 @@ export type Database = {
           updated_by?: string | null
         }
         Relationships: [
-          {
-            foreignKeyName: "fk_ic_service_participants_created_by"
-            columns: ["created_by"]
-            isOneToOne: false
-            referencedRelation: "ic_staff"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "fk_ic_service_participants_updated_by"
-            columns: ["updated_by"]
-            isOneToOne: false
-            referencedRelation: "ic_staff"
-            referencedColumns: ["id"]
-          },
           {
             foreignKeyName: "service_participants_participant_id_fkey"
             columns: ["participant_id"]
@@ -5030,20 +4483,6 @@ export type Database = {
           updated_by?: string | null
         }
         Relationships: [
-          {
-            foreignKeyName: "fk_ic_service_staff_created_by"
-            columns: ["created_by"]
-            isOneToOne: false
-            referencedRelation: "ic_staff"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "fk_ic_service_staff_updated_by"
-            columns: ["updated_by"]
-            isOneToOne: false
-            referencedRelation: "ic_staff"
-            referencedColumns: ["id"]
-          },
           {
             foreignKeyName: "service_staff_service_id_fkey"
             columns: ["service_id"]
@@ -5094,22 +4533,7 @@ export type Database = {
           updated_at?: string | null
           updated_by?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "fk_ic_services_created_by"
-            columns: ["created_by"]
-            isOneToOne: false
-            referencedRelation: "ic_staff"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "fk_ic_services_updated_by"
-            columns: ["updated_by"]
-            isOneToOne: false
-            referencedRelation: "ic_staff"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       ic_shift_assigned_checklists: {
         Row: {
@@ -5153,20 +4577,6 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "fk_ic_shift_assigned_checklists_created_by"
-            columns: ["created_by"]
-            isOneToOne: false
-            referencedRelation: "ic_staff"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "fk_ic_shift_assigned_checklists_updated_by"
-            columns: ["updated_by"]
-            isOneToOne: false
-            referencedRelation: "ic_staff"
-            referencedColumns: ["id"]
-          },
-          {
             foreignKeyName: "shift_assigned_checklists_checklist_id_fkey"
             columns: ["checklist_id"]
             isOneToOne: false
@@ -5188,10 +4598,74 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "shift_assigned_checklists_shift_type_id_fkey"
+            foreignKeyName: "shift_assigned_checklists_shift_template_id_fkey"
             columns: ["shift_template_id"]
             isOneToOne: false
             referencedRelation: "ic_house_shift_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ic_shift_note_sleep_records: {
+        Row: {
+          created_at: string | null
+          created_by: string | null
+          id: string
+          shift_note_id: string
+          sleep_quality_id: string | null
+          sleep_start_time: string | null
+          sleep_support_required: string | null
+          sleep_type_id: string | null
+          sleep_wake_time: string | null
+          updated_at: string | null
+          updated_by: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          shift_note_id: string
+          sleep_quality_id?: string | null
+          sleep_start_time?: string | null
+          sleep_support_required?: string | null
+          sleep_type_id?: string | null
+          sleep_wake_time?: string | null
+          updated_at?: string | null
+          updated_by?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          shift_note_id?: string
+          sleep_quality_id?: string | null
+          sleep_start_time?: string | null
+          sleep_support_required?: string | null
+          sleep_type_id?: string | null
+          sleep_wake_time?: string | null
+          updated_at?: string | null
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ic_shift_note_sleep_records_shift_note_id_fkey"
+            columns: ["shift_note_id"]
+            isOneToOne: false
+            referencedRelation: "ic_shift_notes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ic_shift_note_sleep_records_sleep_quality_id_fkey"
+            columns: ["sleep_quality_id"]
+            isOneToOne: false
+            referencedRelation: "ic_sleep_quality_master"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ic_shift_note_sleep_records_sleep_type_id_fkey"
+            columns: ["sleep_type_id"]
+            isOneToOne: false
+            referencedRelation: "ic_sleep_types_master"
             referencedColumns: ["id"]
           },
         ]
@@ -5202,7 +4676,7 @@ export type Database = {
           behaviour_intensity_id: string | null
           behaviour_notes: string | null
           behaviour_observed: boolean | null
-          behaviour_type_id: string | null
+          behaviour_type: string | null
           bowel_amount_id: string | null
           bowel_assistance_id: string | null
           bowel_bristol_scale: number | null
@@ -5281,11 +4755,6 @@ export type Database = {
           shift_time: string | null
           shift_type: Database["public"]["Enums"]["ic_shift_period_enum"] | null
           sleep_occurred: boolean | null
-          sleep_quality_id: string | null
-          sleep_start_time: string | null
-          sleep_support_required: string | null
-          sleep_type_id: string | null
-          sleep_wake_time: string | null
           staff_id: string | null
           start_date: string
           status: Database["public"]["Enums"]["ic_status_enum"]
@@ -5297,7 +4766,7 @@ export type Database = {
           behaviour_intensity_id?: string | null
           behaviour_notes?: string | null
           behaviour_observed?: boolean | null
-          behaviour_type_id?: string | null
+          behaviour_type?: string | null
           bowel_amount_id?: string | null
           bowel_assistance_id?: string | null
           bowel_bristol_scale?: number | null
@@ -5378,11 +4847,6 @@ export type Database = {
             | Database["public"]["Enums"]["ic_shift_period_enum"]
             | null
           sleep_occurred?: boolean | null
-          sleep_quality_id?: string | null
-          sleep_start_time?: string | null
-          sleep_support_required?: string | null
-          sleep_type_id?: string | null
-          sleep_wake_time?: string | null
           staff_id?: string | null
           start_date: string
           status?: Database["public"]["Enums"]["ic_status_enum"]
@@ -5394,7 +4858,7 @@ export type Database = {
           behaviour_intensity_id?: string | null
           behaviour_notes?: string | null
           behaviour_observed?: boolean | null
-          behaviour_type_id?: string | null
+          behaviour_type?: string | null
           bowel_amount_id?: string | null
           bowel_assistance_id?: string | null
           bowel_bristol_scale?: number | null
@@ -5475,11 +4939,6 @@ export type Database = {
             | Database["public"]["Enums"]["ic_shift_period_enum"]
             | null
           sleep_occurred?: boolean | null
-          sleep_quality_id?: string | null
-          sleep_start_time?: string | null
-          sleep_support_required?: string | null
-          sleep_type_id?: string | null
-          sleep_wake_time?: string | null
           staff_id?: string | null
           start_date?: string
           status?: Database["public"]["Enums"]["ic_status_enum"]
@@ -5488,31 +4947,10 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "fk_ic_shift_notes_created_by"
-            columns: ["created_by"]
-            isOneToOne: false
-            referencedRelation: "ic_staff"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "fk_ic_shift_notes_updated_by"
-            columns: ["updated_by"]
-            isOneToOne: false
-            referencedRelation: "ic_staff"
-            referencedColumns: ["id"]
-          },
-          {
             foreignKeyName: "ic_shift_notes_behaviour_intensity_id_fkey"
             columns: ["behaviour_intensity_id"]
             isOneToOne: false
             referencedRelation: "ic_behaviour_intensity_master"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "ic_shift_notes_behaviour_type_id_fkey"
-            columns: ["behaviour_type_id"]
-            isOneToOne: false
-            referencedRelation: "ic_behaviour_types_master"
             referencedColumns: ["id"]
           },
           {
@@ -5614,20 +5052,6 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "ic_shift_notes_sleep_quality_id_fkey"
-            columns: ["sleep_quality_id"]
-            isOneToOne: false
-            referencedRelation: "ic_sleep_quality_master"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "ic_shift_notes_sleep_type_id_fkey"
-            columns: ["sleep_type_id"]
-            isOneToOne: false
-            referencedRelation: "ic_sleep_types_master"
-            referencedColumns: ["id"]
-          },
-          {
             foreignKeyName: "shift_notes_house_id_fkey"
             columns: ["house_id"]
             isOneToOne: false
@@ -5687,20 +5111,6 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "fk_ic_shift_participants_created_by"
-            columns: ["created_by"]
-            isOneToOne: false
-            referencedRelation: "ic_staff"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "fk_ic_shift_participants_updated_by"
-            columns: ["updated_by"]
-            isOneToOne: false
-            referencedRelation: "ic_staff"
-            referencedColumns: ["id"]
-          },
-          {
             foreignKeyName: "shift_participants_participant_id_fkey"
             columns: ["participant_id"]
             isOneToOne: false
@@ -5746,20 +5156,6 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "fk_ic_shift_template_checklists_created_by"
-            columns: ["created_by"]
-            isOneToOne: false
-            referencedRelation: "ic_staff"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "fk_ic_shift_template_checklists_updated_by"
-            columns: ["updated_by"]
-            isOneToOne: false
-            referencedRelation: "ic_staff"
-            referencedColumns: ["id"]
-          },
-          {
             foreignKeyName: "shift_template_checklists_checklist_id_fkey"
             columns: ["checklist_id"]
             isOneToOne: false
@@ -5798,28 +5194,14 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "fk_ic_shift_template_default_checklists_created_by"
-            columns: ["created_by"]
-            isOneToOne: false
-            referencedRelation: "ic_staff"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "fk_ic_shift_template_default_checklists_updated_by"
-            columns: ["updated_by"]
-            isOneToOne: false
-            referencedRelation: "ic_staff"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "shift_type_default_checklists_checklist_id_fkey"
+            foreignKeyName: "shift_template_default_checklists_checklist_id_fkey"
             columns: ["checklist_id"]
             isOneToOne: false
             referencedRelation: "ic_house_checklists"
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "shift_type_default_checklists_shift_type_id_fkey"
+            foreignKeyName: "shift_template_default_checklists_shift_template_id_fkey"
             columns: ["shift_template_id"]
             isOneToOne: false
             referencedRelation: "ic_house_shift_templates"
@@ -5858,22 +5240,7 @@ export type Database = {
           updated_at?: string | null
           updated_by?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "ic_sleep_quality_master_created_by_fkey"
-            columns: ["created_by"]
-            isOneToOne: false
-            referencedRelation: "ic_staff"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "ic_sleep_quality_master_updated_by_fkey"
-            columns: ["updated_by"]
-            isOneToOne: false
-            referencedRelation: "ic_staff"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       ic_sleep_types_master: {
         Row: {
@@ -5906,22 +5273,7 @@ export type Database = {
           updated_at?: string | null
           updated_by?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "ic_sleep_types_master_created_by_fkey"
-            columns: ["created_by"]
-            isOneToOne: false
-            referencedRelation: "ic_staff"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "ic_sleep_types_master_updated_by_fkey"
-            columns: ["updated_by"]
-            isOneToOne: false
-            referencedRelation: "ic_staff"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       ic_staff: {
         Row: {
@@ -6009,20 +5361,6 @@ export type Database = {
           updated_by?: string | null
         }
         Relationships: [
-          {
-            foreignKeyName: "fk_ic_staff_created_by"
-            columns: ["created_by"]
-            isOneToOne: false
-            referencedRelation: "ic_staff"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "fk_ic_staff_updated_by"
-            columns: ["updated_by"]
-            isOneToOne: false
-            referencedRelation: "ic_staff"
-            referencedColumns: ["id"]
-          },
           {
             foreignKeyName: "staff_department_id_fkey"
             columns: ["department_id"]
@@ -6166,20 +5504,6 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "fk_ic_staff_compliance_created_by"
-            columns: ["created_by"]
-            isOneToOne: false
-            referencedRelation: "ic_staff"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "fk_ic_staff_compliance_updated_by"
-            columns: ["updated_by"]
-            isOneToOne: false
-            referencedRelation: "ic_staff"
-            referencedColumns: ["id"]
-          },
-          {
             foreignKeyName: "ic_staff_compliance_compliance_type_id_fkey"
             columns: ["compliance_type_id"]
             isOneToOne: false
@@ -6243,13 +5567,6 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "ic_staff_compliance_documents_created_by_fkey"
-            columns: ["created_by"]
-            isOneToOne: false
-            referencedRelation: "ic_staff"
-            referencedColumns: ["id"]
-          },
-          {
             foreignKeyName: "ic_staff_compliance_documents_document_type_fkey"
             columns: ["document_type"]
             isOneToOne: false
@@ -6261,13 +5578,6 @@ export type Database = {
             columns: ["staff_compliance_id"]
             isOneToOne: false
             referencedRelation: "ic_staff_compliance"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "ic_staff_compliance_documents_updated_by_fkey"
-            columns: ["updated_by"]
-            isOneToOne: false
-            referencedRelation: "ic_staff"
             referencedColumns: ["id"]
           },
         ]
@@ -6304,20 +5614,6 @@ export type Database = {
           updated_by?: string | null
         }
         Relationships: [
-          {
-            foreignKeyName: "fk_ic_staff_document_roles_created_by"
-            columns: ["created_by"]
-            isOneToOne: false
-            referencedRelation: "ic_staff"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "fk_ic_staff_document_roles_updated_by"
-            columns: ["updated_by"]
-            isOneToOne: false
-            referencedRelation: "ic_staff"
-            referencedColumns: ["id"]
-          },
           {
             foreignKeyName: "ic_staff_document_roles_document_id_fkey"
             columns: ["document_id"]
@@ -6375,20 +5671,6 @@ export type Database = {
           uploaded_by?: string | null
         }
         Relationships: [
-          {
-            foreignKeyName: "fk_ic_staff_documents_created_by"
-            columns: ["created_by"]
-            isOneToOne: false
-            referencedRelation: "ic_staff"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "fk_ic_staff_documents_updated_by"
-            columns: ["updated_by"]
-            isOneToOne: false
-            referencedRelation: "ic_staff"
-            referencedColumns: ["id"]
-          },
           {
             foreignKeyName: "staff_documents_staff_id_fkey"
             columns: ["staff_id"]
@@ -6556,20 +5838,6 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "fk_ic_staff_shifts_created_by"
-            columns: ["created_by"]
-            isOneToOne: false
-            referencedRelation: "ic_staff"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "fk_ic_staff_shifts_updated_by"
-            columns: ["updated_by"]
-            isOneToOne: false
-            referencedRelation: "ic_staff"
-            referencedColumns: ["id"]
-          },
-          {
             foreignKeyName: "staff_shifts_house_id_fkey"
             columns: ["house_id"]
             isOneToOne: false
@@ -6577,7 +5845,7 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "staff_shifts_shift_type_id_fkey"
+            foreignKeyName: "staff_shifts_shift_template_id_fkey"
             columns: ["shift_template_id"]
             isOneToOne: false
             referencedRelation: "ic_house_shift_templates"
@@ -6645,20 +5913,6 @@ export type Database = {
           updated_by?: string | null
         }
         Relationships: [
-          {
-            foreignKeyName: "fk_ic_staff_training_created_by"
-            columns: ["created_by"]
-            isOneToOne: false
-            referencedRelation: "ic_staff"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "fk_ic_staff_training_updated_by"
-            columns: ["updated_by"]
-            isOneToOne: false
-            referencedRelation: "ic_staff"
-            referencedColumns: ["id"]
-          },
           {
             foreignKeyName: "staff_training_staff_id_fkey"
             columns: ["staff_id"]
@@ -6755,20 +6009,6 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "fk_ic_timesheets_created_by"
-            columns: ["created_by"]
-            isOneToOne: false
-            referencedRelation: "ic_staff"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "fk_ic_timesheets_updated_by"
-            columns: ["updated_by"]
-            isOneToOne: false
-            referencedRelation: "ic_staff"
-            referencedColumns: ["id"]
-          },
-          {
             foreignKeyName: "timesheets_approved_by_fkey"
             columns: ["approved_by"]
             isOneToOne: false
@@ -6827,20 +6067,6 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "fk_ic_user_roles_created_by"
-            columns: ["created_by"]
-            isOneToOne: false
-            referencedRelation: "ic_staff"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "fk_ic_user_roles_updated_by"
-            columns: ["updated_by"]
-            isOneToOne: false
-            referencedRelation: "ic_staff"
-            referencedColumns: ["id"]
-          },
-          {
             foreignKeyName: "user_roles_staff_id_fkey"
             columns: ["staff_id"]
             isOneToOne: false
@@ -6848,6 +6074,2098 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      mp_error_logs: {
+        Row: {
+          component_name: string | null
+          created_at: string
+          id: string
+          message: string
+          metadata: Json | null
+          severity: string | null
+          stack: string | null
+          url: string | null
+          user_id: string | null
+        }
+        Insert: {
+          component_name?: string | null
+          created_at?: string
+          id?: string
+          message: string
+          metadata?: Json | null
+          severity?: string | null
+          stack?: string | null
+          url?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          component_name?: string | null
+          created_at?: string
+          id?: string
+          message?: string
+          metadata?: Json | null
+          severity?: string | null
+          stack?: string | null
+          url?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mp_error_logs_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "mp_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      mp_evidence_types: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          requires_submission: boolean
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+          requires_submission?: boolean
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          requires_submission?: boolean
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      mp_evidence_uploads: {
+        Row: {
+          created_at: string
+          description: string | null
+          evidence_type_id: string | null
+          file_name: string | null
+          file_size: number | null
+          file_url: string | null
+          id: string
+          meeting_id: string | null
+          mime_type: string | null
+          pair_id: string
+          pair_subtask_id: string | null
+          pair_task_id: string | null
+          program_id: string
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: string
+          submitted_by: string
+          type: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          evidence_type_id?: string | null
+          file_name?: string | null
+          file_size?: number | null
+          file_url?: string | null
+          id?: string
+          meeting_id?: string | null
+          mime_type?: string | null
+          pair_id: string
+          pair_subtask_id?: string | null
+          pair_task_id?: string | null
+          program_id: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          submitted_by: string
+          type: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          evidence_type_id?: string | null
+          file_name?: string | null
+          file_size?: number | null
+          file_url?: string | null
+          id?: string
+          meeting_id?: string | null
+          mime_type?: string | null
+          pair_id?: string
+          pair_subtask_id?: string | null
+          pair_task_id?: string | null
+          program_id?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          submitted_by?: string
+          type?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mp_evidence_uploads_evidence_type_id_fkey"
+            columns: ["evidence_type_id"]
+            isOneToOne: false
+            referencedRelation: "mp_evidence_types"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mp_evidence_uploads_meeting_id_fkey"
+            columns: ["meeting_id"]
+            isOneToOne: false
+            referencedRelation: "mp_meetings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mp_evidence_uploads_pair_id_fkey"
+            columns: ["pair_id"]
+            isOneToOne: false
+            referencedRelation: "mp_pairs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mp_evidence_uploads_pair_subtask_id_fkey"
+            columns: ["pair_subtask_id"]
+            isOneToOne: false
+            referencedRelation: "mp_pair_subtasks"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mp_evidence_uploads_pair_task_id_fkey"
+            columns: ["pair_task_id"]
+            isOneToOne: false
+            referencedRelation: "mp_pair_tasks"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mp_evidence_uploads_program_id_fkey"
+            columns: ["program_id"]
+            isOneToOne: false
+            referencedRelation: "mp_programs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mp_evidence_uploads_reviewed_by_fkey"
+            columns: ["reviewed_by"]
+            isOneToOne: false
+            referencedRelation: "mp_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mp_evidence_uploads_submitted_by_fkey"
+            columns: ["submitted_by"]
+            isOneToOne: false
+            referencedRelation: "mp_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      mp_job_titles: {
+        Row: {
+          created_at: string | null
+          id: string
+          is_active: boolean | null
+          organisation_id: string | null
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          organisation_id?: string | null
+          title: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          organisation_id?: string | null
+          title?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mp_job_titles_organisation_id_fkey"
+            columns: ["organisation_id"]
+            isOneToOne: false
+            referencedRelation: "mp_organisations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      mp_meeting_subtasks: {
+        Row: {
+          completed: boolean
+          created_at: string
+          id: string
+          meeting_id: string
+          name: string
+          sort_order: number
+        }
+        Insert: {
+          completed?: boolean
+          created_at?: string
+          id?: string
+          meeting_id: string
+          name: string
+          sort_order: number
+        }
+        Update: {
+          completed?: boolean
+          created_at?: string
+          id?: string
+          meeting_id?: string
+          name?: string
+          sort_order?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mp_meeting_subtasks_meeting_id_fkey"
+            columns: ["meeting_id"]
+            isOneToOne: false
+            referencedRelation: "mp_meetings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      mp_meetings: {
+        Row: {
+          created_at: string
+          date_time: string
+          duration_minutes: number | null
+          id: string
+          location: string | null
+          location_details: string | null
+          location_type: string | null
+          notes: string | null
+          pair_id: string
+          pair_task_id: string | null
+          program_id: string
+          status: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          date_time: string
+          duration_minutes?: number | null
+          id?: string
+          location?: string | null
+          location_details?: string | null
+          location_type?: string | null
+          notes?: string | null
+          pair_id: string
+          pair_task_id?: string | null
+          program_id: string
+          status?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          date_time?: string
+          duration_minutes?: number | null
+          id?: string
+          location?: string | null
+          location_details?: string | null
+          location_type?: string | null
+          notes?: string | null
+          pair_id?: string
+          pair_task_id?: string | null
+          program_id?: string
+          status?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mp_meetings_pair_id_fkey"
+            columns: ["pair_id"]
+            isOneToOne: false
+            referencedRelation: "mp_pairs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mp_meetings_pair_task_id_fkey"
+            columns: ["pair_task_id"]
+            isOneToOne: false
+            referencedRelation: "mp_pair_tasks"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mp_meetings_program_id_fkey"
+            columns: ["program_id"]
+            isOneToOne: false
+            referencedRelation: "mp_programs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      mp_notifications: {
+        Row: {
+          action_url: string | null
+          created_at: string
+          description: string | null
+          id: string
+          is_read: boolean
+          recipient_id: string
+          related_id: string | null
+          title: string
+          type: string
+        }
+        Insert: {
+          action_url?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_read?: boolean
+          recipient_id: string
+          related_id?: string | null
+          title: string
+          type: string
+        }
+        Update: {
+          action_url?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_read?: boolean
+          recipient_id?: string
+          related_id?: string | null
+          title?: string
+          type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mp_notifications_recipient_id_fkey"
+            columns: ["recipient_id"]
+            isOneToOne: false
+            referencedRelation: "mp_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      mp_organisations: {
+        Row: {
+          created_at: string | null
+          id: string
+          logo_url: string | null
+          name: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          logo_url?: string | null
+          name: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          logo_url?: string | null
+          name?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      mp_pair_subtasks: {
+        Row: {
+          completed_at: string | null
+          completed_by_id: string | null
+          created_at: string | null
+          evidence_type_id: string
+          id: string
+          is_completed: boolean
+          is_custom: boolean | null
+          master_subtask_id: string | null
+          name: string
+          pair_task_id: string
+          sort_order: number
+          updated_at: string | null
+        }
+        Insert: {
+          completed_at?: string | null
+          completed_by_id?: string | null
+          created_at?: string | null
+          evidence_type_id: string
+          id?: string
+          is_completed?: boolean
+          is_custom?: boolean | null
+          master_subtask_id?: string | null
+          name: string
+          pair_task_id: string
+          sort_order?: number
+          updated_at?: string | null
+        }
+        Update: {
+          completed_at?: string | null
+          completed_by_id?: string | null
+          created_at?: string | null
+          evidence_type_id?: string
+          id?: string
+          is_completed?: boolean
+          is_custom?: boolean | null
+          master_subtask_id?: string | null
+          name?: string
+          pair_task_id?: string
+          sort_order?: number
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mp_pair_subtasks_completed_by_id_fkey"
+            columns: ["completed_by_id"]
+            isOneToOne: false
+            referencedRelation: "mp_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mp_pair_subtasks_evidence_type_id_fkey"
+            columns: ["evidence_type_id"]
+            isOneToOne: false
+            referencedRelation: "mp_evidence_types"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mp_pair_subtasks_master_subtask_id_fkey"
+            columns: ["master_subtask_id"]
+            isOneToOne: false
+            referencedRelation: "mp_subtasks_master"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mp_pair_subtasks_pair_task_id_fkey"
+            columns: ["pair_task_id"]
+            isOneToOne: false
+            referencedRelation: "mp_pair_tasks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      mp_pair_tasks: {
+        Row: {
+          completed_at: string | null
+          completed_by_user_id: string | null
+          created_at: string
+          evidence_notes: string | null
+          evidence_type_id: string
+          id: string
+          is_custom: boolean | null
+          last_action: string | null
+          last_feedback: string | null
+          last_reviewed_at: string | null
+          last_reviewed_by_id: string | null
+          master_task_id: string | null
+          name: string
+          pair_id: string
+          program_id: string
+          program_task_id: string | null
+          rejection_reason: string | null
+          sort_order: number
+          status: string
+          submitted_at: string | null
+          submitted_by_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          completed_at?: string | null
+          completed_by_user_id?: string | null
+          created_at?: string
+          evidence_notes?: string | null
+          evidence_type_id: string
+          id?: string
+          is_custom?: boolean | null
+          last_action?: string | null
+          last_feedback?: string | null
+          last_reviewed_at?: string | null
+          last_reviewed_by_id?: string | null
+          master_task_id?: string | null
+          name: string
+          pair_id: string
+          program_id: string
+          program_task_id?: string | null
+          rejection_reason?: string | null
+          sort_order: number
+          status?: string
+          submitted_at?: string | null
+          submitted_by_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          completed_at?: string | null
+          completed_by_user_id?: string | null
+          created_at?: string
+          evidence_notes?: string | null
+          evidence_type_id?: string
+          id?: string
+          is_custom?: boolean | null
+          last_action?: string | null
+          last_feedback?: string | null
+          last_reviewed_at?: string | null
+          last_reviewed_by_id?: string | null
+          master_task_id?: string | null
+          name?: string
+          pair_id?: string
+          program_id?: string
+          program_task_id?: string | null
+          rejection_reason?: string | null
+          sort_order?: number
+          status?: string
+          submitted_at?: string | null
+          submitted_by_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mp_pair_tasks_completed_by_user_id_fkey"
+            columns: ["completed_by_user_id"]
+            isOneToOne: false
+            referencedRelation: "mp_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mp_pair_tasks_evidence_type_id_fkey"
+            columns: ["evidence_type_id"]
+            isOneToOne: false
+            referencedRelation: "mp_evidence_types"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mp_pair_tasks_last_reviewed_by_id_fkey"
+            columns: ["last_reviewed_by_id"]
+            isOneToOne: false
+            referencedRelation: "mp_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mp_pair_tasks_master_task_id_fkey"
+            columns: ["master_task_id"]
+            isOneToOne: false
+            referencedRelation: "mp_tasks_master"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mp_pair_tasks_pair_id_fkey"
+            columns: ["pair_id"]
+            isOneToOne: false
+            referencedRelation: "mp_pairs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mp_pair_tasks_program_id_fkey"
+            columns: ["program_id"]
+            isOneToOne: false
+            referencedRelation: "mp_programs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mp_pair_tasks_program_task_id_fkey"
+            columns: ["program_task_id"]
+            isOneToOne: false
+            referencedRelation: "mp_program_tasks"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mp_pair_tasks_submitted_by_id_fkey"
+            columns: ["submitted_by_id"]
+            isOneToOne: false
+            referencedRelation: "mp_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      mp_pairs: {
+        Row: {
+          created_at: string
+          id: string
+          mentee_id: string
+          mentor_id: string
+          program_id: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          mentee_id: string
+          mentor_id: string
+          program_id?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          mentee_id?: string
+          mentor_id?: string
+          program_id?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mp_pairs_mentee_id_fkey"
+            columns: ["mentee_id"]
+            isOneToOne: false
+            referencedRelation: "mp_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mp_pairs_mentor_id_fkey"
+            columns: ["mentor_id"]
+            isOneToOne: false
+            referencedRelation: "mp_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mp_pairs_program_id_fkey"
+            columns: ["program_id"]
+            isOneToOne: false
+            referencedRelation: "mp_programs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      mp_profiles: {
+        Row: {
+          avatar_url: string | null
+          bio: string | null
+          created_at: string
+          department: string | null
+          email: string
+          full_name: string | null
+          id: string
+          job_title_id: string | null
+          must_change_password: boolean
+          phone: string | null
+          role: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          bio?: string | null
+          created_at?: string
+          department?: string | null
+          email: string
+          full_name?: string | null
+          id: string
+          job_title_id?: string | null
+          must_change_password?: boolean
+          phone?: string | null
+          role: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          avatar_url?: string | null
+          bio?: string | null
+          created_at?: string
+          department?: string | null
+          email?: string
+          full_name?: string | null
+          id?: string
+          job_title_id?: string | null
+          must_change_password?: boolean
+          phone?: string | null
+          role?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mp_profiles_job_title_id_fkey"
+            columns: ["job_title_id"]
+            isOneToOne: false
+            referencedRelation: "mp_job_titles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      mp_program_subtasks: {
+        Row: {
+          created_at: string | null
+          id: string
+          master_subtask_id: string | null
+          name: string
+          program_task_id: string
+          sort_order: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          master_subtask_id?: string | null
+          name: string
+          program_task_id: string
+          sort_order?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          master_subtask_id?: string | null
+          name?: string
+          program_task_id?: string
+          sort_order?: number | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mp_program_subtasks_master_subtask_id_fkey"
+            columns: ["master_subtask_id"]
+            isOneToOne: false
+            referencedRelation: "mp_subtasks_master"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mp_program_subtasks_program_task_id_fkey"
+            columns: ["program_task_id"]
+            isOneToOne: false
+            referencedRelation: "mp_program_tasks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      mp_program_tasks: {
+        Row: {
+          created_at: string | null
+          evidence_type_id: string | null
+          id: string
+          is_active: boolean | null
+          master_task_id: string | null
+          name: string
+          program_id: string
+          sort_order: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          evidence_type_id?: string | null
+          id?: string
+          is_active?: boolean | null
+          master_task_id?: string | null
+          name: string
+          program_id: string
+          sort_order?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          evidence_type_id?: string | null
+          id?: string
+          is_active?: boolean | null
+          master_task_id?: string | null
+          name?: string
+          program_id?: string
+          sort_order?: number | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mp_program_tasks_evidence_type_id_fkey"
+            columns: ["evidence_type_id"]
+            isOneToOne: false
+            referencedRelation: "mp_evidence_types"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mp_program_tasks_master_task_id_fkey"
+            columns: ["master_task_id"]
+            isOneToOne: false
+            referencedRelation: "mp_tasks_master"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mp_program_tasks_program_id_fkey"
+            columns: ["program_id"]
+            isOneToOne: false
+            referencedRelation: "mp_programs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      mp_programs: {
+        Row: {
+          created_at: string | null
+          end_date: string | null
+          id: string
+          name: string
+          start_date: string | null
+          status: string
+          task_list_id: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          end_date?: string | null
+          id?: string
+          name: string
+          start_date?: string | null
+          status?: string
+          task_list_id?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          end_date?: string | null
+          id?: string
+          name?: string
+          start_date?: string | null
+          status?: string
+          task_list_id?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mp_programs_task_list_id_fkey"
+            columns: ["task_list_id"]
+            isOneToOne: false
+            referencedRelation: "mp_task_lists_master"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      mp_subtasks_master: {
+        Row: {
+          created_at: string | null
+          evidence_type_id: string
+          id: string
+          name: string
+          sort_order: number
+          task_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          evidence_type_id: string
+          id?: string
+          name: string
+          sort_order?: number
+          task_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          evidence_type_id?: string
+          id?: string
+          name?: string
+          sort_order?: number
+          task_id?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mp_master_subtasks_evidence_type_id_fkey"
+            columns: ["evidence_type_id"]
+            isOneToOne: false
+            referencedRelation: "mp_evidence_types"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mp_master_subtasks_task_id_fkey"
+            columns: ["task_id"]
+            isOneToOne: false
+            referencedRelation: "mp_tasks_master"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      mp_supervisor_programs: {
+        Row: {
+          created_at: string
+          id: string
+          program_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          program_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          program_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mp_supervisor_programs_program_id_fkey"
+            columns: ["program_id"]
+            isOneToOne: false
+            referencedRelation: "mp_programs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mp_supervisor_programs_user_id_profiles_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "mp_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      mp_task_lists_master: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          id: string
+          is_active: boolean | null
+          name: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      mp_tasks_master: {
+        Row: {
+          created_at: string | null
+          evidence_type_id: string
+          id: string
+          is_active: boolean
+          name: string
+          sort_order: number
+          task_list_id: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          evidence_type_id: string
+          id?: string
+          is_active?: boolean
+          name: string
+          sort_order: number
+          task_list_id?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          evidence_type_id?: string
+          id?: string
+          is_active?: boolean
+          name?: string
+          sort_order?: number
+          task_list_id?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mp_tasks_master_evidence_type_id_fkey"
+            columns: ["evidence_type_id"]
+            isOneToOne: false
+            referencedRelation: "mp_evidence_types"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mp_tasks_master_task_list_id_fkey"
+            columns: ["task_list_id"]
+            isOneToOne: false
+            referencedRelation: "mp_task_lists_master"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tf_daily_metrics: {
+        Row: {
+          atl: number | null
+          created_at: string | null
+          ctl: number | null
+          date: string
+          id: string
+          tsb: number | null
+          tss: number | null
+          user_id: string
+        }
+        Insert: {
+          atl?: number | null
+          created_at?: string | null
+          ctl?: number | null
+          date: string
+          id?: string
+          tsb?: number | null
+          tss?: number | null
+          user_id: string
+        }
+        Update: {
+          atl?: number | null
+          created_at?: string | null
+          ctl?: number | null
+          date?: string
+          id?: string
+          tsb?: number | null
+          tss?: number | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      tf_error_logs: {
+        Row: {
+          component_name: string | null
+          context: Json | null
+          created_at: string | null
+          id: string
+          message: string
+          severity: string | null
+          stack: string | null
+          url: string | null
+          user_agent: string | null
+          user_id: string | null
+        }
+        Insert: {
+          component_name?: string | null
+          context?: Json | null
+          created_at?: string | null
+          id?: string
+          message: string
+          severity?: string | null
+          stack?: string | null
+          url?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          component_name?: string | null
+          context?: Json | null
+          created_at?: string | null
+          id?: string
+          message?: string
+          severity?: string | null
+          stack?: string | null
+          url?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      tf_event_priorities: {
+        Row: {
+          created_at: string | null
+          created_by: string | null
+          id: string
+          is_active: boolean
+          is_system: boolean
+          name: string
+        }
+        Insert: {
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          is_active?: boolean
+          is_system?: boolean
+          name: string
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          is_active?: boolean
+          is_system?: boolean
+          name?: string
+        }
+        Relationships: []
+      }
+      tf_event_segments: {
+        Row: {
+          created_at: string | null
+          effort_level: number
+          event_id: string
+          id: string
+          planned_distance_kilometers: number | null
+          planned_duration_minutes: number | null
+          segment_order: number
+          sport_type_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          effort_level?: number
+          event_id: string
+          id?: string
+          planned_distance_kilometers?: number | null
+          planned_duration_minutes?: number | null
+          segment_order?: number
+          sport_type_id: string
+        }
+        Update: {
+          created_at?: string | null
+          effort_level?: number
+          event_id?: string
+          id?: string
+          planned_distance_kilometers?: number | null
+          planned_duration_minutes?: number | null
+          segment_order?: number
+          sport_type_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "event_segments_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "tf_events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "event_segments_sport_type_id_fkey"
+            columns: ["sport_type_id"]
+            isOneToOne: false
+            referencedRelation: "tf_sport_types"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tf_event_types: {
+        Row: {
+          color_theme: string
+          created_at: string | null
+          created_by: string | null
+          icon_name: string
+          id: string
+          is_active: boolean
+          is_system: boolean
+          name: string
+        }
+        Insert: {
+          color_theme?: string
+          created_at?: string | null
+          created_by?: string | null
+          icon_name?: string
+          id?: string
+          is_active?: boolean
+          is_system?: boolean
+          name: string
+        }
+        Update: {
+          color_theme?: string
+          created_at?: string | null
+          created_by?: string | null
+          icon_name?: string
+          id?: string
+          is_active?: boolean
+          is_system?: boolean
+          name?: string
+        }
+        Relationships: []
+      }
+      tf_events: {
+        Row: {
+          created_at: string | null
+          date: string
+          description: string | null
+          event_type_id: string
+          id: string
+          priority_id: string
+          title: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          date: string
+          description?: string | null
+          event_type_id: string
+          id?: string
+          priority_id: string
+          title: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          date?: string
+          description?: string | null
+          event_type_id?: string
+          id?: string
+          priority_id?: string
+          title?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tf_events_event_type_id_fkey"
+            columns: ["event_type_id"]
+            isOneToOne: false
+            referencedRelation: "tf_event_types"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tf_events_priority_id_fkey"
+            columns: ["priority_id"]
+            isOneToOne: false
+            referencedRelation: "tf_event_priorities"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tf_garmin_sport_mapping: {
+        Row: {
+          created_at: string
+          garmin_activity_type: string
+          garmin_distance_unit: string | null
+          id: string
+          is_system: boolean
+          sport_type_id: string | null
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          garmin_activity_type: string
+          garmin_distance_unit?: string | null
+          id?: string
+          is_system?: boolean
+          sport_type_id?: string | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          garmin_activity_type?: string
+          garmin_distance_unit?: string | null
+          id?: string
+          is_system?: boolean
+          sport_type_id?: string | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tf_garmin_sport_mapping_sport_type_id_fkey"
+            columns: ["sport_type_id"]
+            isOneToOne: false
+            referencedRelation: "tf_sport_types"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tf_library_workouts: {
+        Row: {
+          category_id: string | null
+          created_at: string | null
+          description: string | null
+          effort_level: number | null
+          id: string
+          is_key_workout: boolean | null
+          planned_distance_km: number | null
+          planned_duration_minutes: number | null
+          sport_type_id: string | null
+          title: string
+          user_id: string
+        }
+        Insert: {
+          category_id?: string | null
+          created_at?: string | null
+          description?: string | null
+          effort_level?: number | null
+          id?: string
+          is_key_workout?: boolean | null
+          planned_distance_km?: number | null
+          planned_duration_minutes?: number | null
+          sport_type_id?: string | null
+          title: string
+          user_id: string
+        }
+        Update: {
+          category_id?: string | null
+          created_at?: string | null
+          description?: string | null
+          effort_level?: number | null
+          id?: string
+          is_key_workout?: boolean | null
+          planned_distance_km?: number | null
+          planned_duration_minutes?: number | null
+          sport_type_id?: string | null
+          title?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "library_workouts_sport_type_id_fkey"
+            columns: ["sport_type_id"]
+            isOneToOne: false
+            referencedRelation: "tf_sport_types"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tf_library_workouts_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "tf_workout_categories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tf_notes: {
+        Row: {
+          content: string
+          created_at: string | null
+          date: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          content: string
+          created_at?: string | null
+          date: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          content?: string
+          created_at?: string | null
+          date?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      tf_plan_template_notes: {
+        Row: {
+          content: string
+          created_at: string
+          day_of_week: number
+          id: string
+          order: number | null
+          template_id: string
+          week_number: number
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          day_of_week: number
+          id?: string
+          order?: number | null
+          template_id: string
+          week_number: number
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          day_of_week?: number
+          id?: string
+          order?: number | null
+          template_id?: string
+          week_number?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tf_plan_template_notes_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "tf_plan_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tf_plan_template_workouts: {
+        Row: {
+          created_at: string
+          day_of_week: number
+          description: string | null
+          effort_level: number
+          id: string
+          is_key_workout: boolean
+          order: number | null
+          planned_distance_kilometers: number
+          planned_duration_minutes: number
+          recurrence_id: string | null
+          recurrence_rule: Json | null
+          sport_type_id: string
+          template_id: string
+          title: string
+          week_number: number
+        }
+        Insert: {
+          created_at?: string
+          day_of_week: number
+          description?: string | null
+          effort_level?: number
+          id?: string
+          is_key_workout?: boolean
+          order?: number | null
+          planned_distance_kilometers?: number
+          planned_duration_minutes?: number
+          recurrence_id?: string | null
+          recurrence_rule?: Json | null
+          sport_type_id: string
+          template_id: string
+          title: string
+          week_number: number
+        }
+        Update: {
+          created_at?: string
+          day_of_week?: number
+          description?: string | null
+          effort_level?: number
+          id?: string
+          is_key_workout?: boolean
+          order?: number | null
+          planned_distance_kilometers?: number
+          planned_duration_minutes?: number
+          recurrence_id?: string | null
+          recurrence_rule?: Json | null
+          sport_type_id?: string
+          template_id?: string
+          title?: string
+          week_number?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tf_plan_template_workouts_sport_type_id_fkey"
+            columns: ["sport_type_id"]
+            isOneToOne: false
+            referencedRelation: "tf_sport_types"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tf_plan_template_workouts_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "tf_plan_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tf_plan_templates: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          description: string | null
+          id: string
+          is_system: boolean | null
+          name: string
+          total_weeks: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          is_system?: boolean | null
+          name: string
+          total_weeks: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          is_system?: boolean | null
+          name?: string
+          total_weeks?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      tf_profiles: {
+        Row: {
+          avatar_url: string | null
+          effort_settings: Json | null
+          id: string
+          role: string
+          theme: string | null
+          updated_at: string | null
+          workout_type_options: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          effort_settings?: Json | null
+          id: string
+          role?: string
+          theme?: string | null
+          updated_at?: string | null
+          workout_type_options: string
+        }
+        Update: {
+          avatar_url?: string | null
+          effort_settings?: Json | null
+          id?: string
+          role?: string
+          theme?: string | null
+          updated_at?: string | null
+          workout_type_options?: string
+        }
+        Relationships: []
+      }
+      tf_sport_types: {
+        Row: {
+          created_at: string | null
+          created_by: string | null
+          description: string | null
+          distance_unit: string | null
+          effort1_hex: string | null
+          effort1_label: string | null
+          effort2_hex: string | null
+          effort2_label: string | null
+          effort3_hex: string | null
+          effort3_label: string | null
+          effort4_hex: string | null
+          effort4_label: string | null
+          id: string
+          modified_at: string | null
+          modified_by: string | null
+          name: string
+          pace_relevant: boolean
+          pace_unit: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          distance_unit?: string | null
+          effort1_hex?: string | null
+          effort1_label?: string | null
+          effort2_hex?: string | null
+          effort2_label?: string | null
+          effort3_hex?: string | null
+          effort3_label?: string | null
+          effort4_hex?: string | null
+          effort4_label?: string | null
+          id?: string
+          modified_at?: string | null
+          modified_by?: string | null
+          name: string
+          pace_relevant?: boolean
+          pace_unit?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          distance_unit?: string | null
+          effort1_hex?: string | null
+          effort1_label?: string | null
+          effort2_hex?: string | null
+          effort2_label?: string | null
+          effort3_hex?: string | null
+          effort3_label?: string | null
+          effort4_hex?: string | null
+          effort4_label?: string | null
+          id?: string
+          modified_at?: string | null
+          modified_by?: string | null
+          name?: string
+          pace_relevant?: boolean
+          pace_unit?: string | null
+        }
+        Relationships: []
+      }
+      tf_training_goals: {
+        Row: {
+          created_at: string | null
+          end_date: string
+          event_id: string | null
+          id: string
+          metric: string
+          period: string
+          sport_type_id: string
+          start_date: string
+          target_value: number
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          end_date: string
+          event_id?: string | null
+          id?: string
+          metric: string
+          period?: string
+          sport_type_id: string
+          start_date: string
+          target_value: number
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          end_date?: string
+          event_id?: string | null
+          id?: string
+          metric?: string
+          period?: string
+          sport_type_id?: string
+          start_date?: string
+          target_value?: number
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tf_training_goals_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "tf_events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tf_training_goals_sport_type_id_fkey"
+            columns: ["sport_type_id"]
+            isOneToOne: false
+            referencedRelation: "tf_sport_types"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tf_user_sport_settings: {
+        Row: {
+          created_at: string | null
+          effort1_hex: string | null
+          effort1_label: string | null
+          effort2_hex: string | null
+          effort2_label: string | null
+          effort3_hex: string | null
+          effort3_label: string | null
+          effort4_hex: string | null
+          effort4_label: string | null
+          id: string
+          sport_type_id: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          effort1_hex?: string | null
+          effort1_label?: string | null
+          effort2_hex?: string | null
+          effort2_label?: string | null
+          effort3_hex?: string | null
+          effort3_label?: string | null
+          effort4_hex?: string | null
+          effort4_label?: string | null
+          id?: string
+          sport_type_id: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          effort1_hex?: string | null
+          effort1_label?: string | null
+          effort2_hex?: string | null
+          effort2_label?: string | null
+          effort3_hex?: string | null
+          effort3_label?: string | null
+          effort4_hex?: string | null
+          effort4_label?: string | null
+          id?: string
+          sport_type_id?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_sport_settings_sport_type_id_fkey"
+            columns: ["sport_type_id"]
+            isOneToOne: false
+            referencedRelation: "tf_sport_types"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tf_workout_categories: {
+        Row: {
+          color: string | null
+          created_at: string
+          created_by: string | null
+          id: string
+          is_system: boolean | null
+          name: string
+        }
+        Insert: {
+          color?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          is_system?: boolean | null
+          name: string
+        }
+        Update: {
+          color?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          is_system?: boolean | null
+          name?: string
+        }
+        Relationships: []
+      }
+      tf_workouts: {
+        Row: {
+          actual_datetime: string | null
+          actual_distance_km: number | null
+          actual_duration_minutes: number | null
+          actual_tss: number | null
+          applied_plan_id: string | null
+          avg_cadence: number | null
+          avg_hr: number | null
+          avg_power: number | null
+          calories: number | null
+          category_id: string | null
+          created_at: string | null
+          date: string
+          description: string | null
+          effort_level: number | null
+          id: string
+          intervals: Json | null
+          is_key_workout: boolean | null
+          max_hr: number | null
+          max_power: number | null
+          normalized_power: number | null
+          plan_template_id: string | null
+          planned_distance_km: number | null
+          planned_duration_minutes: number | null
+          recurrence_id: string | null
+          recurrence_rule: Json | null
+          sport_type_id: string
+          title: string
+          total_ascent: number | null
+          total_descent: number | null
+          training_effect: number | null
+          user_id: string
+          workout_order: number | null
+        }
+        Insert: {
+          actual_datetime?: string | null
+          actual_distance_km?: number | null
+          actual_duration_minutes?: number | null
+          actual_tss?: number | null
+          applied_plan_id?: string | null
+          avg_cadence?: number | null
+          avg_hr?: number | null
+          avg_power?: number | null
+          calories?: number | null
+          category_id?: string | null
+          created_at?: string | null
+          date: string
+          description?: string | null
+          effort_level?: number | null
+          id?: string
+          intervals?: Json | null
+          is_key_workout?: boolean | null
+          max_hr?: number | null
+          max_power?: number | null
+          normalized_power?: number | null
+          plan_template_id?: string | null
+          planned_distance_km?: number | null
+          planned_duration_minutes?: number | null
+          recurrence_id?: string | null
+          recurrence_rule?: Json | null
+          sport_type_id: string
+          title: string
+          total_ascent?: number | null
+          total_descent?: number | null
+          training_effect?: number | null
+          user_id: string
+          workout_order?: number | null
+        }
+        Update: {
+          actual_datetime?: string | null
+          actual_distance_km?: number | null
+          actual_duration_minutes?: number | null
+          actual_tss?: number | null
+          applied_plan_id?: string | null
+          avg_cadence?: number | null
+          avg_hr?: number | null
+          avg_power?: number | null
+          calories?: number | null
+          category_id?: string | null
+          created_at?: string | null
+          date?: string
+          description?: string | null
+          effort_level?: number | null
+          id?: string
+          intervals?: Json | null
+          is_key_workout?: boolean | null
+          max_hr?: number | null
+          max_power?: number | null
+          normalized_power?: number | null
+          plan_template_id?: string | null
+          planned_distance_km?: number | null
+          planned_duration_minutes?: number | null
+          recurrence_id?: string | null
+          recurrence_rule?: Json | null
+          sport_type_id?: string
+          title?: string
+          total_ascent?: number | null
+          total_descent?: number | null
+          training_effect?: number | null
+          user_id?: string
+          workout_order?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tf_workouts_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "tf_workout_categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tf_workouts_plan_template_id_fkey"
+            columns: ["plan_template_id"]
+            isOneToOne: false
+            referencedRelation: "tf_plan_templates"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "workouts_sport_type_fkey"
+            columns: ["sport_type_id"]
+            isOneToOne: false
+            referencedRelation: "tf_sport_types"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      vd_error_logs: {
+        Row: {
+          context: Json | null
+          created_at: string
+          error_message: string
+          error_stack: string | null
+          id: string
+          user_id: string | null
+        }
+        Insert: {
+          context?: Json | null
+          created_at?: string
+          error_message: string
+          error_stack?: string | null
+          id?: string
+          user_id?: string | null
+        }
+        Update: {
+          context?: Json | null
+          created_at?: string
+          error_message?: string
+          error_stack?: string | null
+          id?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      vd_event_items: {
+        Row: {
+          created_at: string
+          display_order: number | null
+          event_id: string
+          id: string
+          is_selected: boolean
+          item_value: string
+          selected_at: string | null
+          selection_order: number | null
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          created_at?: string
+          display_order?: number | null
+          event_id: string
+          id?: string
+          is_selected?: boolean
+          item_value: string
+          selected_at?: string | null
+          selection_order?: number | null
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          created_at?: string
+          display_order?: number | null
+          event_id?: string
+          id?: string
+          is_selected?: boolean
+          item_value?: string
+          selected_at?: string | null
+          selection_order?: number | null
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "vd_event_items_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "vd_events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      vd_event_sessions: {
+        Row: {
+          active_winner_id: string | null
+          current_status: string
+          event_id: string
+          last_spin_angle: number
+          spin_duration_ms: number
+          spin_start_time: string | null
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          active_winner_id?: string | null
+          current_status?: string
+          event_id: string
+          last_spin_angle?: number
+          spin_duration_ms?: number
+          spin_start_time?: string | null
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          active_winner_id?: string | null
+          current_status?: string
+          event_id?: string
+          last_spin_angle?: number
+          spin_duration_ms?: number
+          spin_start_time?: string | null
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "vd_event_sessions_active_winner_id_fkey"
+            columns: ["active_winner_id"]
+            isOneToOne: false
+            referencedRelation: "vd_event_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "vd_event_sessions_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: true
+            referencedRelation: "vd_events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      vd_events: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          duplicated_from: string | null
+          enable_public_link: boolean
+          event_name: string
+          id: string
+          item_type: string
+          require_viewer_login: boolean
+          scheduled_start_time: string
+          seed: string | null
+          select_count: number
+          slug: string
+          status: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          duplicated_from?: string | null
+          enable_public_link?: boolean
+          event_name: string
+          id?: string
+          item_type: string
+          require_viewer_login?: boolean
+          scheduled_start_time: string
+          seed?: string | null
+          select_count?: number
+          slug: string
+          status?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          duplicated_from?: string | null
+          enable_public_link?: boolean
+          event_name?: string
+          id?: string
+          item_type?: string
+          require_viewer_login?: boolean
+          scheduled_start_time?: string
+          seed?: string | null
+          select_count?: number
+          slug?: string
+          status?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "vd_events_duplicated_from_fkey"
+            columns: ["duplicated_from"]
+            isOneToOne: false
+            referencedRelation: "vd_events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      vd_profiles: {
+        Row: {
+          avatar_url: string | null
+          created_at: string
+          display_name: string | null
+          id: string
+          updated_at: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string
+          display_name?: string | null
+          id: string
+          updated_at?: string
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string
+          display_name?: string | null
+          id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      vd_settings: {
+        Row: {
+          created_at: string
+          key: string
+          updated_at: string
+          value: string
+        }
+        Insert: {
+          created_at?: string
+          key: string
+          updated_at?: string
+          value: string
+        }
+        Update: {
+          created_at?: string
+          key?: string
+          updated_at?: string
+          value?: string
+        }
+        Relationships: []
       }
     }
     Views: {
@@ -6864,8 +8182,52 @@ export type Database = {
       }
       ic_jwt_is_admin: { Args: never; Returns: boolean }
       ic_jwt_manages_staff: { Args: { p_staff_id: string }; Returns: boolean }
+      is_admin: { Args: never; Returns: boolean }
+      is_org_admin: { Args: never; Returns: boolean }
+      is_pair_member: { Args: { p_pair_id: string }; Returns: boolean }
+      is_privileged: { Args: never; Returns: boolean }
+      is_program_supervisor: { Args: { prog_id: string }; Returns: boolean }
+      is_supervisor: { Args: { p_program_id?: string }; Returns: boolean }
+      is_sys_admin: { Args: never; Returns: boolean }
+      is_system_owner: { Args: never; Returns: boolean }
+      mp_admin_setup_organisation: {
+        Args: {
+          org_name: string
+          supervisor_email: string
+          supervisor_name: string
+          supervisor_password: string
+        }
+        Returns: string
+      }
+      mp_admin_setup_organisation_v2: {
+        Args: {
+          admin_email?: string
+          admin_mode?: string
+          admin_name?: string
+          admin_password?: string
+          admin_user_id?: string
+          org_logo_url?: string
+          org_name: string
+        }
+        Returns: string
+      }
+      mp_check_stagnation: { Args: never; Returns: undefined }
+      mp_create_notification: {
+        Args: {
+          p_action_url?: string
+          p_description: string
+          p_recipient_id: string
+          p_related_id?: string
+          p_title: string
+          p_type: string
+        }
+        Returns: string
+      }
+      vd_check_and_activate_scheduled_draws: { Args: never; Returns: undefined }
     }
     Enums: {
+      donation_status: "pending" | "successful" | "failed"
+      event_status: "draft" | "published" | "completed" | "cancelled"
       ic_access_level_enum:
         | "full"
         | "context_read_write"
@@ -6882,6 +8244,15 @@ export type Database = {
         | "evening"
         | "sleepover"
       ic_status_enum: "draft" | "active" | "inactive" | "archived"
+      mp_membership_role: "org-admin" | "supervisor" | "program-member"
+      reg_status:
+        | "pending_payment"
+        | "registered"
+        | "transferred"
+        | "cancelled"
+        | "checked_in"
+      team_type: "social" | "corporate" | "fundraising"
+      user_role: "participant" | "organizer" | "timer" | "fundraiser" | "admin"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -7009,6 +8380,8 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      donation_status: ["pending", "successful", "failed"],
+      event_status: ["draft", "published", "completed", "cancelled"],
       ic_access_level_enum: [
         "full",
         "context_read_write",
@@ -7027,6 +8400,16 @@ export const Constants = {
         "sleepover",
       ],
       ic_status_enum: ["draft", "active", "inactive", "archived"],
+      mp_membership_role: ["org-admin", "supervisor", "program-member"],
+      reg_status: [
+        "pending_payment",
+        "registered",
+        "transferred",
+        "cancelled",
+        "checked_in",
+      ],
+      team_type: ["social", "corporate", "fundraising"],
+      user_role: ["participant", "organizer", "timer", "fundraiser", "admin"],
     },
   },
 } as const

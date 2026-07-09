@@ -20,7 +20,6 @@ import { useClinicalTrackersMaster } from '@/hooks/use-clinical-trackers-master'
 // Tracker Categories Definition
 const TRACKER_TAXONOMIES = [
   { id: 'BEHAVIOUR_INTENSITY_MASTER', label: 'Behaviour Intensity', table: 'BEHAVIOUR_INTENSITY_MASTER' as keyof typeof TABLES },
-  { id: 'BEHAVIOUR_TYPES_MASTER', label: 'Behaviour Types', table: 'BEHAVIOUR_TYPES_MASTER' as keyof typeof TABLES },
   { id: 'BOWEL_AMOUNTS_MASTER', label: 'Bowel Amounts', table: 'BOWEL_AMOUNTS_MASTER' as keyof typeof TABLES },
   { id: 'BOWEL_ASSISTANCE_MASTER', label: 'Bowel Assistance', table: 'BOWEL_ASSISTANCE_MASTER' as keyof typeof TABLES },
   { id: 'HYGIENE_LEVELS_MASTER', label: 'Hygiene Support Levels', table: 'HYGIENE_LEVELS_MASTER' as keyof typeof TABLES },

@@ -9,7 +9,6 @@ export function useClinicalTrackersMaster() {
       const tables = [
         'SLEEP_QUALITY_MASTER',
         'SLEEP_TYPES_MASTER',
-        'BEHAVIOUR_TYPES_MASTER',
         'BEHAVIOUR_INTENSITY_MASTER',
         'SEIZURE_TYPES_MASTER',
         'NUTRITION_MEAL_TYPES_MASTER',

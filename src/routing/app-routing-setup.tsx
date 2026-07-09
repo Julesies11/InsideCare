@@ -356,6 +356,10 @@ export function AppRoutingSetup() {
                 path={`${ROUTES.SHIFT_NOTES_DETAIL}/:id`}
                 element={<ShiftNoteDetailPage />}
               />
+              <Route
+                path={`${ROUTES.SHIFT_NOTES_DETAIL}/:id/print`}
+                element={<ShiftNoteDetailPage />}
+              />
             </Route>
 
             <Route element={<RequirePermission module={RBAC_MODULES.HOUSES} />}>

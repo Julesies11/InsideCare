@@ -7,7 +7,7 @@ import {
   ToolbarPageTitle,
 } from '@/partials/common/toolbar';
 import { useQueryClient } from '@tanstack/react-query';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, Eye, Printer } from 'lucide-react';
 import { useLocation, useNavigate, useParams } from 'react-router';
 import { toast } from 'sonner';
 import { QUERY_KEYS } from '@/config/query-keys';
@@ -25,6 +25,7 @@ import { Scrollspy } from '@/components/ui/scrollspy';
 import { Container } from '@/components/common/container';
 import { ShiftNoteDetailContent } from './shift-note-detail-content';
 import { ShiftNoteDetailSidebar } from './shift-note-detail-sidebar';
+import { ShiftNotePrintable } from './components/shift-note-printable';
 
 const stickySidebarClasses: Record<string, string> = {
   'demo1-layout': 'top-[calc(var(--header-height)+1rem)]',
@@ -140,6 +141,66 @@ export function ShiftNoteDetailPage() {
       'top-[calc(var(--header-height)+1rem)]'
     : 'top-[calc(var(--header-height)+1rem)]';
 
+  const isPrintView = location.pathname.endsWith('/print');
+
+  if (isPrintView) {
+    return (
+      <Fragment>
+        <div className="sticky top-0 z-20 bg-background border-b border-border no-print">
+          <Container>
+            <Toolbar>
+              <ToolbarHeading>
+                <div className="flex items-center gap-3">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => navigate(`${ROUTES.SHIFT_NOTES_DETAIL}/${id}`)}
+                  >
+                    <ArrowLeft className="size-4 me-1.5" />
+                    Close Preview
+                  </Button>
+                  <div>
+                    <ToolbarPageTitle
+                      text={`Print Shift Note${formData?.reference_id ? ` · ${formData.reference_id}` : ''}`}
+                    />
+                    <ToolbarDescription>
+                      Print or save this shift note as a PDF document
+                    </ToolbarDescription>
+                  </div>
+                </div>
+              </ToolbarHeading>
+              <ToolbarActions>
+                <Button variant="primary" size="sm" onClick={() => window.print()}>
+                  <Printer className="size-4 me-1.5" />
+                  Print Report
+                </Button>
+              </ToolbarActions>
+            </Toolbar>
+          </Container>
+        </div>
+        <Container className="py-6">
+          {loading ? (
+            <div className="flex items-center justify-center min-h-[400px]">
+              <div className="size-8 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+            </div>
+          ) : (
+            formData && <ShiftNotePrintable note={formData} />
+          )}
+        </Container>
+        <div className="hidden">
+          <ShiftNoteDetailContent
+            onFormDataChange={setFormData}
+            onOriginalDataChange={setOriginalData}
+            onSavingChange={setSaving}
+            onLoadingChange={setLoading}
+            saveHandlerRef={saveHandlerRef}
+            canEdit={canEdit}
+          />
+        </div>
+      </Fragment>
+    );
+  }
+
   return (
     <Fragment>
       {settings?.layout === 'demo1' && (
@@ -182,6 +243,16 @@ export function ShiftNoteDetailPage() {
                 </div>
               </ToolbarHeading>
               <ToolbarActions>
+                {!isNewNote && formData && (
+                  <Button
+                    variant="outline"
+                    onClick={() => navigate(`${ROUTES.SHIFT_NOTES_DETAIL}/${id}/print`)}
+                    size="sm"
+                  >
+                    <Eye className="size-4 me-1.5" />
+                    Print Preview
+                  </Button>
+                )}
                 {canEdit && formData?.status !== 'active' && (
                   <>
                     <Button

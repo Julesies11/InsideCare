@@ -11,7 +11,16 @@ describe('ShiftNoteTrackersSection', () => {
       track_mtm: true,
     },
     bowel_bristol_scale: 4,
-    sleep_quality_id: 'some-uuid',
+    sleep_records: [
+      {
+        id: 'record-1',
+        sleep_start_time: '22:00:00',
+        sleep_wake_time: '06:00:00',
+        sleep_quality_id: 'some-uuid',
+        sleep_type_id: 'some-type-uuid',
+        sleep_support_required: 'No',
+      }
+    ],
     mtm_diet_type_id: 'some-diet-uuid',
   };
 
@@ -50,5 +59,31 @@ describe('ShiftNoteTrackersSection', () => {
     // We check for the label specifically
     const sleepQualityLabel = screen.getByText('Sleep Quality');
     expect(sleepQualityLabel).toBeInTheDocument();
+  });
+
+  it('renders Behaviour Observation with a text input for behaviour type', () => {
+    const mockFormDataWithBehaviour = {
+      participant: {
+        track_behaviour: true,
+      },
+      behaviour_observed: true,
+      behaviour_type: 'Agitation',
+    };
+
+    renderWithProviders(
+      <ShiftNoteTrackersSection
+        canEdit={true}
+        formData={mockFormDataWithBehaviour}
+        onFormChange={mockOnFormChange}
+      />
+    );
+
+    expect(screen.getByText('Behaviour Observation')).toBeInTheDocument();
+    
+    // Check that behaviour_type is an input with correct value
+    const input = screen.getByLabelText('Behaviour Type') as HTMLInputElement;
+    expect(input).toBeInTheDocument();
+    expect(input.type).toBe('text');
+    expect(input.value).toBe('Agitation');
   });
 });

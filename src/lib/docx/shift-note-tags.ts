@@ -171,15 +171,15 @@ export function mapShiftNoteToTags(shiftNote: any) {
 
     // Trackers: Sleep
     sleep_occurred: formatBool(shiftNote.sleep_occurred),
-    sleep_type: shiftNote.sleep_type?.name || '',
-    sleep_start_time: shiftNote.sleep_start_time || '',
-    sleep_wake_time: shiftNote.sleep_wake_time || '',
-    sleep_quality: shiftNote.sleep_quality?.name || '',
-    sleep_support_required: shiftNote.sleep_support_required || '',
+    sleep_type: shiftNote.sleep_records?.map((r: any) => r.sleep_type?.name || 'N/A').join(', ') || '',
+    sleep_start_time: shiftNote.sleep_records?.map((r: any) => r.sleep_start_time || '').filter(Boolean).join(', ') || '',
+    sleep_wake_time: shiftNote.sleep_records?.map((r: any) => r.sleep_wake_time || '').filter(Boolean).join(', ') || '',
+    sleep_quality: shiftNote.sleep_records?.map((r: any) => r.sleep_quality?.name || 'N/A').join(', ') || '',
+    sleep_support_required: shiftNote.sleep_records?.map((r: any) => r.sleep_support_required || '').filter(Boolean).join('; ') || '',
 
     // Trackers: Behaviour
     behaviour_observed: formatBool(shiftNote.behaviour_observed),
-    behaviour_type: shiftNote.behaviour_type?.name || '',
+    behaviour_type: shiftNote.behaviour_type || '',
     behaviour_intensity: shiftNote.behaviour_intensity?.name || '',
     behaviour_notes: shiftNote.behaviour_notes || '',
 
