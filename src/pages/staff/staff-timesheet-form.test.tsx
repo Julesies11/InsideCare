@@ -205,4 +205,27 @@ describe('StaffTimesheetForm', () => {
     fireEvent.click(submitBtn);
     expect(mockNavigate).not.toHaveBeenCalled();
   });
+
+  it('allows entering participant kms and travel kms with descriptions', async () => {
+    renderWithProviders(<StaffTimesheetForm />);
+
+    await waitFor(() => {
+      expect(screen.getByLabelText(/Participant Kms/i)).toBeInTheDocument();
+    });
+
+    const participantKmInput = screen.getByLabelText(/Participant Kms/i);
+    const participantKmDescInput = screen.getByLabelText(/Description of Participant Kms/i);
+    const travelKmInput = screen.getByLabelText(/Travel Kms/i);
+    const travelKmDescInput = screen.getByLabelText(/Description of Travel Kms/i);
+
+    fireEvent.change(participantKmInput, { target: { value: '15.5' } });
+    fireEvent.change(participantKmDescInput, { target: { value: 'Driving client to doctor' } });
+    fireEvent.change(travelKmInput, { target: { value: '10.2' } });
+    fireEvent.change(travelKmDescInput, { target: { value: 'Driving from Sunset to Comfort house' } });
+
+    expect(participantKmInput).toHaveValue(15.5);
+    expect(participantKmDescInput).toHaveValue('Driving client to doctor');
+    expect(travelKmInput).toHaveValue(10.2);
+    expect(travelKmDescInput).toHaveValue('Driving from Sunset to Comfort house');
+  });
 });

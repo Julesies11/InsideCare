@@ -259,26 +259,35 @@ export function IncidentList({ onEdit }: IncidentListProps) {
         id: 'involved_staff_id',
         accessorKey: 'staff.staff_name',
         header: ({ column }) => (
-          <DataGridColumnHeader title="Staff" column={column} />
+          <DataGridColumnHeader title="Witness" column={column} />
         ),
         size: 200,
         cell: ({ row }) => {
-          if (!row.original.staff) return null;
-          return (
-            <Link
-              to={`${ROUTES.STAFF_DETAIL}/${row.original.staff.id}`}
-              className="group flex items-center gap-3 text-sm font-medium text-blue-700 dark:text-blue-400 transition-colors"
-            >
-              <SecureAvatar
-                src={row.original.staff.photo_url}
-                alt={row.original.staff.staff_name}
-                className="size-8"
-              />
-              <span className="group-hover:underline">
-                {row.original.staff.staff_name}
+          if (row.original.staff) {
+            return (
+              <Link
+                to={`${ROUTES.STAFF_DETAIL}/${row.original.staff.id}`}
+                className="group flex items-center gap-3 text-sm font-medium text-blue-700 dark:text-blue-400 transition-colors"
+              >
+                <SecureAvatar
+                  src={row.original.staff.photo_url}
+                  alt={row.original.staff.staff_name}
+                  className="size-8"
+                />
+                <span className="group-hover:underline">
+                  {row.original.staff.staff_name}
+                </span>
+              </Link>
+            );
+          }
+          if (row.original.witnesses) {
+            return (
+              <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                {row.original.witnesses}
               </span>
-            </Link>
-          );
+            );
+          }
+          return <span className="text-gray-400">—</span>;
         },
       },
       {

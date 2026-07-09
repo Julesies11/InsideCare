@@ -80,6 +80,9 @@ interface Timesheet {
   sick_shift: boolean;
   overtime_hours: number;
   travel_km: number;
+  participant_km: number;
+  participant_km_description: string | null;
+  travel_km_description: string | null;
   created_at: string;
   shift: {
     start_date: string;
@@ -119,6 +122,18 @@ function ClaimsBadges({ ts }: { ts: Timesheet }) {
         className="text-[10px] py-0 h-4 px-1.5 uppercase font-bold bg-blue-50 text-blue-700 border-blue-200"
       >
         {ts.travel_km} km Travel
+      </Badge>,
+    );
+  }
+
+  if (ts.participant_km > 0) {
+    badges.push(
+      <Badge
+        key="participant_km"
+        variant="outline"
+        className="text-[10px] py-0 h-4 px-1.5 uppercase font-bold bg-indigo-50 text-indigo-700 border-indigo-200"
+      >
+        {ts.participant_km} km Driving
       </Badge>,
     );
   }

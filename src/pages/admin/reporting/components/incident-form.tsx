@@ -38,9 +38,7 @@ const incidentSchema = z
   .object({
     reference_id: z.string().optional().nullable(),
     involved_participant_id: z.string().uuid().optional().nullable(),
-    involved_staff_id: z
-      .string()
-      .uuid('Please select who witnessed the incident'),
+    involved_staff_id: z.string().uuid().optional().nullable(),
     incident_date: z.string().min(1, 'Incident date and time is required'),
     incident_type_id: z.string().uuid('Please select an incident type'),
     severity: z.enum(['Low', 'Moderate', 'High']),
@@ -176,7 +174,7 @@ export function IncidentForm({
       summary: initialData?.summary || '',
       details: initialData?.details || '',
       outcome: initialData?.outcome || '',
-      witnesses: initialData?.witnesses || '',
+      witnesses: initialData?.witnesses || (initialData as any)?.staff?.staff_name || '',
       notified_parties: initialData?.notified_parties || '',
       is_restrictive_practice: initialData?.is_restrictive_practice || false,
       restrictive_practice_type_id:
@@ -336,37 +334,17 @@ export function IncidentForm({
 
                 <div className="space-y-2">
                   <Label>
-                    Witnessed by <span className="text-destructive">*</span>
+                    Witnesses <span className="text-muted-foreground text-xs">(optional)</span>
                   </Label>
-                  <Select
-                    value={watch('involved_staff_id') || ''}
-                    onValueChange={(val) => setValue('involved_staff_id', val)}
-                  >
-                    <SelectTrigger
-                      className={
-                        errors.involved_staff_id ? 'border-destructive' : ''
-                      }
-                    >
-                      <SelectValue placeholder="Select witness staff" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {staffList.map((s) => (
-                        <SelectItem key={s.id} value={s.id}>
-                          <div className="flex items-center gap-2">
-                            <SecureAvatar
-                              src={s.photo_url}
-                              alt={s.staff_name}
-                              className="size-6"
-                            />
-                            <span>{s.staff_name}</span>
-                          </div>
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  {errors.involved_staff_id && (
+                  <Input
+                    type="text"
+                    {...register('witnesses')}
+                    placeholder="Enter witness names (if any)"
+                    className={errors.witnesses ? 'border-destructive' : ''}
+                  />
+                  {errors.witnesses && (
                     <p className="text-xs text-destructive">
-                      {errors.involved_staff_id.message}
+                      {errors.witnesses.message}
                     </p>
                   )}
                 </div>

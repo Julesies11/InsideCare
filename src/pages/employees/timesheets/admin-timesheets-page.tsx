@@ -96,8 +96,10 @@ interface Timesheet {
   submitted_at: string | null;
   incident_tag: boolean;
   sick_shift: boolean;
-  overtime_hours: number;
   travel_km: number;
+  participant_km: number;
+  participant_km_description: string | null;
+  travel_km_description: string | null;
   overtime_explanation: string | null;
   created_at: string;
   staff: {
@@ -173,6 +175,14 @@ function ExceptionIcons({ ts }: { ts: Timesheet }) {
           className="text-[10px] py-0 h-4 px-1.5 uppercase font-bold bg-blue-50 text-blue-700 border-blue-200"
         >
           Travel
+        </Badge>
+      )}
+      {ts.participant_km > 0 && (
+        <Badge
+          variant="outline"
+          className="text-[10px] py-0 h-4 px-1.5 uppercase font-bold bg-indigo-50 text-indigo-700 border-indigo-200"
+        >
+          Driving
         </Badge>
       )}
       {!ts.shift_notes_text && (
@@ -857,9 +867,15 @@ export function AdminTimesheetsPage() {
                       </span>
                     </div>
                   )}
+                  {selected.participant_km > 0 && (
+                    <div className="flex justify-between text-indigo-700 dark:text-indigo-400">
+                      <span>Driving (Participants)</span>
+                      <span>{selected.participant_km} km</span>
+                    </div>
+                  )}
                   {selected.travel_km > 0 && (
                     <div className="flex justify-between text-green-700 dark:text-green-400">
-                      <span>Travel</span>
+                      <span>Travel (Between Shifts)</span>
                       <span>{selected.travel_km} km</span>
                     </div>
                   )}
@@ -889,6 +905,30 @@ export function AdminTimesheetsPage() {
                     </p>
                     <p className="text-sm border rounded-lg p-3 bg-muted/30">
                       {selected.notes}
+                    </p>
+                  </div>
+                )}
+
+                {/* Participant Driving Kms Description */}
+                {selected.participant_km > 0 && selected.participant_km_description && (
+                  <div>
+                    <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1">
+                      Participant Driving Kms Description
+                    </p>
+                    <p className="text-sm border rounded-lg p-3 bg-muted/30 whitespace-pre-wrap">
+                      {selected.participant_km_description}
+                    </p>
+                  </div>
+                )}
+
+                {/* Travel Kms Description */}
+                {selected.travel_km > 0 && selected.travel_km_description && (
+                  <div>
+                    <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1">
+                      Travel Kms Description (Between Shifts)
+                    </p>
+                    <p className="text-sm border rounded-lg p-3 bg-muted/30 whitespace-pre-wrap">
+                      {selected.travel_km_description}
                     </p>
                   </div>
                 )}

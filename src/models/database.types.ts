@@ -1851,6 +1851,20 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: "fk_ic_house_files_created_by"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "ic_staff"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_ic_house_files_updated_by"
+            columns: ["updated_by"]
+            isOneToOne: false
+            referencedRelation: "ic_staff"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "house_files_house_id_fkey"
             columns: ["house_id"]
             isOneToOne: false
@@ -3297,6 +3311,20 @@ export type Database = {
           updated_by?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "fk_ic_participant_documents_created_by"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "ic_staff"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_ic_participant_documents_updated_by"
+            columns: ["updated_by"]
+            isOneToOne: false
+            referencedRelation: "ic_staff"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "participant_documents_participant_id_fkey"
             columns: ["participant_id"]
@@ -5672,6 +5700,20 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: "fk_ic_staff_documents_created_by"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "ic_staff"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_ic_staff_documents_updated_by"
+            columns: ["updated_by"]
+            isOneToOne: false
+            referencedRelation: "ic_staff"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "staff_documents_staff_id_fkey"
             columns: ["staff_id"]
             isOneToOne: false
@@ -5940,6 +5982,8 @@ export type Database = {
           notes: string | null
           overtime_explanation: string | null
           overtime_hours: number
+          participant_km: number
+          participant_km_description: string | null
           rejection_reason: string | null
           shift_id: string | null
           shift_notes_text: string | null
@@ -5948,6 +5992,7 @@ export type Database = {
           status: string
           submitted_at: string | null
           travel_km: number
+          travel_km_description: string | null
           updated_at: string
           updated_by: string | null
         }
@@ -5968,6 +6013,8 @@ export type Database = {
           notes?: string | null
           overtime_explanation?: string | null
           overtime_hours?: number
+          participant_km?: number
+          participant_km_description?: string | null
           rejection_reason?: string | null
           shift_id?: string | null
           shift_notes_text?: string | null
@@ -5976,6 +6023,7 @@ export type Database = {
           status?: string
           submitted_at?: string | null
           travel_km?: number
+          travel_km_description?: string | null
           updated_at?: string
           updated_by?: string | null
         }
@@ -5996,6 +6044,8 @@ export type Database = {
           notes?: string | null
           overtime_explanation?: string | null
           overtime_hours?: number
+          participant_km?: number
+          participant_km_description?: string | null
           rejection_reason?: string | null
           shift_id?: string | null
           shift_notes_text?: string | null
@@ -6004,6 +6054,7 @@ export type Database = {
           status?: string
           submitted_at?: string | null
           travel_km?: number
+          travel_km_description?: string | null
           updated_at?: string
           updated_by?: string | null
         }
