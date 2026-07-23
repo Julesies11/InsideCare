@@ -176,6 +176,27 @@ export const complianceApi = {
 
       const staffNameMap = new Map(staff.map((s) => [s.id, s.staff_name]));
 
+      const missingUpdaterIds = Array.from(
+        new Set(
+          (allRecords || [])
+            .map((r: any) => r.updated_by)
+            .filter((id) => id && !staffNameMap.has(id)),
+        ),
+      ) as string[];
+
+      if (missingUpdaterIds.length > 0) {
+        const { data: missingUpdaters } = await supabase
+          .from(TABLES.STAFF)
+          .select('id, staff_name')
+          .in('id', missingUpdaterIds);
+
+        if (missingUpdaters) {
+          missingUpdaters.forEach((u) => {
+            if (u.staff_name) staffNameMap.set(u.id, u.staff_name);
+          });
+        }
+      }
+
       staff.forEach((s) => {
         const houseNames =
           s.house_assignments
