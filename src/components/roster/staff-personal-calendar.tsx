@@ -255,6 +255,7 @@ export function StaffPersonalCalendar({
           compact={compact}
           showStaffName={false}
           showHouseName={showHouseName}
+          showChecklists={true}
           onClick={() => onEditShift(shift)}
           onWriteNote={onWriteNote}
           onNotesClick={onNotesClick}
