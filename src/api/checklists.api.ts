@@ -24,7 +24,7 @@ export const checklistsApi = {
     if (error) throw error;
     if (data) {
       data.items = (data.items || []).sort(
-        (a: any, b: any) => a.sort_order - b.sort_order,
+        (a: { sort_order: number }, b: { sort_order: number }) => a.sort_order - b.sort_order,
       );
     }
     return data;
@@ -59,7 +59,7 @@ export const checklistsApi = {
     return (checklists || []).map((cl) => ({
       ...cl,
       items: (cl.house_checklist_items || []).sort(
-        (a: any, b: any) => a.sort_order - b.sort_order,
+        (a: { sort_order: number }, b: { sort_order: number }) => a.sort_order - b.sort_order,
       ),
       latest_submission: submissions?.find(
         (s: any) => s.checklist_id === cl.id,
@@ -168,7 +168,7 @@ export const checklistsApi = {
           ? {
               ...checklist,
               items: (checklist.house_checklist_items || []).sort(
-                (a: any, b: any) => a.sort_order - b.sort_order,
+                (a: { sort_order: number }, b: { sort_order: number }) => a.sort_order - b.sort_order,
               ),
             }
           : undefined,

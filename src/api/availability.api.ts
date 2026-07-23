@@ -50,14 +50,9 @@ export const availabilityApi = {
     const payload = Array.isArray(blocks) ? blocks : [blocks];
     
     // Sanitize audit columns to avoid DB errors
-    const sanitized = payload.map(b => {
-      const copy = { ...b };
-      delete (copy as any).created_at;
-      delete (copy as any).updated_at;
-      delete (copy as any).created_by;
-      delete (copy as any).updated_by;
-      return copy;
-    });
+    const sanitized = payload.map(
+      ({ created_at, updated_at, created_by, updated_by, ...rest }) => rest,
+    );
 
     const { data, error } = await supabase
       .from(TABLES.STAFF_AVAILABILITY)

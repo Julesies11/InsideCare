@@ -1,4 +1,4 @@
-import { ActivityLog, ActivityType } from '@/models/activity-log';
+import { ActivityLog, ActivityLogRow, ActivityType } from '@/models/activity-log';
 import { TABLES } from '@/config/db-tables';
 import { ACTIVITY_VIEWS } from '@/config/query-views';
 import { supabase } from '@/lib/supabase';
@@ -54,7 +54,7 @@ export const activityLogApi = {
 
     let query = supabase
       .from(TABLES.ACTIVITY_LOG)
-      .select(columns as any, { count: 'exact' });
+      .select(columns as string, { count: 'exact' });
 
     if (entityId) {
       query = query.or(`entity_id.eq.${entityId},parent_id.eq.${entityId}`);
@@ -108,10 +108,10 @@ export const activityLogApi = {
       );
     }
 
-    if (sort.length > 0) {
-      sort.forEach((s) => {
-        query = query.order(s.id as any, { ascending: !s.desc });
-      });
+     if (sort.length > 0) {
+       sort.forEach((s) => {
+         query = query.order(s.id as keyof ActivityLogRow, { ascending: !s.desc });
+       });
     } else {
       query = query.order('created_at', { ascending: false });
     }
@@ -164,10 +164,10 @@ export const activityLogApi = {
             descriptions[activityType as string] ||
             `${entityType} ${activityType}`,
           user_name: userName,
-          metadata: metadata as any,
+          metadata: metadata as unknown as ActivityLogRow['metadata'],
         },
       ])
-      .select(ACTIVITY_VIEWS.DETAIL as any)
+      .select(ACTIVITY_VIEWS.DETAIL as string)
       .maybeSingle();
 
     if (error) throw error;
