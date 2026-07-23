@@ -492,6 +492,34 @@ export function RolePermissionsMatrix() {
     }
   };
 
+  const handleBatchSectionUpdate = async (
+    modules: ModuleConfig[],
+    level: AccessLevel,
+  ) => {
+    if (!selectedRoleId || isAdminRole || !canEdit) return;
+
+    const updates: Record<string, AccessLevel> = {};
+    modules.forEach((mod) => {
+      if (mod.id && !mod.isLabelOnly) {
+        updates[mod.id] = level;
+      }
+    });
+
+    if (Object.keys(updates).length === 0) return;
+
+    try {
+      await updatePermissions({
+        role_id: selectedRoleId,
+        updates: updates as any,
+      });
+      const levelLabel =
+        ACCESS_LEVELS.find((l) => l.value === level)?.label || level;
+      toast.success(`Set section access level to ${levelLabel}`);
+    } catch (error) {
+      toast.error('Failed to save section permissions');
+    }
+  };
+
   const filteredGroups = GROUPS.map((group) => {
     const matchedModules = group.modules.filter((m) =>
       m.label.toLowerCase().includes(matrixSearch.toLowerCase()),
@@ -558,17 +586,17 @@ export function RolePermissionsMatrix() {
         </CardHeader>
 
         <CardContent className="p-0">
-          <div className="overflow-x-auto overflow-y-visible border-b">
+          <div className="max-h-[calc(100vh-280px)] min-h-[350px] overflow-auto border-b relative">
             <Table className="border-separate border-spacing-0">
-              <TableHeader className="sticky top-[60px] z-30">
+              <TableHeader className="sticky top-0 z-30 shadow-xs">
                 <TableRow className="bg-gray-50/95 backdrop-blur-sm">
-                  <TableHead className="sticky left-0 z-40 bg-gray-50/95 backdrop-blur-sm text-start font-bold text-gray-900 min-w-[280px] py-4 border-b border-r shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]">
+                  <TableHead className="sticky left-0 top-0 z-40 bg-gray-50/95 backdrop-blur-sm text-start font-bold text-gray-900 min-w-[280px] py-4 border-b border-r shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]">
                     Module
                   </TableHead>
                   {ACCESS_LEVELS.map((level) => (
                     <TableHead
                       key={level.value}
-                      className="min-w-[140px] text-center py-4 border-b bg-inherit"
+                      className="min-w-[140px] text-center py-4 border-b bg-gray-50/95 backdrop-blur-sm"
                     >
                       <div className="flex flex-col gap-0.5">
                         <span className="font-bold text-gray-900">
@@ -611,16 +639,51 @@ export function RolePermissionsMatrix() {
                     <Fragment key={group.title}>
                       <TableRow
                         key={`${group.title}-header`}
-                        className="bg-gray-100/30 sticky top-[128px] z-20"
+                        className="bg-gray-100/95 backdrop-blur-sm sticky top-[53px] z-20"
                       >
-                        <TableCell
-                          colSpan={ACCESS_LEVELS.length + 1}
-                          className="py-2.5 px-4 font-bold text-gray-800 uppercase tracking-wide text-xs bg-gray-100/95 backdrop-blur-sm border-b"
-                        >
-                          <div className="flex items-center justify-between gap-4 text-gray-600">
-                            <span>{group.title}</span>
-                          </div>
+                        <TableCell className="sticky left-0 z-10 bg-gray-100/95 backdrop-blur-sm py-2.5 pl-8 border-b border-r font-bold text-gray-900 text-xs uppercase tracking-wider">
+                          {group.title}
                         </TableCell>
+                        {ACCESS_LEVELS.map((level) => {
+                          const validModules = group.modules.filter(
+                            (m) => m.id && !m.isLabelOnly,
+                          );
+                          const isAllLevel =
+                            validModules.length > 0 &&
+                            validModules.every((m) => {
+                              const current = getPermission(m.id!);
+                              return isAdminRole
+                                ? level.value === ACCESS_LEVEL.FULL
+                                : current === level.value;
+                            });
+
+                          return (
+                            <TableCell
+                              key={level.value}
+                              className="py-2.5 text-center border-b bg-gray-100/95 backdrop-blur-sm"
+                            >
+                              {canEdit && !isAdminRole ? (
+                                <div className="flex justify-center">
+                                  <Checkbox
+                                    checked={isAllLevel}
+                                    onCheckedChange={(checked) => {
+                                      const targetLevel = checked
+                                        ? level.value
+                                        : ACCESS_LEVEL.NONE;
+                                      handleBatchSectionUpdate(
+                                        group.modules,
+                                        targetLevel,
+                                      );
+                                    }}
+                                    disabled={isAdminRole || !canEdit}
+                                    className="size-5 border-gray-400 bg-white data-[state=checked]:bg-primary data-[state=checked]:border-primary transition-all cursor-pointer shadow-2xs"
+                                    title={`Click to set all modules in ${group.title} to ${level.label}`}
+                                  />
+                                </div>
+                              ) : null}
+                            </TableCell>
+                          );
+                        })}
                       </TableRow>
                       {group.modules.map((module) => {
                         const currentLevel = module.id

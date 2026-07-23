@@ -332,7 +332,14 @@ export function AppRoutingSetup() {
             </Route>
 
             <Route
-              element={<RequirePermission module={RBAC_MODULES.MASTER_LISTS} />}
+              element={
+                <RequirePermission
+                  module={[
+                    RBAC_MODULES.PARTICIPANT_MEDICATIONS,
+                    RBAC_MODULES.MASTER_LISTS,
+                  ]}
+                />
+              }
             >
               <Route
                 path={ROUTES.MEDICATION_REGISTER}
