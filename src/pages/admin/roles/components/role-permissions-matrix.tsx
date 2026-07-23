@@ -662,7 +662,7 @@ export function RolePermissionsMatrix() {
                               key={level.value}
                               className="py-2.5 text-center border-b bg-gray-100/95 backdrop-blur-sm"
                             >
-                              {canEdit && !isAdminRole ? (
+                              {canEdit ? (
                                 <div className="flex justify-center">
                                   <Checkbox
                                     checked={isAllLevel}
