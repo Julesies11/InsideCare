@@ -781,13 +781,15 @@ export function RolePermissionsMatrix() {
                               'group hover:bg-gray-50/50 transition-colors',
                               isLocked && 'opacity-60 grayscale-[0.5]',
                               module.isLabelOnly &&
-                                'bg-gray-50/30 hover:bg-gray-50/30 cursor-default',
+                                'bg-gray-100/95 hover:bg-gray-100/95 backdrop-blur-sm cursor-default',
                             )}
                           >
                             <TableCell
                               className={cn(
                                 'py-4 sticky left-0 z-[2] bg-white group-hover:bg-[#fcfcfe] transition-colors border-r shadow-[2px_0_5px_-2px_rgba(0,0,0,0.05)]',
                                 module.isChild ? 'pl-14' : 'pl-8',
+                                module.isLabelOnly &&
+                                  'bg-gray-100/95 py-2.5 pl-8 border-b font-bold text-gray-900 text-xs uppercase tracking-wider',
                               )}
                             >
                               <div className="flex flex-col">
@@ -841,44 +843,71 @@ export function RolePermissionsMatrix() {
                               </div>
                             </TableCell>
                             {ACCESS_LEVELS.map((level) => {
-                              let isChecked =
-                                !module.isLabelOnly &&
-                                currentLevel === level.value;
+                              let isChecked = false;
+                              let isDisabled = isAdminRole || !canEdit;
 
-                              // Override for Admin Role
-                              if (isAdminRole && !module.isLabelOnly) {
-                                isChecked = level.value === ACCESS_LEVEL.FULL;
+                              if (!module.isLabelOnly) {
+                                isChecked = currentLevel === level.value;
+                                if (isAdminRole) {
+                                  isChecked = level.value === ACCESS_LEVEL.FULL;
+                                }
+                                isDisabled = isDisabled || isLocked;
+                              } else if (module.label === 'Reporting') {
+                                const reportingModuleIds = [
+                                  RBAC_MODULES.REPORTING_CLINICAL,
+                                  RBAC_MODULES.REPORTING_OPERATIONAL,
+                                  RBAC_MODULES.REPORTING_COMPLIANCE,
+                                ];
+                                isChecked = reportingModuleIds.every((modId) => {
+                                  const current = getPermission(modId);
+                                  return isAdminRole
+                                    ? level.value === ACCESS_LEVEL.FULL
+                                    : current === level.value;
+                                });
                               }
 
                               return (
                                 <TableCell
                                   key={level.value}
-                                  className="py-4 text-center border-b border-gray-100 last:border-r-0"
+                                  className={cn(
+                                    'py-4 text-center border-b border-gray-100 last:border-r-0',
+                                    module.isLabelOnly && 'py-2.5 bg-gray-100/95 backdrop-blur-sm',
+                                  )}
                                 >
-                                  {!module.isLabelOnly && (
+                                  {(!module.isLabelOnly || module.label === 'Reporting') && (
                                     <div className="flex justify-center">
                                       <Checkbox
                                         checked={isChecked}
-                                        onCheckedChange={() => {
-                                          if (
-                                            !isChecked &&
-                                            canEdit &&
-                                            !isLocked &&
-                                            module.id
-                                          )
-                                            handleUpdate(
-                                              module.id,
-                                              level.value,
-                                            );
+                                        onCheckedChange={(checked) => {
+                                          if (isDisabled) return;
+                                          if (!module.isLabelOnly) {
+                                            if (!isChecked && module.id) {
+                                              handleUpdate(module.id, level.value);
+                                            }
+                                          } else if (module.label === 'Reporting') {
+                                            const targetLevel = checked
+                                              ? level.value
+                                              : ACCESS_LEVEL.NONE;
+                                            const reportingModules = [
+                                              { id: RBAC_MODULES.REPORTING_CLINICAL, label: 'Clinical Reports' },
+                                              { id: RBAC_MODULES.REPORTING_OPERATIONAL, label: 'Operational Reports' },
+                                              { id: RBAC_MODULES.REPORTING_COMPLIANCE, label: 'Compliance Reports' },
+                                            ];
+                                            handleBatchSectionUpdate(reportingModules, targetLevel);
+                                          }
                                         }}
-                                        disabled={
-                                          isAdminRole || !canEdit || isLocked
-                                        }
+                                        disabled={isDisabled}
                                         className={cn(
-                                          'size-5 border-gray-300 data-[state=checked]:bg-primary data-[state=checked]:border-primary transition-all',
-                                          (isAdminRole || !canEdit || isLocked) &&
-                                            'opacity-50 cursor-not-allowed',
+                                          module.isLabelOnly
+                                            ? 'size-5 border-gray-400 bg-white data-[state=checked]:bg-primary data-[state=checked]:border-primary transition-all cursor-pointer shadow-2xs'
+                                            : 'size-5 border-gray-300 data-[state=checked]:bg-primary data-[state=checked]:border-primary transition-all',
+                                          isDisabled && 'opacity-50 cursor-not-allowed',
                                         )}
+                                        title={
+                                          module.isLabelOnly
+                                            ? `Click to set all modules in ${module.label} to ${level.label}`
+                                            : undefined
+                                        }
                                       />
                                     </div>
                                   )}

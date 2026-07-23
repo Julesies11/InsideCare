@@ -403,7 +403,7 @@ export const houseOperationsApi = {
         new Set(records.map((r: any) => r.created_by).filter(Boolean)),
       ) as string[];
 
-      let creatorMap = new Map<string, { id: string; staff_name: string }>();
+      const creatorMap = new Map<string, { id: string; staff_name: string }>();
       if (creatorIds.length > 0) {
         const { data: staffData } = await supabase
           .from(TABLES.STAFF)

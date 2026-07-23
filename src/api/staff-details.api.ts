@@ -71,7 +71,7 @@ export const staffDetailsApi = {
         new Set(actualRecords.map((r: any) => r.updated_by).filter(Boolean)),
       ) as string[];
 
-      let updaterMap = new Map<string, string>();
+      const updaterMap = new Map<string, string>();
       if (updaterIds.length > 0) {
         const { data: updaters } = await supabase
           .from(TABLES.STAFF)
