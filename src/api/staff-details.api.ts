@@ -44,8 +44,7 @@ export const staffDetailsApi = {
           .from(TABLES.STAFF_COMPLIANCE)
           .select(
             `
-            id, compliance_type_id, status, expiry_date, completion_date, document_number, comments, updated_at,
-            updater:${TABLES.STAFF}!updated_by(staff_name),
+            id, compliance_type_id, status, expiry_date, completion_date, document_number, comments, updated_at, updated_by,
             verified_documents:${TABLES.STAFF_COMPLIANCE_DOCUMENTS}!staff_compliance_id(
               id, document_type, document_number, expiry_date, file_name, file_path, points, comments
             )
@@ -67,6 +66,24 @@ export const staffDetailsApi = {
       const requiredTypes = (masterTypesResult.data ||
         []) as ComplianceMasterRow[];
       const actualRecords = actualRecordsResult.data || [];
+
+      const updaterIds = Array.from(
+        new Set(actualRecords.map((r: any) => r.updated_by).filter(Boolean)),
+      ) as string[];
+
+      let updaterMap = new Map<string, string>();
+      if (updaterIds.length > 0) {
+        const { data: updaters } = await supabase
+          .from(TABLES.STAFF)
+          .select('id, staff_name')
+          .in('id', updaterIds);
+
+        if (updaters) {
+          updaters.forEach((u) => {
+            if (u.staff_name) updaterMap.set(u.id, u.staff_name);
+          });
+        }
+      }
 
       return requiredTypes
         .map((type) => {
@@ -108,7 +125,9 @@ export const staffDetailsApi = {
                   d.document_type === null ? 'attachment' : d.document_type,
               })) || null,
             updated_at: record?.updated_at || null,
-            updated_by_name: (record as any)?.updater?.staff_name || null,
+            updated_by_name: record?.updated_by
+              ? updaterMap.get(record.updated_by) || null
+              : null,
           };
         })
         .sort((a, b) => a.compliance_name.localeCompare(b.compliance_name));
