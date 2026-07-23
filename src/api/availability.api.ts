@@ -51,7 +51,13 @@ export const availabilityApi = {
     
     // Sanitize audit columns to avoid DB errors
     const sanitized = payload.map(
-      ({ created_at, updated_at, created_by, updated_by, ...rest }) => rest,
+      ({
+        created_at: _created_at,
+        updated_at: _updated_at,
+        created_by: _created_by,
+        updated_by: _updated_by,
+        ...rest
+      }) => rest,
     );
 
     const { data, error } = await supabase

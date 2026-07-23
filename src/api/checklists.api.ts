@@ -62,7 +62,7 @@ export const checklistsApi = {
         (a: { sort_order: number }, b: { sort_order: number }) => a.sort_order - b.sort_order,
       ),
       latest_submission: submissions?.find(
-        (s: any) => s.checklist_id === cl.id,
+        (s: { checklist_id: string }) => s.checklist_id === cl.id,
       ),
     }));
   },
@@ -75,7 +75,7 @@ export const checklistsApi = {
     date: string,
     shiftId?: string,
   ) {
-    let shiftSpecificChecklists: any[] = [];
+    let shiftSpecificChecklists: Array<{ checklist_id: string; assignment_title: string; shift_template_id: string | null }> = [];
 
     if (shiftId) {
       const { data: assignedData, error: shiftError } = await supabase
@@ -100,7 +100,7 @@ export const checklistsApi = {
 
     const eventsWithFilteredSubs = (events || []).map((e) => ({
       ...e,
-      submissions: ((e.submissions as any[]) || [])
+      submissions: ((e.submissions as Array<{ id: string; status: string; updated_at: string; scheduled_date: string }>) || [])
         .filter((s) => s.scheduled_date === date)
         .sort(
           (a, b) =>
@@ -250,20 +250,20 @@ export const checklistsApi = {
     if (error) throw error;
 
     const submissions = (data || []).map((sub) => {
-      const checklists = (sub as any).house_checklists as unknown as {
+      const checklists = (sub as Record<string, unknown>).house_checklists as {
         house_checklist_name?: string;
       } | null;
-      const staff = (sub as any).staff as unknown as {
+      const staff = (sub as Record<string, unknown>).staff as {
         id: string;
         staff_name?: string;
         photo_url?: string;
       } | null;
-      const house = (sub as any).houses as unknown as {
+      const house = (sub as Record<string, unknown>).houses as {
         id: string;
         house_name?: string;
       } | null;
       const items =
-        ((sub as any).ic_house_checklist_submission_items as unknown as Array<{
+        ((sub as Record<string, unknown>).ic_house_checklist_submission_items as Array<{
           is_completed: boolean;
         }>) || [];
 

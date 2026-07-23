@@ -62,13 +62,20 @@ describe('shiftNotesApi', () => {
     const noteData = { shift_id: 'shift-1', notes: 'Test' };
     const mockNote = { id: 'new-id', ...noteData, status: 'active' };
 
-    const mockMaybeSingle = vi
-      .fn()
-      .mockResolvedValue({ data: mockNote, error: null });
-    const mockSelect = vi.fn(() => ({ maybeSingle: mockMaybeSingle }));
-    const mockUpsert = vi.fn(() => ({ select: mockSelect }));
+    // 1. Mock for the upsert chain: .upsert(...).select('id').maybeSingle()
+    const mockUpsertMaybeSingle = vi.fn().mockResolvedValue({ data: { id: 'new-id' }, error: null });
+    const mockUpsertSelect = vi.fn(() => ({ maybeSingle: mockUpsertMaybeSingle }));
+    const mockUpsert = vi.fn(() => ({ select: mockUpsertSelect }));
 
-    (supabase.from as any).mockReturnValue({ upsert: mockUpsert });
+    // 2. Mock for the get chain: .select(DETAIL).eq('id', id).maybeSingle()
+    const mockGetMaybeSingle = vi.fn().mockResolvedValue({ data: mockNote, error: null });
+    const mockGetEq = vi.fn(() => ({ maybeSingle: mockGetMaybeSingle }));
+    const mockGetSelect = vi.fn(() => ({ eq: mockGetEq }));
+
+    (supabase.from as any).mockReturnValue({
+      upsert: mockUpsert,
+      select: mockGetSelect,
+    });
 
     const result = await shiftNotesApi.upsert(noteData);
 

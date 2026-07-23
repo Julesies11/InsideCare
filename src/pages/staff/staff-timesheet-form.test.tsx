@@ -210,12 +210,12 @@ describe('StaffTimesheetForm', () => {
     renderWithProviders(<StaffTimesheetForm />);
 
     await waitFor(() => {
-      expect(screen.getByLabelText(/Participant Kms/i)).toBeInTheDocument();
+      expect(screen.getByLabelText(/^Participant Kms$/i)).toBeInTheDocument();
     });
 
-    const participantKmInput = screen.getByLabelText(/Participant Kms/i);
+    const participantKmInput = screen.getByLabelText(/^Participant Kms$/i);
     const participantKmDescInput = screen.getByLabelText(/Description of Participant Kms/i);
-    const travelKmInput = screen.getByLabelText(/Travel Kms/i);
+    const travelKmInput = screen.getByLabelText(/^Travel Kms$/i);
     const travelKmDescInput = screen.getByLabelText(/Description of Travel Kms/i);
 
     fireEvent.change(participantKmInput, { target: { value: '15.5' } });
