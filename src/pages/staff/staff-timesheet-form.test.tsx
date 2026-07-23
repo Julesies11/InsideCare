@@ -210,13 +210,14 @@ describe('StaffTimesheetForm', () => {
     renderWithProviders(<StaffTimesheetForm />);
 
     await waitFor(() => {
-      expect(screen.getByLabelText(/^Participant Kms$/i)).toBeInTheDocument();
+      expect(document.getElementById('participantKm')).toBeInTheDocument();
     });
 
-    const participantKmInput = screen.getByLabelText(/^Participant Kms$/i);
-    const participantKmDescInput = screen.getByLabelText(/Description of Participant Kms/i);
-    const travelKmInput = screen.getByLabelText(/^Travel Kms$/i);
-    const travelKmDescInput = screen.getByLabelText(/Description of Travel Kms/i);
+    // Use element IDs directly — labels contain SVG icons which interfere with accessible name matching
+    const participantKmInput = document.getElementById('participantKm') as HTMLInputElement;
+    const participantKmDescInput = document.getElementById('participantKmDescription') as HTMLTextAreaElement;
+    const travelKmInput = document.getElementById('travelKm') as HTMLInputElement;
+    const travelKmDescInput = document.getElementById('travelKmDescription') as HTMLTextAreaElement;
 
     fireEvent.change(participantKmInput, { target: { value: '15.5' } });
     fireEvent.change(participantKmDescInput, { target: { value: 'Driving client to doctor' } });

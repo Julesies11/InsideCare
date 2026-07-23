@@ -5,6 +5,37 @@ import { CALENDAR_VIEWS, CHECKLIST_VIEWS } from '@/config/query-views';
 import { STORAGE_BUCKETS } from '@/config/storage-buckets';
 import { supabase } from '@/lib/supabase';
 
+type ChecklistSubmissionInsert = Database['public']['Tables']['ic_house_checklist_submissions']['Insert'];
+type ChecklistSubmissionItemInsert = Database['public']['Tables']['ic_house_checklist_submission_items']['Insert'];
+type HouseChecklistInsert = Database['public']['Tables']['ic_house_checklists']['Insert'];
+type CalendarEventInsert = Database['public']['Tables']['ic_house_calendar_events']['Insert'];
+
+interface SubmissionItem {
+  item_id: string;
+  is_completed: boolean;
+  note?: string | null;
+  completed_by?: string | null;
+}
+
+interface QueuedAttachment {
+  file: File;
+}
+
+interface ExecutionResults {
+  items: SubmissionItem[];
+  queuedAttachments?: Record<string, QueuedAttachment[]>;
+}
+
+interface ChecklistItemInput {
+  id?: string;
+  group?: unknown;
+  created_at?: string;
+  updated_at?: string;
+  group_id?: string;
+  master_item_id?: string;
+  [key: string]: unknown;
+}
+
 export const checklistsApi = {
   /**
    * Fetches a single house checklist template with its items.
@@ -361,7 +392,7 @@ export const checklistsApi = {
     } else {
       const { data, error } = await supabase
         .from(TABLES.HOUSE_CHECKLIST_SUBMISSIONS)
-        .insert([payload as any])
+        .insert([payload as ChecklistSubmissionInsert])
         .select()
         .maybeSingle();
       if (error) throw error;
@@ -372,7 +403,7 @@ export const checklistsApi = {
   /**
    * Upserts submission items.
    */
-  async upsertSubmissionItems(items: any[]) {
+  async upsertSubmissionItems(items: ChecklistSubmissionItemInsert[]) {
     const { error } = await supabase
       .from(TABLES.HOUSE_CHECKLIST_SUBMISSION_ITEMS)
       .upsert(items, { onConflict: 'submission_id,item_id' });
@@ -461,7 +492,7 @@ export const checklistsApi = {
     status: string;
     staffId?: string;
     submissionId?: string;
-    results: any;
+    results: ExecutionResults;
   }) {
     const {
       checklistId,
@@ -512,7 +543,7 @@ export const checklistsApi = {
       if (error) throw error;
     }
 
-    const submissionItems = results.items.map((item: any) => ({
+    const submissionItems: ChecklistSubmissionItemInsert[] = results.items.map((item) => ({
       submission_id: submissionId,
       item_id: item.item_id,
       is_completed: !!item.is_completed,
@@ -545,7 +576,7 @@ export const checklistsApi = {
   /**
    * Upserts a checklist template.
    */
-  async upsertChecklist(payload: any, id?: string) {
+  async upsertChecklist(payload: Partial<HouseChecklistInsert> & { items?: ChecklistItemInput[] }, id?: string) {
     const { items, ...dbPayload } = payload;
 
     let result;
@@ -590,7 +621,7 @@ export const checklistsApi = {
   /**
    * Checklist Schedules
    */
-  async createSchedule(schedule: any) {
+  async createSchedule(schedule: Record<string, unknown>) {
     const { data: newSchedule, error } = await supabase
       .from(TABLES.CHECKLIST_SCHEDULES)
       .insert(schedule)
@@ -619,7 +650,7 @@ export const checklistsApi = {
     return true;
   },
 
-  async upsertCalendarEvents(events: any[]) {
+  async upsertCalendarEvents(events: CalendarEventInsert[]) {
     const { data, error } = await supabase
       .from(TABLES.HOUSE_CALENDAR_EVENTS)
       .upsert(events)
@@ -663,10 +694,10 @@ export const checklistsApi = {
 
     // 2. Fetch submissions (both shift-specific and house-wide scheduled)
     const fetchSubmissions = async () => {
-      let shiftSubmissions: any[] = [];
-      let houseSubmissions: any[] = [];
+      let shiftSubmissions: Array<{ id: string; checklist_id: string; house_id: string; shift_id: string | null; status: string; scheduled_date: string }> = [];
+      let houseSubmissions: Array<{ id: string; checklist_id: string; house_id: string; shift_id: string | null; status: string; scheduled_date: string }> = [];
 
-      const subPromises: Promise<any>[] = [];
+      const subPromises: Promise<void>[] = [];
 
       if (shiftIds.length > 0) {
         subPromises.push(
@@ -739,7 +770,7 @@ export const checklistsApi = {
   /**
    * Synchronizes items for a checklist template.
    */
-  async syncChecklistItems(checklistId: string, items: any[]) {
+  async syncChecklistItems(checklistId: string, items: ChecklistItemInput[]) {
     await supabase
       .from(TABLES.HOUSE_CHECKLIST_ITEMS)
       .delete()
