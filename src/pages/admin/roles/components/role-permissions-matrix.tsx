@@ -1,4 +1,4 @@
-import { Fragment, useEffect, useState } from 'react';
+import { Fragment, useEffect, useRef, useState } from 'react';
 import {
   Info,
   Search,
@@ -446,6 +446,27 @@ export function RolePermissionsMatrix() {
   const { mutateAsync: updatePermissions } = useUpdateRolePermissions();
   const { hasAccess } = useRBAC();
 
+  const headerScrollRef = useRef<HTMLDivElement>(null);
+  const bodyScrollRef = useRef<HTMLDivElement>(null);
+
+  const handleHeaderScroll = (e: React.UIEvent<HTMLDivElement>) => {
+    if (
+      bodyScrollRef.current &&
+      bodyScrollRef.current.scrollLeft !== e.currentTarget.scrollLeft
+    ) {
+      bodyScrollRef.current.scrollLeft = e.currentTarget.scrollLeft;
+    }
+  };
+
+  const handleBodyScroll = (e: React.UIEvent<HTMLDivElement>) => {
+    if (
+      headerScrollRef.current &&
+      headerScrollRef.current.scrollLeft !== e.currentTarget.scrollLeft
+    ) {
+      headerScrollRef.current.scrollLeft = e.currentTarget.scrollLeft;
+    }
+  };
+
   const canEdit = hasAccess({
     resource: RBAC_MODULES.ACCESS_CONTROL,
     requiredLevel: ACCESS_LEVEL.CONTEXT_READ_WRITE,
@@ -586,30 +607,71 @@ export function RolePermissionsMatrix() {
         </CardHeader>
 
         <CardContent className="p-0">
-          <div className="max-h-[calc(100vh-280px)] min-h-[350px] overflow-auto border-b relative">
-            <Table className="border-separate border-spacing-0">
-              <TableHeader className="sticky top-0 z-30 shadow-xs">
-                <TableRow className="bg-gray-50/95 backdrop-blur-sm">
-                  <TableHead className="sticky left-0 top-0 z-40 bg-gray-50/95 backdrop-blur-sm text-start font-bold text-gray-900 min-w-[280px] py-4 border-b border-r shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]">
+          <style>{`
+            .scrollbar-none::-webkit-scrollbar {
+              display: none;
+            }
+            .scrollbar-none {
+              -ms-overflow-style: none;
+              scrollbar-width: none;
+            }
+          `}</style>
+          
+          {/* Header Table (Sticky to Viewport) */}
+          <div
+            ref={headerScrollRef}
+            onScroll={handleHeaderScroll}
+            className="overflow-x-auto overflow-y-hidden border-b sticky top-[var(--header-height,70px)] z-[5] bg-gray-100 scrollbar-none"
+          >
+            <table className="w-[980px] border-separate border-spacing-0 table-layout-fixed caption-bottom text-foreground text-sm bg-gray-100">
+              <colgroup>
+                <col className="w-[280px]" />
+                <col className="w-[140px]" />
+                <col className="w-[140px]" />
+                <col className="w-[140px]" />
+                <col className="w-[140px]" />
+                <col className="w-[140px]" />
+              </colgroup>
+              <thead>
+                <tr className="bg-gray-100 border-b border-gray-200">
+                  <th className="sticky left-0 z-[6] bg-gray-100 text-start font-bold text-gray-900 w-[280px] min-w-[280px] max-w-[280px] py-3.5 px-4 border-b border-r border-gray-200 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]">
                     Module
-                  </TableHead>
+                  </th>
                   {ACCESS_LEVELS.map((level) => (
-                    <TableHead
+                    <th
                       key={level.value}
-                      className="min-w-[140px] text-center py-4 border-b bg-gray-50/95 backdrop-blur-sm"
+                      className="min-w-[140px] w-[140px] max-w-[140px] text-center py-3.5 px-4 border-b border-gray-200 bg-gray-100"
                     >
                       <div className="flex flex-col gap-0.5">
-                        <span className="font-bold text-gray-900">
+                        <span className="font-bold text-gray-900 text-xs">
                           {level.label}
                         </span>
                         <span className="text-[10px] uppercase tracking-wider text-gray-500 font-medium leading-none">
                           {level.description}
                         </span>
                       </div>
-                    </TableHead>
+                    </th>
                   ))}
-                </TableRow>
-              </TableHeader>
+                </tr>
+              </thead>
+            </table>
+          </div>
+
+          {/* Body Table */}
+          <div
+            ref={bodyScrollRef}
+            onScroll={handleBodyScroll}
+            className="overflow-x-auto overflow-y-visible border-b relative"
+          >
+            <table className="w-[980px] border-separate border-spacing-0 table-layout-fixed caption-bottom text-foreground text-sm">
+              <colgroup>
+                <col className="w-[280px]" />
+                <col className="w-[140px]" />
+                <col className="w-[140px]" />
+                <col className="w-[140px]" />
+                <col className="w-[140px]" />
+                <col className="w-[140px]" />
+              </colgroup>
               <TableBody className="text-sm font-medium">
                 {filteredGroups.map((group) => {
                   // Special logic for Houses group dependency
@@ -639,9 +701,9 @@ export function RolePermissionsMatrix() {
                     <Fragment key={group.title}>
                       <TableRow
                         key={`${group.title}-header`}
-                        className="bg-gray-100/95 backdrop-blur-sm sticky top-[53px] z-20"
+                        className="bg-gray-100/95 backdrop-blur-sm"
                       >
-                        <TableCell className="sticky left-0 z-10 bg-gray-100/95 backdrop-blur-sm py-2.5 pl-8 border-b border-r font-bold text-gray-900 text-xs uppercase tracking-wider">
+                        <TableCell className="sticky left-0 z-[2] bg-gray-100/95 backdrop-blur-sm py-2.5 pl-8 border-b border-r font-bold text-gray-900 text-xs uppercase tracking-wider">
                           {group.title}
                         </TableCell>
                         {ACCESS_LEVELS.map((level) => {
@@ -724,7 +786,7 @@ export function RolePermissionsMatrix() {
                           >
                             <TableCell
                               className={cn(
-                                'py-4 sticky left-0 z-10 bg-white group-hover:bg-[#fcfcfe] transition-colors border-r shadow-[2px_0_5px_-2px_rgba(0,0,0,0.05)]',
+                                'py-4 sticky left-0 z-[2] bg-white group-hover:bg-[#fcfcfe] transition-colors border-r shadow-[2px_0_5px_-2px_rgba(0,0,0,0.05)]',
                                 module.isChild ? 'pl-14' : 'pl-8',
                               )}
                             >
@@ -830,7 +892,7 @@ export function RolePermissionsMatrix() {
                   );
                 })}
               </TableBody>
-            </Table>
+            </table>
           </div>
         </CardContent>
         <CardFooter className="bg-gray-50/50 py-5 border-t text-sm text-gray-500 italic">
