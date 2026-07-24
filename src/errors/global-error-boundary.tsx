@@ -24,6 +24,29 @@ export class GlobalErrorBoundary extends Component<Props, State> {
 
   public componentDidCatch(error: Error, errorInfo: ErrorInfo) {
     console.error('[GlobalErrorBoundary] Uncaught error:', error, errorInfo);
+
+    // Check if it's a dynamic import failure (common during new deployments when old chunk hashes are deleted)
+    const isDynamicImportError =
+      error.message?.includes('Failed to fetch dynamically imported module') ||
+      error.message?.includes('Importing a module script failed') ||
+      (error.name === 'TypeError' &&
+        (error.message?.includes('dynamically imported') ||
+          error.message?.includes('dynamic import')));
+
+    if (isDynamicImportError) {
+      try {
+        const hasReloaded = sessionStorage.getItem('dynamic-import-failed-reload');
+        if (!hasReloaded) {
+          sessionStorage.setItem('dynamic-import-failed-reload', 'true');
+          console.warn(
+            '[GlobalErrorBoundary] Dynamic import failed, reloading the page to fetch the latest assets...',
+          );
+          window.location.reload();
+        }
+      } catch (e) {
+        console.error('[GlobalErrorBoundary] Failed to access sessionStorage:', e);
+      }
+    }
   }
 
   private handleReset = () => {
