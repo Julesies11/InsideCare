@@ -112,4 +112,40 @@ describe('staffDetailsApi.syncDetails Regression Test', () => {
     expect(insertCall.date_completed).toBe('2026-05-31');
     expect(insertCall.expiry_date).toBe('2027-05-31');
   });
+
+  it('should strip tempId, house_name, and house from House Assignments Add payload', async () => {
+    const mockQuery = createMockQuery();
+    vi.mocked(supabase.from).mockReturnValue(mockQuery);
+
+    const pendingChanges: any = {
+      houseAssignments: {
+        toAdd: [
+          {
+            tempId: 'temp-123',
+            house_id: 'house-123',
+            house_name: 'Test House',
+            house: { id: 'house-123', house_name: 'Test House' },
+            is_primary: true,
+            start_date: '2026-07-24',
+          },
+        ],
+        toUpdate: [],
+        toDelete: [],
+      },
+    };
+
+    await staffDetailsApi.syncDetails('staff-123', pendingChanges);
+
+    expect(supabase.from).toHaveBeenCalledWith(TABLES.HOUSE_STAFF_ASSIGNMENTS);
+    const insertCall = mockQuery.insert.mock.calls[0][0];
+    expect(insertCall).toEqual([
+      {
+        house_id: 'house-123',
+        is_primary: true,
+        staff_id: 'staff-123',
+        start_date: '2026-07-24',
+        end_date: null,
+      },
+    ]);
+  });
 });

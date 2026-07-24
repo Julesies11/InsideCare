@@ -885,7 +885,7 @@ export const staffDetailsApi = {
     // 5. Process House Assignments
     if (pending?.houseAssignments?.toAdd?.length > 0) {
       const inserts = pending.houseAssignments.toAdd.map((a) => {
-        const { tempId, house_name, ...rest } = a as any;
+        const { tempId, house_name, house, ...rest } = a as any;
         return {
           ...rest,
           staff_id: staffId,
