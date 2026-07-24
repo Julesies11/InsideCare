@@ -137,6 +137,7 @@ export const HouseCalendarEvents = forwardRef<any, HouseCalendarEventsProps>(
           'meeting',
           'appointment',
           'clinical',
+          'checklist',
           'other',
         ]);
       }
@@ -1177,6 +1178,19 @@ export const HouseCalendarEvents = forwardRef<any, HouseCalendarEventsProps>(
                       {type.event_type_name}
                     </button>
                   ))}
+                  <div className="w-[1px] h-3 bg-gray-300 mx-1.5 self-center" />
+                  <button
+                    onClick={() => toggleFilter('checklist')}
+                    className={cn(
+                      'px-2 py-0.5 text-[9px] font-bold rounded-md transition-all',
+                      getButtonClass(
+                        'amber',
+                        filterTypes.includes('checklist'),
+                      ),
+                    )}
+                  >
+                    Checklists
+                  </button>
                 </div>
               </div>
             </div>
@@ -1257,6 +1271,19 @@ export const HouseCalendarEvents = forwardRef<any, HouseCalendarEventsProps>(
                           {type.event_type_name}
                         </button>
                       ))}
+                      <div className="w-[1px] h-4 bg-gray-300 mx-2 self-center" />
+                      <button
+                        onClick={() => toggleFilter('checklist')}
+                        className={cn(
+                          'px-2.5 py-1 text-[10px] font-bold rounded-md transition-all',
+                          getButtonClass(
+                            'amber',
+                            filterTypes.includes('checklist'),
+                          ),
+                        )}
+                      >
+                        Checklists
+                      </button>
                     </div>
                   </div>
                 </div>
