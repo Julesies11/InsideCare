@@ -110,7 +110,7 @@ export const PARTICIPANT_VIEWS = {
   /**
    * View for participant goals.
    */
-  GOALS: 'id, participant_id, goal_type, description, created_at, updated_at',
+  GOALS: 'id, participant_id, goal_type, description, is_active, created_at, updated_at',
 
   /**
    * View for participant medications.
