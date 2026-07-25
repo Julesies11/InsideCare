@@ -12,6 +12,7 @@ export const ROUTES = {
 
   // Dashboards & Home
   HOME: '/',
+  DASHBOARD: '/dashboard',
   MY_DASHBOARD: '/my-dashboard',
 
   // Staff Portal
