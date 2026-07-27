@@ -36,13 +36,15 @@ Following a comprehensive modernization refactor, all redundant data columns and
 2.  **Strict Integrity**: Foreign keys for core classifications must be `NOT NULL` to prevent orphaned records.
 3.  **Environment Agnostic Triggers**: Database functions must use the "Auto-Discovery" pattern for Supabase URLs and keys (resolving from request headers or internal vault), ensuring portability across Dev and Prod without manual configuration.
 
-## Database Source of Truth
+## Database Source of Truth & Baseline
 
 The schema source of truth is maintained in:
 
+- **Baseline Migration:** `migrations/2026072701_baseline_schema.sql` (Consolidated schema baseline: extensions, enums, tables, FKs, functions, storage buckets, and triggers without RLS policy statements).
 - **Directory:** `docs/database_schema/dev/`
-- **Schema Metadata:** `docs/database_schema/dev/schema_metadata.json` (Tables, Columns, Enums, Logic).
-- **RBAC Policies:** `docs/database_schema/dev/current_database_rbac.json` (Live RLS policy state).
+- **Schema Metadata:** `docs/database_schema/dev/schema_metadata.json` (Tables, Columns, Enums, Functions, Triggers).
+- **RBAC Policies:** `docs/database_schema/dev/current_database_rbac.json` (Live RLS policy state, managed separately to keep baseline migration concise).
+- **Baseline Generator:** `scripts/generate_baseline.py` (Script to regenerate baseline SQL from dev metadata).
 
 **AI Workflow:** Before generating any SQL, always audit these live metadata files.
 
