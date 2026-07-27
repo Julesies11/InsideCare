@@ -35,6 +35,7 @@ const adminTest = base.extend({
 
 // Pages that don't require authentication
 const PUBLIC_PAGES = [
+  '/',
   '/auth/signin',
   '/auth/signup',
   '/auth/reset-password',
@@ -59,7 +60,6 @@ const PUBLIC_PAGES = [
 
 // Pages accessible by both Staff and Admins (Staff Portal & Shared Care)
 const STAFF_PAGES = [
-  '/',
   '/my-dashboard',
   '/my-checklists',
   '/my-roster',
@@ -76,6 +76,7 @@ const STAFF_PAGES = [
 
 // Pages accessible only by Admins (Management & Operations)
 const ADMIN_PAGES = [
+  '/dashboard',
   '/staff',
   '/timesheet-approvals',
   '/leave-approvals',
@@ -260,7 +261,7 @@ for (const tab of HOUSE_TABS) {
         targetId,
       );
     if (isRealUuid) {
-      await expect(page.locator(`#${tab}`)).toBeAttached();
+      await expect(page.locator(`#${tab}`).first()).toBeAttached();
     }
   });
 }

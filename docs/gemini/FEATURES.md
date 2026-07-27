@@ -171,3 +171,13 @@ Central registry for system-wide analytics and compliance exports.
   - **Persistence**: User filter and grouping preferences are saved to the database, ensuring a consistent workspace upon return.
   - **Print Optimized**: Clean, professional layout with summary KPIs and organizational parameters, designed for regulatory compliance audits.
   - **Remediation Integration**: Deep links from report rows directly to staff compliance profiles for immediate resolution of gaps.
+
+## 11. Public Landing Page & Redirection Routing
+
+The public gateway and session listener structure.
+
+- **Public Landing Page (`/`)**: A modern, high-fidelity landing page detailing the platform's core operational capabilities (Houses, Rostering, Staff App, Checklists, Compliance, and Reporting). Built with clean responsive design and dark mode support.
+- **Session Redirection Listener**: Uses a session provider hook (`useAuth()`) to detect active user sessions. To prevent layout flashes, the page remains blocked with a `<ScreenLoader />` while auth context status resolves. Once resolved, authenticated users are dynamically routed to their target dashboard:
+  - **Administrators**: Redirected to the central Admin Dashboard (`/dashboard`).
+  - **Support Staff**: Redirected to the Worker Dashboard (`/my-dashboard`).
+- **Route Separation**: Moving the default admin landing page to a protected `/dashboard` path keeps unauthenticated visitors from accessing internal layouts, ensuring total data boundary isolation.
