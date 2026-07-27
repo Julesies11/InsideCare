@@ -40,13 +40,8 @@ describe('ParticipantDetailContent', () => {
     server.use(
       http.get(
         `${SUPABASE_URL}/rest/v1/${TABLES.PARTICIPANTS}`,
-        ({ request }) => {
-          if (
-            request.headers.get('Accept')?.includes('vnd.pgrst.object+json')
-          ) {
-            return HttpResponse.json(mockParticipant);
-          }
-          return HttpResponse.json([mockParticipant]);
+        () => {
+          return HttpResponse.json(mockParticipant);
         },
       ),
     );

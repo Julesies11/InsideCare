@@ -32,6 +32,14 @@ To prevent the "Refresh Token Reuse" security lockout common in multi-tab SPAs:
 3.  **Observer Pattern**: The system relies on the Supabase listener to sync state across tabs. When one tab refreshes or logs out, all other tabs pick up the event via the shared cookie store.
 4.  **Reuse Interval**: This architecture requires a **10-30 second "Refresh Token Reuse Interval"** in the Supabase Dashboard (Auth Settings) to handle browser-throttled background tabs.
 
+### 2.3 White-Labeled Resend Email & Token Exchange
+
+As of **July 2026**, the application uses a custom Edge Function + Resend API strategy to deliver white-labeled authentication emails:
+
+- **Token Generation**: Edge Functions (`ic-invite-staff-user`, `ic-send-password-reset`) use `supabaseAdmin.auth.admin.generateLink()` to generate one-time `hashed_token` values without sending Supabase default emails.
+- **Client Route Exchange**: Action links point directly to `${origin}/auth/confirm?token_hash=${hashed_token}&type=${type}`. The `<ConfirmPage />` component verifies the token via `supabase.auth.verifyOtp()` and redirects to `/auth/change-password`.
+- **Domain Security & Open-Redirect Protection**: Edge Functions enforce `getTrustedOrigin()` checks on redirect targets to prevent link hijacking.
+
 ## 3. Security & Row Level Security (RLS)
 
 The application enforces strict role-based access control (RBAC) via a normalized permissions model and Supabase RLS.

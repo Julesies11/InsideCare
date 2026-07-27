@@ -476,6 +476,7 @@ export type Database = {
           entity_type: string
           id: string
           metadata: Json | null
+          organisation_id: string
           parent_id: string | null
           parent_name: string | null
           parent_type: string | null
@@ -492,6 +493,7 @@ export type Database = {
           entity_type: string
           id?: string
           metadata?: Json | null
+          organisation_id?: string
           parent_id?: string | null
           parent_name?: string | null
           parent_type?: string | null
@@ -508,6 +510,7 @@ export type Database = {
           entity_type?: string
           id?: string
           metadata?: Json | null
+          organisation_id?: string
           parent_id?: string | null
           parent_name?: string | null
           parent_type?: string | null
@@ -521,6 +524,13 @@ export type Database = {
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "ic_staff"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ic_activity_log_organisation_id_fkey"
+            columns: ["organisation_id"]
+            isOneToOne: false
+            referencedRelation: "ic_organisations"
             referencedColumns: ["id"]
           },
         ]
@@ -923,6 +933,7 @@ export type Database = {
           expiry_date_applicable: boolean | null
           id: string
           is_active: boolean | null
+          organisation_id: string | null
           system_category: string | null
           updated_at: string | null
           updated_by: string | null
@@ -938,6 +949,7 @@ export type Database = {
           expiry_date_applicable?: boolean | null
           id?: string
           is_active?: boolean | null
+          organisation_id?: string | null
           system_category?: string | null
           updated_at?: string | null
           updated_by?: string | null
@@ -953,11 +965,20 @@ export type Database = {
           expiry_date_applicable?: boolean | null
           id?: string
           is_active?: boolean | null
+          organisation_id?: string | null
           system_category?: string | null
           updated_at?: string | null
           updated_by?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "ic_compliance_types_master_organisation_id_fkey"
+            columns: ["organisation_id"]
+            isOneToOne: false
+            referencedRelation: "ic_organisations"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       ic_contact_types_master: {
         Row: {
@@ -1707,6 +1728,7 @@ export type Database = {
           id: string
           is_global: boolean | null
           master_id: string | null
+          organisation_id: string
           sort_order: number
           updated_at: string | null
           updated_by: string | null
@@ -1721,6 +1743,7 @@ export type Database = {
           id?: string
           is_global?: boolean | null
           master_id?: string | null
+          organisation_id?: string
           sort_order?: number
           updated_at?: string | null
           updated_by?: string | null
@@ -1735,6 +1758,7 @@ export type Database = {
           id?: string
           is_global?: boolean | null
           master_id?: string | null
+          organisation_id?: string
           sort_order?: number
           updated_at?: string | null
           updated_by?: string | null
@@ -1752,6 +1776,13 @@ export type Database = {
             columns: ["master_id"]
             isOneToOne: false
             referencedRelation: "ic_checklist_master"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ic_house_checklists_organisation_id_fkey"
+            columns: ["organisation_id"]
+            isOneToOne: false
+            referencedRelation: "ic_organisations"
             referencedColumns: ["id"]
           },
         ]
@@ -2100,6 +2131,7 @@ export type Database = {
           id: string
           is_active: boolean | null
           notes: string | null
+          organisation_id: string
           title: string
           type: string
           updated_at: string | null
@@ -2117,6 +2149,7 @@ export type Database = {
           id?: string
           is_active?: boolean | null
           notes?: string | null
+          organisation_id?: string
           title: string
           type: string
           updated_at?: string | null
@@ -2134,6 +2167,7 @@ export type Database = {
           id?: string
           is_active?: boolean | null
           notes?: string | null
+          organisation_id?: string
           title?: string
           type?: string
           updated_at?: string | null
@@ -2145,6 +2179,13 @@ export type Database = {
             columns: ["house_id"]
             isOneToOne: false
             referencedRelation: "ic_houses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ic_house_resources_organisation_id_fkey"
+            columns: ["organisation_id"]
+            isOneToOne: false
+            referencedRelation: "ic_organisations"
             referencedColumns: ["id"]
           },
         ]
@@ -2160,6 +2201,7 @@ export type Database = {
           icon_name: string | null
           id: string
           is_active: boolean
+          organisation_id: string | null
           shift_template_name: string
           short_name: string | null
           sort_order: number
@@ -2176,6 +2218,7 @@ export type Database = {
           icon_name?: string | null
           id?: string
           is_active?: boolean
+          organisation_id?: string | null
           shift_template_name: string
           short_name?: string | null
           sort_order?: number
@@ -2192,6 +2235,7 @@ export type Database = {
           icon_name?: string | null
           id?: string
           is_active?: boolean
+          organisation_id?: string | null
           shift_template_name?: string
           short_name?: string | null
           sort_order?: number
@@ -2204,6 +2248,13 @@ export type Database = {
             columns: ["house_id"]
             isOneToOne: false
             referencedRelation: "ic_houses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ic_house_shift_templates_organisation_id_fkey"
+            columns: ["organisation_id"]
+            isOneToOne: false
+            referencedRelation: "ic_organisations"
             referencedColumns: ["id"]
           },
         ]
@@ -2315,6 +2366,7 @@ export type Database = {
           is_configured: boolean
           notes: string | null
           observations: string | null
+          organisation_id: string
           participant_dynamics: string | null
           phone: string | null
           risk_management: string | null
@@ -2339,6 +2391,7 @@ export type Database = {
           is_configured?: boolean
           notes?: string | null
           observations?: string | null
+          organisation_id?: string
           participant_dynamics?: string | null
           phone?: string | null
           risk_management?: string | null
@@ -2363,6 +2416,7 @@ export type Database = {
           is_configured?: boolean
           notes?: string | null
           observations?: string | null
+          organisation_id?: string
           participant_dynamics?: string | null
           phone?: string | null
           risk_management?: string | null
@@ -2384,6 +2438,13 @@ export type Database = {
             columns: ["house_type_id"]
             isOneToOne: false
             referencedRelation: "ic_house_types_master"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ic_houses_organisation_id_fkey"
+            columns: ["organisation_id"]
+            isOneToOne: false
+            referencedRelation: "ic_organisations"
             referencedColumns: ["id"]
           },
         ]
@@ -2492,6 +2553,7 @@ export type Database = {
           is_restrictive_practice: boolean
           ndis_reported_date: string | null
           notified_parties: string | null
+          organisation_id: string
           outcome: string | null
           priority: string
           reference_id: string | null
@@ -2530,6 +2592,7 @@ export type Database = {
           is_restrictive_practice?: boolean
           ndis_reported_date?: string | null
           notified_parties?: string | null
+          organisation_id?: string
           outcome?: string | null
           priority?: string
           reference_id?: string | null
@@ -2568,6 +2631,7 @@ export type Database = {
           is_restrictive_practice?: boolean
           ndis_reported_date?: string | null
           notified_parties?: string | null
+          organisation_id?: string
           outcome?: string | null
           priority?: string
           reference_id?: string | null
@@ -2617,6 +2681,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "ic_incident_reports_organisation_id_fkey"
+            columns: ["organisation_id"]
+            isOneToOne: false
+            referencedRelation: "ic_organisations"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "ic_incident_reports_reported_by_fkey"
             columns: ["reported_by"]
             isOneToOne: false
@@ -2640,6 +2711,7 @@ export type Database = {
           id: string
           is_active: boolean
           name: string
+          organisation_id: string | null
           updated_at: string | null
           updated_by: string | null
         }
@@ -2650,6 +2722,7 @@ export type Database = {
           id?: string
           is_active?: boolean
           name: string
+          organisation_id?: string | null
           updated_at?: string | null
           updated_by?: string | null
         }
@@ -2660,10 +2733,19 @@ export type Database = {
           id?: string
           is_active?: boolean
           name?: string
+          organisation_id?: string | null
           updated_at?: string | null
           updated_by?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "ic_incident_types_master_organisation_id_fkey"
+            columns: ["organisation_id"]
+            isOneToOne: false
+            referencedRelation: "ic_organisations"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       ic_leave_requests: {
         Row: {
@@ -2765,6 +2847,7 @@ export type Database = {
           id: string
           is_active: boolean | null
           medication_type_name: string
+          organisation_id: string | null
           updated_at: string | null
           updated_by: string | null
         }
@@ -2774,6 +2857,7 @@ export type Database = {
           id?: string
           is_active?: boolean | null
           medication_type_name: string
+          organisation_id?: string | null
           updated_at?: string | null
           updated_by?: string | null
         }
@@ -2783,10 +2867,19 @@ export type Database = {
           id?: string
           is_active?: boolean | null
           medication_type_name?: string
+          organisation_id?: string | null
           updated_at?: string | null
           updated_by?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "ic_medication_types_master_organisation_id_fkey"
+            columns: ["organisation_id"]
+            isOneToOne: false
+            referencedRelation: "ic_organisations"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       ic_medications_master: {
         Row: {
@@ -3021,6 +3114,7 @@ export type Database = {
           is_read: boolean
           link: string | null
           metadata: Json | null
+          organisation_id: string
           title: string
           type: string
           updated_at: string | null
@@ -3035,6 +3129,7 @@ export type Database = {
           is_read?: boolean
           link?: string | null
           metadata?: Json | null
+          organisation_id?: string
           title: string
           type: string
           updated_at?: string | null
@@ -3049,13 +3144,22 @@ export type Database = {
           is_read?: boolean
           link?: string | null
           metadata?: Json | null
+          organisation_id?: string
           title?: string
           type?: string
           updated_at?: string | null
           updated_by?: string | null
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "ic_notifications_organisation_id_fkey"
+            columns: ["organisation_id"]
+            isOneToOne: false
+            referencedRelation: "ic_organisations"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       ic_nutrition_intake_master: {
         Row: {
@@ -3154,6 +3258,54 @@ export type Database = {
           is_active?: boolean
           item_name?: string
           sort_order?: number
+          updated_at?: string | null
+          updated_by?: string | null
+        }
+        Relationships: []
+      }
+      ic_organisations: {
+        Row: {
+          address: string | null
+          contact_email: string | null
+          created_at: string | null
+          created_by: string | null
+          id: string
+          is_active: boolean | null
+          logo_url: string | null
+          name: string
+          phone: string | null
+          settings: Json | null
+          slug: string
+          updated_at: string | null
+          updated_by: string | null
+        }
+        Insert: {
+          address?: string | null
+          contact_email?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          is_active?: boolean | null
+          logo_url?: string | null
+          name: string
+          phone?: string | null
+          settings?: Json | null
+          slug: string
+          updated_at?: string | null
+          updated_by?: string | null
+        }
+        Update: {
+          address?: string | null
+          contact_email?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          is_active?: boolean | null
+          logo_url?: string | null
+          name?: string
+          phone?: string | null
+          settings?: Json | null
+          slug?: string
           updated_at?: string | null
           updated_by?: string | null
         }
@@ -3742,6 +3894,7 @@ export type Database = {
           mtmp_required: boolean | null
           natural_disaster_plan: string | null
           ndis_number: string | null
+          organisation_id: string
           other_support: string | null
           participant_name: string | null
           pbsp_engaged: boolean | null
@@ -3815,6 +3968,7 @@ export type Database = {
           mtmp_required?: boolean | null
           natural_disaster_plan?: string | null
           ndis_number?: string | null
+          organisation_id?: string
           other_support?: string | null
           participant_name?: string | null
           pbsp_engaged?: boolean | null
@@ -3888,6 +4042,7 @@ export type Database = {
           mtmp_required?: boolean | null
           natural_disaster_plan?: string | null
           ndis_number?: string | null
+          organisation_id?: string
           other_support?: string | null
           participant_name?: string | null
           pbsp_engaged?: boolean | null
@@ -3925,6 +4080,13 @@ export type Database = {
           updated_by?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "ic_participants_organisation_id_fkey"
+            columns: ["organisation_id"]
+            isOneToOne: false
+            referencedRelation: "ic_organisations"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "participants_house_id_fkey"
             columns: ["house_id"]
@@ -4155,6 +4317,7 @@ export type Database = {
           id: string
           is_active: boolean
           name: string
+          organisation_id: string | null
           updated_at: string | null
           updated_by: string | null
         }
@@ -4165,6 +4328,7 @@ export type Database = {
           id?: string
           is_active?: boolean
           name: string
+          organisation_id?: string | null
           updated_at?: string | null
           updated_by?: string | null
         }
@@ -4175,10 +4339,19 @@ export type Database = {
           id?: string
           is_active?: boolean
           name?: string
+          organisation_id?: string | null
           updated_at?: string | null
           updated_by?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "ic_restrictive_practice_types_master_organisation_id_fkey"
+            columns: ["organisation_id"]
+            isOneToOne: false
+            referencedRelation: "ic_organisations"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       ic_role_permissions: {
         Row: {
@@ -4204,6 +4377,7 @@ export type Database = {
           my_leave: Database["public"]["Enums"]["ic_access_level_enum"]
           my_roster: Database["public"]["Enums"]["ic_access_level_enum"]
           my_timesheets: Database["public"]["Enums"]["ic_access_level_enum"]
+          organisation_id: string
           participant_activity_log: Database["public"]["Enums"]["ic_access_level_enum"]
           participant_behaviour: Database["public"]["Enums"]["ic_access_level_enum"]
           participant_clinical_trackers: Database["public"]["Enums"]["ic_access_level_enum"]
@@ -4262,6 +4436,7 @@ export type Database = {
           my_leave?: Database["public"]["Enums"]["ic_access_level_enum"]
           my_roster?: Database["public"]["Enums"]["ic_access_level_enum"]
           my_timesheets?: Database["public"]["Enums"]["ic_access_level_enum"]
+          organisation_id?: string
           participant_activity_log?: Database["public"]["Enums"]["ic_access_level_enum"]
           participant_behaviour?: Database["public"]["Enums"]["ic_access_level_enum"]
           participant_clinical_trackers?: Database["public"]["Enums"]["ic_access_level_enum"]
@@ -4320,6 +4495,7 @@ export type Database = {
           my_leave?: Database["public"]["Enums"]["ic_access_level_enum"]
           my_roster?: Database["public"]["Enums"]["ic_access_level_enum"]
           my_timesheets?: Database["public"]["Enums"]["ic_access_level_enum"]
+          organisation_id?: string
           participant_activity_log?: Database["public"]["Enums"]["ic_access_level_enum"]
           participant_behaviour?: Database["public"]["Enums"]["ic_access_level_enum"]
           participant_clinical_trackers?: Database["public"]["Enums"]["ic_access_level_enum"]
@@ -4357,6 +4533,13 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: "ic_role_permissions_organisation_id_fkey"
+            columns: ["organisation_id"]
+            isOneToOne: false
+            referencedRelation: "ic_organisations"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "role_permissions_role_id_fkey"
             columns: ["role_id"]
             isOneToOne: true
@@ -4373,6 +4556,7 @@ export type Database = {
           description: string | null
           id: string
           is_active: boolean
+          organisation_id: string
           permissions: string[] | null
           role_name: string
           updated_at: string | null
@@ -4385,6 +4569,7 @@ export type Database = {
           description?: string | null
           id?: string
           is_active?: boolean
+          organisation_id?: string
           permissions?: string[] | null
           role_name: string
           updated_at?: string | null
@@ -4397,12 +4582,21 @@ export type Database = {
           description?: string | null
           id?: string
           is_active?: boolean
+          organisation_id?: string
           permissions?: string[] | null
           role_name?: string
           updated_at?: string | null
           updated_by?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "ic_roles_organisation_id_fkey"
+            columns: ["organisation_id"]
+            isOneToOne: false
+            referencedRelation: "ic_organisations"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       ic_seizure_types_master: {
         Row: {
@@ -4756,6 +4950,7 @@ export type Database = {
           nutrition_meal_type_id: string | null
           nutrition_notes: string | null
           nutrition_refusal_alternatives: string | null
+          organisation_id: string
           overall_presentation: string | null
           participant_id: string | null
           pbs_outcome: string | null
@@ -4846,6 +5041,7 @@ export type Database = {
           nutrition_meal_type_id?: string | null
           nutrition_notes?: string | null
           nutrition_refusal_alternatives?: string | null
+          organisation_id?: string
           overall_presentation?: string | null
           participant_id?: string | null
           pbs_outcome?: string | null
@@ -4938,6 +5134,7 @@ export type Database = {
           nutrition_meal_type_id?: string | null
           nutrition_notes?: string | null
           nutrition_refusal_alternatives?: string | null
+          organisation_id?: string
           overall_presentation?: string | null
           participant_id?: string | null
           pbs_outcome?: string | null
@@ -5070,6 +5267,13 @@ export type Database = {
             columns: ["nutrition_meal_type_id"]
             isOneToOne: false
             referencedRelation: "ic_nutrition_meal_types_master"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ic_shift_notes_organisation_id_fkey"
+            columns: ["organisation_id"]
+            isOneToOne: false
+            referencedRelation: "ic_organisations"
             referencedColumns: ["id"]
           },
           {
@@ -5323,6 +5527,7 @@ export type Database = {
           id: string
           manager_id: string | null
           notes: string | null
+          organisation_id: string
           phone: string | null
           photo_url: string | null
           role_id: string | null
@@ -5351,6 +5556,7 @@ export type Database = {
           id?: string
           manager_id?: string | null
           notes?: string | null
+          organisation_id?: string
           phone?: string | null
           photo_url?: string | null
           role_id?: string | null
@@ -5379,6 +5585,7 @@ export type Database = {
           id?: string
           manager_id?: string | null
           notes?: string | null
+          organisation_id?: string
           phone?: string | null
           photo_url?: string | null
           role_id?: string | null
@@ -5389,6 +5596,13 @@ export type Database = {
           updated_by?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "ic_staff_organisation_id_fkey"
+            columns: ["organisation_id"]
+            isOneToOne: false
+            referencedRelation: "ic_organisations"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "staff_department_id_fkey"
             columns: ["department_id"]
@@ -5773,6 +5987,64 @@ export type Database = {
           },
         ]
       }
+      ic_staff_organisations: {
+        Row: {
+          created_at: string | null
+          created_by: string | null
+          id: string
+          is_active: boolean | null
+          organisation_id: string
+          role_id: string | null
+          staff_id: string
+          updated_at: string | null
+          updated_by: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          is_active?: boolean | null
+          organisation_id: string
+          role_id?: string | null
+          staff_id: string
+          updated_at?: string | null
+          updated_by?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          is_active?: boolean | null
+          organisation_id?: string
+          role_id?: string | null
+          staff_id?: string
+          updated_at?: string | null
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ic_staff_organisations_organisation_id_fkey"
+            columns: ["organisation_id"]
+            isOneToOne: false
+            referencedRelation: "ic_organisations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ic_staff_organisations_role_id_fkey"
+            columns: ["role_id"]
+            isOneToOne: false
+            referencedRelation: "ic_roles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ic_staff_organisations_staff_id_fkey"
+            columns: ["staff_id"]
+            isOneToOne: false
+            referencedRelation: "ic_staff"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       ic_staff_qualifications: {
         Row: {
           created_at: string
@@ -5835,6 +6107,7 @@ export type Database = {
           house_id: string | null
           id: string
           notes: string | null
+          organisation_id: string
           shift_template: string
           shift_template_id: string | null
           staff_id: string | null
@@ -5852,6 +6125,7 @@ export type Database = {
           house_id?: string | null
           id?: string
           notes?: string | null
+          organisation_id?: string
           shift_template?: string
           shift_template_id?: string | null
           staff_id?: string | null
@@ -5869,6 +6143,7 @@ export type Database = {
           house_id?: string | null
           id?: string
           notes?: string | null
+          organisation_id?: string
           shift_template?: string
           shift_template_id?: string | null
           staff_id?: string | null
@@ -5879,6 +6154,13 @@ export type Database = {
           updated_by?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "ic_staff_shifts_organisation_id_fkey"
+            columns: ["organisation_id"]
+            isOneToOne: false
+            referencedRelation: "ic_organisations"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "staff_shifts_house_id_fkey"
             columns: ["house_id"]
@@ -5980,6 +6262,7 @@ export type Database = {
           incident_tag: boolean
           late_submission: boolean
           notes: string | null
+          organisation_id: string
           overtime_explanation: string | null
           overtime_hours: number
           participant_km: number
@@ -6011,6 +6294,7 @@ export type Database = {
           incident_tag?: boolean
           late_submission?: boolean
           notes?: string | null
+          organisation_id?: string
           overtime_explanation?: string | null
           overtime_hours?: number
           participant_km?: number
@@ -6042,6 +6326,7 @@ export type Database = {
           incident_tag?: boolean
           late_submission?: boolean
           notes?: string | null
+          organisation_id?: string
           overtime_explanation?: string | null
           overtime_hours?: number
           participant_km?: number
@@ -6059,6 +6344,13 @@ export type Database = {
           updated_by?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "ic_timesheets_organisation_id_fkey"
+            columns: ["organisation_id"]
+            isOneToOne: false
+            referencedRelation: "ic_organisations"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "timesheets_approved_by_fkey"
             columns: ["approved_by"]
@@ -8223,6 +8515,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      ic_jwt_get_organisation_id: { Args: never; Returns: string }
       ic_jwt_get_perm: { Args: { p_module: string }; Returns: string }
       ic_jwt_get_role_id: { Args: never; Returns: string }
       ic_jwt_get_staff_id: { Args: never; Returns: string }

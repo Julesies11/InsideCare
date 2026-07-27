@@ -181,3 +181,11 @@ The public gateway and session listener structure.
   - **Administrators**: Redirected to the central Admin Dashboard (`/dashboard`).
   - **Support Staff**: Redirected to the Worker Dashboard (`/my-dashboard`).
 - **Route Separation**: Moving the default admin landing page to a protected `/dashboard` path keeps unauthenticated visitors from accessing internal layouts, ensuring total data boundary isolation.
+
+## 12. White-Labeled Resend Auth & Email Delivery
+
+The application implements a white-labeled, zero-leak email architecture powered by **Resend** and Supabase Edge Functions.
+
+- **Domain Isolation (`insidecare.app`)**: All staff invitations and password reset requests generate clean, domain-matching action links pointing to `https://insidecare.app/auth/confirm` (or `http://localhost:5173/auth/confirm` during dev), completely hiding any `supabase.co` backend URLs.
+- **Resend Edge Functions**: Email delivery is handled directly by dedicated TypeScript Supabase Edge Functions (`ic-invite-staff-user`, `ic-send-password-reset`) invoking the Resend REST API via `IC_RESEND_API_KEY`.
+- **Client Confirmation Route (`/auth/confirm`)**: A dedicated `<ConfirmPage />` component extracts single-use token hashes (`token_hash`), validates them with `supabase.auth.verifyOtp`, and safely navigates users to `/auth/change-password` without risk of open-redirect vulnerabilities.

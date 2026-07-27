@@ -126,6 +126,7 @@ serve(async (req) => {
         role_id, 
         manager_id, 
         auth_user_id,
+        organisation_id,
         role:ic_roles!staff_role_id_fkey(role_name)
       `,
       )
@@ -157,31 +158,43 @@ serve(async (req) => {
     if (assignError) throw assignError;
     const assignedHouses = assignments?.map((a) => a.house_id) || [];
 
-    // 6. Fetch Managed Staff IDs (Direct Reports)
-    const { data: reports, error: reportsError } = await supabaseAdmin
-      .from('ic_staff')
-      .select('id')
-      .eq('manager_id', staff.id);
+    // 6b. Fetch Staff Organisation Memberships (Multi-Org Support)
+    const { data: orgMemberships } = await supabaseAdmin
+      .from('ic_staff_organisations')
+      .select('organisation_id, organisation:ic_organisations!inner(id, name, slug)')
+      .eq('staff_id', staff.id)
+      .eq('is_active', true);
 
-    if (reportsError) throw reportsError;
-    const managedStaffIds = reports?.map((r) => r.id) || [];
+    const availableOrganisations = orgMemberships?.map((om: any) => ({
+      id: om.organisation?.id || om.organisation_id,
+      name: om.organisation?.name || '',
+      slug: om.organisation?.slug || '',
+    })) || [];
+
+    // Use requested targetOrganisationId if provided, or default to staff's primary organisation_id
+    const activeOrgId = body?.targetOrganisationId 
+      || staff.organisation_id 
+      || '00000000-0000-0000-0000-000000000001';
 
     // 7. Compile app_metadata
     // Clean up permissions object (remove DB internal fields)
-    const {
-      id: _pId,
-      role_id: _rId,
-      created_at: _ca,
-      updated_at: _ua,
-      created_by: _cb,
-      updated_by: _ub,
-      ...modulePermissions
-    } = permissions || {};
+    const modulePermissions = { ...(permissions || {}) };
+    delete (modulePermissions as Record<string, unknown>).id;
+    delete (modulePermissions as Record<string, unknown>).role_id;
+    delete (modulePermissions as Record<string, unknown>).created_at;
+    delete (modulePermissions as Record<string, unknown>).updated_at;
+    delete (modulePermissions as Record<string, unknown>).created_by;
+    delete (modulePermissions as Record<string, unknown>).updated_by;
 
     const targetRoleName = staff.role?.role_name || '';
     const isTargetAdmin = modulePermissions?.[ACCESS_CONTROL_MODULE] === 'full';
 
     const app_metadata = {
+      organisation_id: activeOrgId,
+      active_organisation_id: activeOrgId,
+      organisations: availableOrganisations.length > 0 
+        ? availableOrganisations 
+        : [{ id: activeOrgId, name: 'Primary Care Organisation', slug: 'primary-care' }],
       staff_id: staff.id,
       role_id: staff.role_id,
       is_admin: isTargetAdmin,

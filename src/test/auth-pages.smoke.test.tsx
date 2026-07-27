@@ -1,5 +1,6 @@
 import { useAuth } from '@/auth/context/auth-context';
 import { ChangePasswordPage } from '@/auth/pages/change-password-page';
+import { ConfirmPage } from '@/auth/pages/confirm-page';
 import { ResetPasswordPage } from '@/auth/pages/reset-password-page';
 import { SignInPage } from '@/auth/pages/signin-page';
 import { render, screen } from '@testing-library/react';
@@ -84,5 +85,15 @@ describe('Auth Pages Smoke Tests', () => {
 
     // Restore location
     (window as any).location = originalLocation;
+  });
+
+  it('ConfirmPage renders correctly (smoke test)', () => {
+    render(
+      <MemoryRouter initialEntries={['/auth/confirm']}>
+        <ConfirmPage />
+      </MemoryRouter>,
+    );
+
+    expect(screen.getByText(/Verification Failed/i)).toBeInTheDocument();
   });
 });

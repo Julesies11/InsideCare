@@ -10,6 +10,16 @@ As of **May 21, 2026**, the database schema uses the `ic_` prefix for all object
 - **Storage Buckets:** `ic_` prefix required (e.g., `ic_staff_photos`).
 - **Edge Functions:** `ic-` prefix required (e.g., `ic-invite-user`).
 
+## Multi-Tenant (Multi-Organisation) Foundation Standard (July 2026)
+
+As of **July 27, 2026**, the database schema implements a forward-compatible **Multi-Tenant (Multi-Organisation)** foundation:
+
+- **`ic_organisations`**: Master tenant table (`id`, `name`, `slug`, `settings`). Default primary organisation: `'00000000-0000-0000-0000-000000000001'`.
+- **`ic_staff_organisations`**: Junction table allowing staff (e.g., agency workers) to belong to multiple organisations.
+- **Tenant Row Isolation**: All core entity and operational tables contain an `organisation_id` UUID column referencing `ic_organisations`.
+- **Hybrid Master List Model**: Master reference tables support system-wide globals (`organisation_id IS NULL`) and tenant-customized entries (`organisation_id = active_organisation_id`).
+- **Security Helper**: `public.ic_jwt_get_organisation_id()` extracts `active_organisation_id` from session JWT claims with automatic fallback.
+
 ## Data Access Layer (DAL) Adherence
 
 As of **May 31, 2026**, the application has achieved **100% DAL adherence** for the UI layer.
