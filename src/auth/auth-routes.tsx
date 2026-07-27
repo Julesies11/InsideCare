@@ -3,6 +3,7 @@ import { BrandedLayout } from './layouts/branded';
 import { ClassicLayout } from './layouts/classic';
 import { CallbackPage } from './pages/callback-page';
 import { ChangePasswordPage } from './pages/change-password-page';
+import { ConfirmPage } from './pages/confirm-page';
 import { CheckEmail } from './pages/extended/check-email';
 import { ResetPasswordChanged } from './pages/extended/reset-password-changed';
 import { ResetPasswordCheckEmail } from './pages/extended/reset-password-check-email';
@@ -28,6 +29,10 @@ export const authRoutes: RouteObject[] = [
       {
         path: 'change-password',
         element: <ChangePasswordPage />,
+      },
+      {
+        path: 'confirm',
+        element: <ConfirmPage />,
       },
       {
         path: 'reset-password',

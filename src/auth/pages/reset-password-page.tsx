@@ -17,6 +17,7 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
+import { SupabaseAdapter } from '../adapters/supabase-adapter';
 import {
   getResetRequestSchema,
   ResetRequestSchemaType,
@@ -42,17 +43,8 @@ export function ResetPasswordPage() {
 
       console.log('Submitting password reset for:', values.email);
 
-      // Request password reset using Supabase directly
-      const { error } = await supabase.auth.resetPasswordForEmail(
-        values.email,
-        {
-          redirectTo: `${window.location.origin}${ROUTES.AUTH_RESET_PASSWORD}`,
-        },
-      );
-
-      if (error) {
-        throw new Error(error.message);
-      }
+      // Request password reset using SupabaseAdapter (Resend Edge Function)
+      await SupabaseAdapter.requestPasswordReset(values.email);
 
       // Set success message
       setSuccessMessage(
