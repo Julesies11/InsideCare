@@ -137,8 +137,6 @@ export const housesApi = {
    * Fetches a single house by ID.
    */
   async get(id: string) {
-    const today = new Date().toISOString().split('T')[0];
-
     const { data, error } = await supabase
       .from(TABLES.HOUSES)
       .select(HOUSE_VIEWS.STANDARD)

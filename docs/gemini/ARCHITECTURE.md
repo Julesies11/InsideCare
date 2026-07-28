@@ -54,9 +54,12 @@ To maintain system integrity, any modifications to RLS policies or RBAC logic mu
 - **Application-Driven Claims**: Permission calculation is handled by a TypeScript Supabase Edge Function (`ic-update-user-permissions`). This function aggregates a user's role, house assignments, and managed staff.
 - **JWT Metadata**: The calculated access profile is injected directly into the user's Supabase Auth `app_metadata`. This includes:
   - `permissions`: A JSON object of module-specific access levels (e.g., `{"participants": "context_read_write"}`).
+  - `active_organisation_id`: The currently active Organisation UUID for the session.
+  - `organisations`: An array of accessible organisations for multi-tenant staff.
   - `assigned_houses`: An array of House UUIDs the user is authorized to access.
   - `managed_staff_ids`: An array of Staff UUIDs for direct reports.
 - **Lightweight RLS**: Database Row Level Security is simplified to perform fast, memory-resident JSON lookups on the `auth.jwt()` instead of expensive multi-table joins.
+  - **`ic_jwt_get_organisation_id()`**: Instant retrieval of the active session Organisation UUID.
   - **`jwt_has_house(house_id)`**: Instant check if the house ID exists in the user's token.
   - **`jwt_get_perm(module)`**: Instant retrieval of the authorized access level for a specific module.
 - **Granular Operation Policies (Gold Standard)**:

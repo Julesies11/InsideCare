@@ -322,14 +322,29 @@ serve(async (req) => {
       });
 
       // Link the auth user to the staff record
-      const { error: updateError } = await supabaseAdmin
+      const { data: staffRecord, error: updateError } = await supabaseAdmin
         .from('ic_staff')
         .update({ auth_user_id: authUserId })
-        .eq('id', staffId);
+        .eq('id', staffId)
+        .select('id, organisation_id, role_id')
+        .maybeSingle();
 
       if (updateError) {
         console.error('Database Update Error:', updateError.message);
         throw updateError;
+      }
+
+      if (staffRecord?.organisation_id) {
+        await supabaseAdmin
+          .from('ic_staff_organisations')
+          .upsert(
+            {
+              staff_id: staffId,
+              organisation_id: staffRecord.organisation_id,
+              role_id: staffRecord.role_id,
+            },
+            { onConflict: 'staff_id,organisation_id' },
+          );
       }
 
       return new Response(JSON.stringify({ success: true, authUserId, via: 'resend' }), {

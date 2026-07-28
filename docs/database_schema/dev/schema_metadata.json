@@ -8744,7 +8744,7 @@
             "ref_table": "ic_staff"
           }
         ],
-        "policy_count": 4
+        "policy_count": 5
       },
       {
         "name": "ic_shift_participants",
@@ -10568,7 +10568,7 @@
             "ref_table": "ic_staff"
           }
         ],
-        "policy_count": 4
+        "policy_count": 5
       },
       {
         "name": "ic_user_roles",
@@ -10760,7 +10760,7 @@
         "args": "",
         "name": "ic_set_audit_columns",
         "returns": "trigger",
-        "definition": "\nDECLARE\n  v_staff_id uuid;\nBEGIN\n  -- Get staff identity from session (JWT or DB lookup fallback)\n  v_staff_id := public.ic_jwt_get_staff_id();\n\n  IF (TG_OP = 'INSERT') THEN\n    NEW.created_at := now();\n    NEW.updated_at := now();\n    -- Set audit IDs if not provided (allows for controlled seed data/migrations)\n    IF NEW.created_by IS NULL THEN\n        NEW.created_by := v_staff_id;\n    END IF;\n    IF NEW.updated_by IS NULL THEN\n        NEW.updated_by := v_staff_id;\n    END IF;\n  ELSIF (TG_OP = 'UPDATE') THEN\n    NEW.updated_at := now();\n    NEW.updated_by := v_staff_id;\n    \n    -- Safety: Preserve immutability of creation data (Immutability Layer)\n    NEW.created_at := OLD.created_at;\n    NEW.created_by := OLD.created_by;\n  END IF;\n  \n  RETURN NEW;\nEND;\n"
+        "definition": "\nDECLARE\n  v_staff_id uuid;\n  v_org_id uuid;\nBEGIN\n  -- Get staff identity and active organisation identity from session (JWT or DB lookup fallback)\n  v_staff_id := public.ic_jwt_get_staff_id();\n  v_org_id := public.ic_jwt_get_organisation_id();\n\n  IF (TG_OP = 'INSERT') THEN\n    NEW.created_at := now();\n    NEW.updated_at := now();\n    IF NEW.created_by IS NULL THEN\n        NEW.created_by := v_staff_id;\n    END IF;\n    IF NEW.updated_by IS NULL THEN\n        NEW.updated_by := v_staff_id;\n    END IF;\n\n    -- Auto-assign active organisation context if missing or defaulting to primary tenant\n    IF TG_TABLE_NAME IN (\n      'ic_houses', 'ic_staff', 'ic_participants', 'ic_roles', 'ic_role_permissions',\n      'ic_staff_shifts', 'ic_shift_notes', 'ic_timesheets', 'ic_incident_reports',\n      'ic_house_resources', 'ic_house_checklists', 'ic_activity_log', 'ic_notifications',\n      'ic_house_shift_templates'\n    ) THEN\n      IF NEW.organisation_id IS NULL OR (NEW.organisation_id = '00000000-0000-0000-0000-000000000001'::uuid AND v_org_id != '00000000-0000-0000-0000-000000000001'::uuid) THEN\n        NEW.organisation_id := v_org_id;\n      END IF;\n    END IF;\n  ELSIF (TG_OP = 'UPDATE') THEN\n    NEW.updated_at := now();\n    NEW.updated_by := v_staff_id;\n    \n    -- Preserve immutability of creation data and organisation context\n    NEW.created_at := OLD.created_at;\n    NEW.created_by := OLD.created_by;\n    IF TG_TABLE_NAME IN (\n      'ic_houses', 'ic_staff', 'ic_participants', 'ic_roles', 'ic_role_permissions',\n      'ic_staff_shifts', 'ic_shift_notes', 'ic_timesheets', 'ic_incident_reports',\n      'ic_house_resources', 'ic_house_checklists', 'ic_activity_log', 'ic_notifications',\n      'ic_house_shift_templates'\n    ) THEN\n      IF OLD.organisation_id IS NOT NULL THEN\n        NEW.organisation_id := OLD.organisation_id;\n      END IF;\n    END IF;\n  END IF;\n  \n  RETURN NEW;\nEND;\n"
       },
       {
         "args": "",

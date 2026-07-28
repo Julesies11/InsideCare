@@ -19,6 +19,10 @@ As of **July 27, 2026**, the database schema implements a forward-compatible **M
 - **Tenant Row Isolation**: All core entity and operational tables contain an `organisation_id` UUID column referencing `ic_organisations`.
 - **Hybrid Master List Model**: Master reference tables support system-wide globals (`organisation_id IS NULL`) and tenant-customized entries (`organisation_id = active_organisation_id`).
 - **Security Helper**: `public.ic_jwt_get_organisation_id()` extracts `active_organisation_id` from session JWT claims with automatic fallback.
+- **Enforced RLS & Audit Triggers (July 28, 2026 - Migration `2026072800`)**:
+  - `ic_set_audit_columns()` trigger automatically populates `NEW.organisation_id := public.ic_jwt_get_organisation_id()` on insert when missing or matching default fallback.
+  - Active tenant RLS policies (`organisation_id = public.ic_jwt_get_organisation_id()`) are enforced on all core entity tables (`ic_houses`, `ic_staff`, `ic_participants`, `ic_incident_reports`, `ic_staff_shifts`, `ic_shift_notes`, `ic_timesheets`, `ic_staff_compliance`, `ic_leave_requests`, `ic_house_resources`, `ic_house_checklists`).
+  - Edge function `ic-invite-staff-user` automatically upserts membership in `ic_staff_organisations` upon user invitation.
 
 ## Data Access Layer (DAL) Adherence
 
