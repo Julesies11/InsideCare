@@ -19,7 +19,7 @@ serve(async (req) => {
 
   try {
     const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? '';
-    const supabaseServiceKey = Deno.env.get('SERVICE_ROLE_KEY') ?? '';
+    const supabaseServiceKey = Deno.env.get('SERVICE_ROLE_KEY') ?? Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
     const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY') ?? '';
 
     console.log('Diagnostic: SUPABASE_URL present:', !!supabaseUrl);
@@ -28,7 +28,20 @@ serve(async (req) => {
 
     const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey);
 
-    // 1. Authenticate caller
+    // 1. Get target userId from request
+    let body;
+    try {
+      body = await req.json();
+    } catch (e) {
+      throw new Error('Invalid JSON body');
+    }
+
+    const { userId } = body;
+    if (!userId) {
+      throw new Error('userId is required');
+    }
+
+    // 2. Authenticate caller
     const authHeader = req.headers.get('Authorization');
     if (!authHeader) {
       console.error('Diagnostic: Missing Authorization header');
@@ -36,15 +49,9 @@ serve(async (req) => {
     }
 
     const isServiceRole = authHeader === `Bearer ${supabaseServiceKey}`;
-    console.log('Diagnostic: isServiceRole:', isServiceRole);
-    console.log(
-      'Diagnostic: authHeader start:',
-      authHeader.substring(0, 15) + '...',
-    );
     let isCallerAdmin = false;
     let callingUserId = '';
 
-    // Module constants (Must match RBAC_MODULES in frontend)
     const ACCESS_CONTROL_MODULE = 'access_control';
 
     if (!isServiceRole) {
@@ -61,17 +68,16 @@ serve(async (req) => {
       }
       callingUserId = callingUser.id;
 
-      // --- HARDENING: Server-Side Role Check ---
+      // --- HARDENING: Server-Side Role & Profile Check ---
       const { data: callerProfile, error: callerError } = await supabaseAdmin
         .from('ic_staff')
-        .select('id, role_id')
+        .select('id, role_id, status')
         .eq('auth_user_id', callingUser.id)
-        .eq('status', 'active')
         .maybeSingle();
 
       if (callerError || !callerProfile) {
         console.error(`Unauthorized access attempt by user ${callingUser.id}`);
-        throw new Error('Forbidden: Active staff profile required');
+        throw new Error('Forbidden: Staff profile required');
       }
 
       // Determine admin status by checking permissions for 'access_control' module
@@ -83,35 +89,24 @@ serve(async (req) => {
 
       if (permsError) throw permsError;
       isCallerAdmin = callerPerms?.[ACCESS_CONTROL_MODULE] === 'full';
+
+      const isSelfSync = callingUserId === userId;
+      if (!isSelfSync) {
+        if (callerProfile.status !== 'active') {
+          throw new Error('Forbidden: Active staff profile required for cross-user sync');
+        }
+        if (!isCallerAdmin) {
+          console.error(
+            `User ${callingUserId} attempted to sync permissions for ${userId} without admin rights.`,
+          );
+          throw new Error(
+            'Forbidden: Admin access (full access_control) required for cross-user sync',
+          );
+        }
+      }
     } else {
       isCallerAdmin = true;
       console.log('Authorized via Service Role');
-    }
-    // --- END HARDENING ---
-
-    // 2. Get target userId from request
-    let body;
-    try {
-      body = await req.json();
-    } catch (e) {
-      throw new Error('Invalid JSON body');
-    }
-
-    const { userId } = body;
-    if (!userId) {
-      throw new Error('userId is required');
-    }
-
-    // --- HARDENING: Self-Sync or Admin Sync ---
-    const isSelfSync = !isServiceRole && callingUserId === userId;
-
-    if (!isServiceRole && !isSelfSync && !isCallerAdmin) {
-      console.error(
-        `User ${callingUserId} attempted to sync permissions for ${userId} without admin rights.`,
-      );
-      throw new Error(
-        'Forbidden: Admin access (full access_control) required for cross-user sync',
-      );
     }
     // --- END HARDENING ---
 
@@ -127,6 +122,7 @@ serve(async (req) => {
         manager_id, 
         auth_user_id,
         organisation_id,
+        status,
         role:ic_roles!staff_role_id_fkey(role_name)
       `,
       )
@@ -136,6 +132,13 @@ serve(async (req) => {
     if (staffError) throw staffError;
     if (!staff) {
       throw new Error(`Staff profile not found for user ${userId}`);
+    }
+
+    if (staff.status === 'draft') {
+      await supabaseAdmin
+        .from('ic_staff')
+        .update({ status: 'active' })
+        .eq('id', staff.id);
     }
 
     // 4. Fetch Role Permissions
@@ -157,6 +160,15 @@ serve(async (req) => {
 
     if (assignError) throw assignError;
     const assignedHouses = assignments?.map((a) => a.house_id) || [];
+
+    // 6a. Fetch Managed Staff IDs (Direct Reports)
+    const { data: managedStaff, error: managedError } = await supabaseAdmin
+      .from('ic_staff')
+      .select('id')
+      .eq('manager_id', staff.id);
+
+    if (managedError) throw managedError;
+    const managedStaffIds = managedStaff?.map((ms) => ms.id) || [];
 
     // 6b. Fetch Staff Organisation Memberships (Multi-Org Support)
     const { data: orgMemberships } = await supabaseAdmin
