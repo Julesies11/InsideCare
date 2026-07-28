@@ -188,4 +188,6 @@ The application implements a white-labeled, zero-leak email architecture powered
 
 - **Domain Isolation (`insidecare.app`)**: All staff invitations and password reset requests generate clean, domain-matching action links pointing to `https://insidecare.app/auth/confirm` (or `http://localhost:5173/auth/confirm` during dev), completely hiding any `supabase.co` backend URLs.
 - **Resend Edge Functions**: Email delivery is handled directly by dedicated TypeScript Supabase Edge Functions (`ic-invite-staff-user`, `ic-send-password-reset`) invoking the Resend REST API via `IC_RESEND_API_KEY`.
+- **Unified Email Design System**: All notification emails utilize a standardized HTML template (`renderEmailTemplate`) with centered card formatting, custom typography, brand header logos, and primary action buttons.
+- **Header Topbar Elevation (`z-30`)**: Fixed header layouts feature an elevated `z-30` stacking context, ensuring that topbar components (User Avatar Dropdown and Notification Sheet) remain fully interactive and unobscured by sticky page headers or sidebars.
 - **Client Confirmation Route (`/auth/confirm`)**: A dedicated `<ConfirmPage />` component extracts single-use token hashes (`token_hash`), validates them with `supabase.auth.verifyOtp`, and safely navigates users to `/auth/change-password` without risk of open-redirect vulnerabilities.
