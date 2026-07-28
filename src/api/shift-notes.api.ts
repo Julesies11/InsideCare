@@ -15,7 +15,7 @@ const VALID_SHIFT_NOTE_COLUMNS: (keyof ShiftNoteInsert)[] = [
   'behaviour_intensity_id',
   'behaviour_notes',
   'behaviour_observed',
-  'behaviour_type_id',
+  'behaviour_type',
   'bowel_amount_id',
   'bowel_assistance_id',
   'bowel_bristol_scale',
@@ -91,11 +91,6 @@ const VALID_SHIFT_NOTE_COLUMNS: (keyof ShiftNoteInsert)[] = [
   'shift_time',
   'shift_type',
   'sleep_occurred',
-  'sleep_quality_id',
-  'sleep_start_time',
-  'sleep_support_required',
-  'sleep_type_id',
-  'sleep_wake_time',
   'staff_id',
   'start_date',
   'reference_id',
@@ -406,8 +401,9 @@ export const shiftNotesApi = {
   /**
    * Create or upsert a shift note.
    */
-  async upsert(noteData: ShiftNoteUpdateData) {
+  async upsert(noteData: ShiftNoteUpdateData & { sleep_records?: any[] }) {
     const payload = this.sanitizePayload(noteData);
+    const { sleep_records } = noteData;
 
     const { data, error } = await supabase
       .from(TABLES.SHIFT_NOTES)
@@ -417,39 +413,110 @@ export const shiftNotesApi = {
           onConflict: 'id',
         },
       )
-      .select(SHIFT_NOTE_VIEWS.DETAIL)
+      .select('id')
       .maybeSingle();
 
     if (error) throw error;
     if (!data)
       throw new Error('You do not have permission to perform this action');
-    return data;
+
+    if (sleep_records !== undefined) {
+      await this.syncSleepRecords(data.id, sleep_records);
+    }
+
+    return this.get(data.id);
   },
 
   /**
    * Legacy alias for upsert to prevent TypeErrors from stale code or cache.
    */
-  async create(noteData: ShiftNoteUpdateData) {
+  async create(noteData: ShiftNoteUpdateData & { sleep_records?: any[] }) {
     return this.upsert(noteData);
   },
 
   /**
    * Update an existing shift note.
    */
-  async update(id: string, updates: ShiftNoteUpdateData) {
+  async update(id: string, updates: ShiftNoteUpdateData & { sleep_records?: any[] }) {
     const payload = this.sanitizePayload(updates);
+    const { sleep_records } = updates;
 
     const { data, error } = await supabase
       .from(TABLES.SHIFT_NOTES)
       .update(payload)
       .eq('id', id)
-      .select(SHIFT_NOTE_VIEWS.DETAIL)
+      .select('id')
       .maybeSingle();
 
     if (error) throw error;
     if (!data)
       throw new Error('You do not have permission to perform this action');
-    return data;
+
+    if (sleep_records !== undefined) {
+      await this.syncSleepRecords(id, sleep_records);
+    }
+
+    return this.get(id);
+  },
+
+  /**
+   * Sync sleep records (child table).
+   */
+  async syncSleepRecords(shiftNoteId: string, sleepRecords: any[]) {
+    const { data: existing, error: fetchError } = await supabase
+      .from('ic_shift_note_sleep_records')
+      .select('id')
+      .eq('shift_note_id', shiftNoteId);
+
+    if (fetchError) throw fetchError;
+
+    const existingIds = (existing || []).map((r) => r.id);
+    const incomingIds = sleepRecords.map((r) => r.id).filter(Boolean);
+
+    // 1. Delete
+    const toDelete = existingIds.filter((id) => !incomingIds.includes(id));
+    if (toDelete.length > 0) {
+      const { error: deleteError } = await supabase
+        .from('ic_shift_note_sleep_records')
+        .delete()
+        .in('id', toDelete);
+      if (deleteError) throw deleteError;
+    }
+
+    // 2. Insert
+    const toInsert = sleepRecords
+      .filter((r) => !r.id)
+      .map((r) => ({
+        shift_note_id: shiftNoteId,
+        sleep_start_time: r.sleep_start_time || null,
+        sleep_wake_time: r.sleep_wake_time || null,
+        sleep_type_id: r.sleep_type_id || null,
+        sleep_quality_id: r.sleep_quality_id || null,
+        sleep_support_required: r.sleep_support_required || null,
+      }));
+
+    if (toInsert.length > 0) {
+      const { error: insertError } = await supabase
+        .from('ic_shift_note_sleep_records')
+        .insert(toInsert);
+      if (insertError) throw insertError;
+    }
+
+    // 3. Update
+    const toUpdate = sleepRecords.filter((r) => r.id && existingIds.includes(r.id));
+    for (const r of toUpdate) {
+      const { error: updateError } = await supabase
+        .from('ic_shift_note_sleep_records')
+        .update({
+          sleep_start_time: r.sleep_start_time || null,
+          sleep_wake_time: r.sleep_wake_time || null,
+          sleep_type_id: r.sleep_type_id || null,
+          sleep_quality_id: r.sleep_quality_id || null,
+          sleep_support_required: r.sleep_support_required || null,
+        })
+        .eq('id', r.id);
+      if (updateError) throw updateError;
+    }
   },
 
   /**

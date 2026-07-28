@@ -41,7 +41,9 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { CHECKLIST_STATUS, STATUS } from '@/config/enums';
+import { QUERY_KEYS } from '@/config/query-keys';
 import { cn } from '@/lib/utils';
+import { supabase } from '@/lib/supabase';
 import { useHouseCalendarEventTypesMaster } from '@/hooks/use-house-calendar-event-types-master';
 import { useHouseChecklists } from '@/hooks/use-house-checklists';
 import { useHouseStaffAssignments } from '@/hooks/use-house-staff-assignments';
@@ -137,6 +139,7 @@ export const HouseCalendarEvents = forwardRef<any, HouseCalendarEventsProps>(
           'meeting',
           'appointment',
           'clinical',
+          'checklist',
           'other',
         ]);
       }
@@ -222,10 +225,10 @@ export const HouseCalendarEvents = forwardRef<any, HouseCalendarEventsProps>(
         });
 
         await queryClient.invalidateQueries({
-          queryKey: ['house-calendar-events', { houseId }],
+          queryKey: [QUERY_KEYS.CALENDAR_EVENTS],
         });
         await queryClient.invalidateQueries({
-          queryKey: ['house-checklist-history', houseId],
+          queryKey: [QUERY_KEYS.CHECKLIST_HISTORY],
         });
         refresh();
       } catch (error: any) {
@@ -787,8 +790,82 @@ export const HouseCalendarEvents = forwardRef<any, HouseCalendarEventsProps>(
       return eventDate > now ? 'Upcoming' : 'Past';
     };
 
+    const colorThemeClasses: Record<
+      string,
+      {
+        bgLight: string;
+        textDark: string;
+        borderLight: string;
+        bgDark: string;
+        textMedium: string;
+        textMediumLight?: string;
+      }
+    > = {
+      amber: {
+        bgLight: 'bg-amber-50',
+        textDark: 'text-amber-700',
+        borderLight: 'border-amber-200',
+        bgDark: 'bg-amber-500',
+        textMedium: 'text-amber-600',
+      },
+      purple: {
+        bgLight: 'bg-purple-50',
+        textDark: 'text-purple-700',
+        borderLight: 'border-purple-200',
+        bgDark: 'bg-purple-500',
+        textMedium: 'text-purple-600',
+      },
+      orange: {
+        bgLight: 'bg-orange-50',
+        textDark: 'text-orange-700',
+        borderLight: 'border-orange-200',
+        bgDark: 'bg-orange-500',
+        textMedium: 'text-orange-600',
+      },
+      green: {
+        bgLight: 'bg-green-50',
+        textDark: 'text-green-700',
+        borderLight: 'border-green-200',
+        bgDark: 'bg-green-500',
+        textMedium: 'text-green-600',
+      },
+      blue: {
+        bgLight: 'bg-blue-50',
+        textDark: 'text-blue-700',
+        borderLight: 'border-blue-200',
+        bgDark: 'bg-blue-500',
+        textMedium: 'text-blue-600',
+      },
+      red: {
+        bgLight: 'bg-red-50',
+        textDark: 'text-red-700',
+        borderLight: 'border-red-200',
+        bgDark: 'bg-red-500',
+        textMedium: 'text-red-600',
+      },
+      gray: {
+        bgLight: 'bg-gray-50',
+        textDark: 'text-gray-700',
+        borderLight: 'border-gray-200',
+        bgDark: 'bg-gray-500',
+        textMedium: 'text-gray-600',
+      },
+      indigo: {
+        bgLight: 'bg-indigo-50',
+        textDark: 'text-indigo-700',
+        borderLight: 'border-indigo-200',
+        bgDark: 'bg-indigo-500',
+        textMedium: 'text-indigo-600',
+      },
+    };
+
+    const getTheme = (event: any) => {
+      const color = getTypeColor(event);
+      return colorThemeClasses[color] || colorThemeClasses.gray;
+    };
+
     const getTypeColor = (event: any) => {
-      if (event.is_checklist_event) return 'amber';
+      if (event.is_checklist_event) return 'indigo';
       if (event.event_type_info?.color) return event.event_type_info.color;
       const type = (event.type || '').toLowerCase();
       if (type.includes('meeting') || type.includes('visit')) return 'purple';
@@ -807,6 +884,7 @@ export const HouseCalendarEvents = forwardRef<any, HouseCalendarEventsProps>(
       blue: 'bg-blue-500',
       red: 'bg-red-500',
       gray: 'bg-gray-500',
+      indigo: 'bg-indigo-500',
     };
 
     const getButtonClass = (color: string, isActive: boolean) => {
@@ -900,7 +978,7 @@ export const HouseCalendarEvents = forwardRef<any, HouseCalendarEventsProps>(
                                     <div className="text-[9px] text-gray-500 font-bold uppercase tracking-tighter flex items-center gap-1.5">
                                       {event.is_checklist_event && (
                                         <CheckSquare
-                                          className={`size-2.5 text-${getTypeColor(event)}-600`}
+                                          className={cn("size-2.5", getTheme(event).textMedium)}
                                         />
                                       )}
                                       {event.is_checklist_event
@@ -911,7 +989,7 @@ export const HouseCalendarEvents = forwardRef<any, HouseCalendarEventsProps>(
 
                                     <div className="flex items-start gap-1.5">
                                       <div
-                                        className={`size-1.5 rounded-full bg-${getTypeColor(event)}-500 mt-1 shrink-0`}
+                                        className={cn("size-1.5 rounded-full mt-1 shrink-0", getTheme(event).bgDark)}
                                       />
                                       <div className="flex flex-col gap-1 flex-1 min-w-0">
                                         <span className="text-[10px] font-bold text-gray-900 leading-tight whitespace-normal break-words">
@@ -960,13 +1038,13 @@ export const HouseCalendarEvents = forwardRef<any, HouseCalendarEventsProps>(
                             className="flex items-start gap-4 p-4 rounded-xl border border-gray-100 hover:border-primary/30 hover:bg-primary/[0.02] cursor-pointer transition-all group"
                           >
                             <div
-                              className={`w-1 self-stretch rounded-full bg-${getTypeColor(event)}-500`}
+                              className={cn("w-1 self-stretch rounded-full", getTheme(event).bgDark)}
                             />
                             <div className="flex-1 min-w-0">
                               <div className="flex items-center gap-2 mb-1">
                                 {event.is_checklist_event && (
                                   <CheckSquare
-                                    className={`size-4 text-${getTypeColor(event)}-600`}
+                                    className={cn("size-4", getTheme(event).textMedium)}
                                   />
                                 )}
                                 <h4 className="font-bold text-gray-900">
@@ -974,7 +1052,7 @@ export const HouseCalendarEvents = forwardRef<any, HouseCalendarEventsProps>(
                                 </h4>{' '}
                                 <Badge
                                   variant="outline"
-                                  className={`text-[10px] border-${getTypeColor(event)}-200 text-${getTypeColor(event)}-700 bg-${getTypeColor(event)}-50 uppercase font-bold`}
+                                  className={cn("text-[10px] uppercase font-bold", getTheme(event).borderLight, getTheme(event).textDark, getTheme(event).bgLight)}
                                 >
                                   {event.event_type_info?.event_type_name ||
                                     event.type}
@@ -1096,8 +1174,8 @@ export const HouseCalendarEvents = forwardRef<any, HouseCalendarEventsProps>(
                                   className={cn(
                                     'px-1.5 py-1 rounded text-[9px] font-medium flex flex-col gap-0.5 border transition-all hover:scale-[1.02]',
                                     event.is_checklist_event
-                                      ? `bg-${getTypeColor(event)}-50 text-${getTypeColor(event)}-700 border-${getTypeColor(event)}-200`
-                                      : `bg-white text-gray-700 border-gray-200`,
+                                      ? cn(getTheme(event).bgLight, getTheme(event).textDark, getTheme(event).borderLight)
+                                      : 'bg-white text-gray-700 border-gray-200',
                                   )}
                                   title={`${event.title} (${getStatusText(event)})`}
                                 >
@@ -1114,7 +1192,7 @@ export const HouseCalendarEvents = forwardRef<any, HouseCalendarEventsProps>(
                                     <span
                                       className={cn(
                                         'size-1.5 rounded-full shrink-0',
-                                        `bg-${getTypeColor(event)}-500`,
+                                        getTheme(event).bgDark,
                                       )}
                                     />
                                   </div>{' '}
@@ -1124,7 +1202,7 @@ export const HouseCalendarEvents = forwardRef<any, HouseCalendarEventsProps>(
                                   <div
                                     className={cn(
                                       'text-[8px] font-bold uppercase tracking-tighter flex items-center gap-1',
-                                      `text-${getTypeColor(event)}-600`,
+                                      getTheme(event).textMedium,
                                     )}
                                   >
                                     {getStatusText(event)}
@@ -1177,6 +1255,19 @@ export const HouseCalendarEvents = forwardRef<any, HouseCalendarEventsProps>(
                       {type.event_type_name}
                     </button>
                   ))}
+                  <div className="w-[1px] h-3 bg-gray-300 mx-1.5 self-center" />
+                  <button
+                    onClick={() => toggleFilter('checklist')}
+                    className={cn(
+                      'px-2 py-0.5 text-[9px] font-bold rounded-md transition-all',
+                      getButtonClass(
+                        'indigo',
+                        filterTypes.includes('checklist'),
+                      ),
+                    )}
+                  >
+                    Checklists
+                  </button>
                 </div>
               </div>
             </div>
@@ -1257,6 +1348,19 @@ export const HouseCalendarEvents = forwardRef<any, HouseCalendarEventsProps>(
                           {type.event_type_name}
                         </button>
                       ))}
+                      <div className="w-[1px] h-4 bg-gray-300 mx-2 self-center" />
+                      <button
+                        onClick={() => toggleFilter('checklist')}
+                        className={cn(
+                          'px-2.5 py-1 text-[10px] font-bold rounded-md transition-all',
+                          getButtonClass(
+                            'indigo',
+                            filterTypes.includes('checklist'),
+                          ),
+                        )}
+                      >
+                        Checklists
+                      </button>
                     </div>
                   </div>
                 </div>
@@ -1706,7 +1810,12 @@ export const HouseCalendarEvents = forwardRef<any, HouseCalendarEventsProps>(
           onOpenChange={setShowScheduleChecklistsModal}
           houseId={houseId!}
           houseName={houseName || ''}
-          onSuccess={refresh}
+          onSuccess={async () => {
+            await queryClient.invalidateQueries({
+              queryKey: [QUERY_KEYS.CALENDAR_EVENTS],
+            });
+            refresh();
+          }}
         />
       </>
     );

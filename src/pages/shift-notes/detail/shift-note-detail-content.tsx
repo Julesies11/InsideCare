@@ -62,13 +62,9 @@ const DEFAULT_FORM_STATE: Record<string, unknown> = {
   seizure_emergency_services: false,
   seizure_notes: '',
   sleep_occurred: false,
-  sleep_type_id: null,
-  sleep_start_time: null,
-  sleep_wake_time: null,
-  sleep_quality_id: null,
-  sleep_support_required: '',
+  sleep_records: [],
   behaviour_observed: false,
-  behaviour_type_id: null,
+  behaviour_type: '',
   behaviour_intensity_id: null,
   behaviour_notes: '',
   community_access_occurred: false,
@@ -173,9 +169,7 @@ export function ShiftNoteDetailContent({
           hygiene_support_required: !!data.track_hygiene,
         };
 
-        if (data.track_mtm && data.mtmp_required) {
-          updates.mtm_notes = `Auto-populated from Care Plan: ${data.mtmp_details || ''}`;
-        }
+
 
         handleBulkChange(updates);
       }
@@ -327,9 +321,7 @@ export function ShiftNoteDetailContent({
               initialForm.mtm_meal_provided = !!partData.track_mtm;
               initialForm.hygiene_support_required = !!partData.track_hygiene;
 
-              if (partData.track_mtm && partData.mtmp_required) {
-                initialForm.mtm_notes = `Auto-populated from Care Plan: ${partData.mtmp_details || ''}`;
-              }
+
             }
           } catch (err) {
             console.error('Error auto-populating trackers for new note:', err);
@@ -399,13 +391,9 @@ export function ShiftNoteDetailContent({
           seizure_type_id: null,
           seizure_description: '',
           seizure_notes: '',
-          sleep_occurred: false,
-          sleep_type_id: null,
-          sleep_start_time: null,
-          sleep_wake_time: null,
-          sleep_quality_id: null,
+          sleep_records: [],
           behaviour_observed: false,
-          behaviour_type_id: null,
+          behaviour_type: '',
           behaviour_intensity_id: null,
           behaviour_notes: '',
           community_access_occurred: false,
@@ -502,13 +490,8 @@ export function ShiftNoteDetailContent({
           'seizure_emergency_services',
           'seizure_notes',
           'sleep_occurred',
-          'sleep_type_id',
-          'sleep_start_time',
-          'sleep_wake_time',
-          'sleep_quality_id',
-          'sleep_support_required',
           'behaviour_observed',
-          'behaviour_type_id',
+          'behaviour_type',
           'behaviour_intensity_id',
           'behaviour_notes',
           'community_access_occurred',
@@ -585,18 +568,15 @@ export function ShiftNoteDetailContent({
           formData.seizure_emergency_services
         );
 
+        dataToSave.sleep_records = formData.sleep_records || [];
         dataToSave.sleep_occurred = !!(
-          formData.sleep_type_id ||
-          formData.sleep_start_time ||
-          formData.sleep_wake_time ||
-          formData.sleep_quality_id ||
-          formData.sleep_support_required
+          dataToSave.sleep_records && dataToSave.sleep_records.length > 0
         );
 
         dataToSave.behaviour_observed = !!(
-          formData.behaviour_type_id ||
+          formData.behaviour_type?.trim() ||
           formData.behaviour_intensity_id ||
-          formData.behaviour_notes
+          formData.behaviour_notes?.trim()
         );
 
         dataToSave.community_access_occurred = !!(

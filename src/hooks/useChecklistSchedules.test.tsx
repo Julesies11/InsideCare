@@ -1,5 +1,5 @@
 import { act, renderHook } from '@testing-library/react';
-import { describe, expect, it, vi } from 'vitest';
+import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
 import { TABLES } from '@/config/db-tables';
 import { supabase } from '@/lib/supabase';
 import { useChecklistSchedules } from './useChecklistSchedules';
@@ -66,6 +66,15 @@ vi.mock('@/lib/supabase', () => ({
 }));
 
 describe('useChecklistSchedules', () => {
+  beforeAll(() => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date('2026-06-01T00:00:00Z'));
+  });
+
+  afterAll(() => {
+    vi.useRealTimers();
+  });
+
   it('should create a schedule and materialize events', async () => {
     const { result } = renderHook(() => useChecklistSchedules('house-1'));
 

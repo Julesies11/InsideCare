@@ -92,6 +92,9 @@ export function StaffTimesheetForm() {
   const [breakMins, setBreakMins] = useState('0');
   const [overtimeExplanation, setOvertimeExplanation] = useState('');
   const [travelKm, setTravelKm] = useState('');
+  const [travelKmDescription, setTravelKmDescription] = useState('');
+  const [participantKm, setParticipantKm] = useState('');
+  const [participantKmDescription, setParticipantKmDescription] = useState('');
   const [sickShift, setSickShift] = useState(false);
   const [sickReason, setSickReason] = useState('');
 
@@ -207,6 +210,9 @@ export function StaffTimesheetForm() {
           if (d.overtime_explanation)
             setOvertimeExplanation(d.overtime_explanation);
           if (d.travel_km) setTravelKm(String(d.travel_km));
+          if (d.travel_km_description) setTravelKmDescription(d.travel_km_description);
+          if (d.participant_km) setParticipantKm(String(d.participant_km));
+          if (d.participant_km_description) setParticipantKmDescription(d.participant_km_description);
           if (d.sick_shift) setSickShift(d.sick_shift);
           if (d.notes) setSickReason(d.notes);
         }
@@ -426,6 +432,9 @@ export function StaffTimesheetForm() {
       break_minutes: parseInt(breakMins) || 0,
       overtime_explanation: overtimeExplanation || null,
       travel_km: parseFloat(travelKm) || 0,
+      travel_km_description: travelKmDescription || null,
+      participant_km: parseFloat(participantKm) || 0,
+      participant_km_description: participantKmDescription || null,
       sick_shift: sickShift,
       notes: sickShift ? sickReason || null : null,
       overtime_hours: overtimeHours,
@@ -645,22 +654,74 @@ export function StaffTimesheetForm() {
               <CardTitle className="text-base">Additional Options</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="space-y-1.5">
-                <Label htmlFor="travelKm" className="flex items-center gap-1.5">
-                  <Car className="size-3.5 text-muted-foreground" />
-                  Travel Distance (km)
-                </Label>
-                <Input
-                  id="travelKm"
-                  type="number"
-                  min="0"
-                  step="0.1"
-                  value={travelKm}
-                  onChange={(e) => setTravelKm(e.target.value)}
-                  placeholder="0"
-                  className="max-w-[140px]"
-                  readOnly={isReadOnly}
-                />
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Participant Kms Group */}
+                <div className="space-y-3 border rounded-lg p-4 bg-muted/10">
+                  <div className="space-y-1.5">
+                    <Label htmlFor="participantKm" className="flex items-center gap-1.5 font-bold">
+                      <Car className="size-3.5 text-primary" />
+                      Participant Kms (driving participants)
+                    </Label>
+                    <Input
+                      id="participantKm"
+                      type="number"
+                      min="0"
+                      step="0.1"
+                      value={participantKm}
+                      onChange={(e) => setParticipantKm(e.target.value)}
+                      placeholder="0"
+                      className="max-w-[140px]"
+                      readOnly={isReadOnly}
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label htmlFor="participantKmDescription">
+                      Description of Participant Kms
+                    </Label>
+                    <Textarea
+                      id="participantKmDescription"
+                      value={participantKmDescription}
+                      onChange={(e) => setParticipantKmDescription(e.target.value)}
+                      placeholder="Detail kms driven with participants..."
+                      rows={2}
+                      readOnly={isReadOnly}
+                    />
+                  </div>
+                </div>
+
+                {/* Travel Kms Group */}
+                <div className="space-y-3 border rounded-lg p-4 bg-muted/10">
+                  <div className="space-y-1.5">
+                    <Label htmlFor="travelKm" className="flex items-center gap-1.5 font-bold">
+                      <Car className="size-3.5 text-primary" />
+                      Travel Kms (traveling between shifts)
+                    </Label>
+                    <Input
+                      id="travelKm"
+                      type="number"
+                      min="0"
+                      step="0.1"
+                      value={travelKm}
+                      onChange={(e) => setTravelKm(e.target.value)}
+                      placeholder="0"
+                      className="max-w-[140px]"
+                      readOnly={isReadOnly}
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label htmlFor="travelKmDescription">
+                      Description of Travel Kms
+                    </Label>
+                    <Textarea
+                      id="travelKmDescription"
+                      value={travelKmDescription}
+                      onChange={(e) => setTravelKmDescription(e.target.value)}
+                      placeholder="Detail kms travelled between shifts..."
+                      rows={2}
+                      readOnly={isReadOnly}
+                    />
+                  </div>
+                </div>
               </div>
 
               <div className="border-t pt-4">

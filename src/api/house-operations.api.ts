@@ -382,15 +382,47 @@ export const houseOperationsApi = {
    * Communications / Logs
    */
   comms: {
-    async list(houseId: string) {
-      const { data, error } = await supabase
+    async list(houseId: string, entryDate?: string) {
+      let query = supabase
         .from(TABLES.HOUSE_COMMS)
         .select(HOUSE_VIEWS.COMMS)
-        .eq('house_id', houseId)
-        .order('created_at', { ascending: false });
+        .eq('house_id', houseId);
+
+      if (entryDate) {
+        query = query.eq('entry_date', entryDate);
+      }
+
+      const { data, error } = await query.order('created_at', {
+        ascending: false,
+      });
 
       if (error) throw error;
-      return data || [];
+      const records = data || [];
+
+      const creatorIds = Array.from(
+        new Set(records.map((r: any) => r.created_by).filter(Boolean)),
+      ) as string[];
+
+      const creatorMap = new Map<string, { id: string; staff_name: string }>();
+      if (creatorIds.length > 0) {
+        const { data: staffData } = await supabase
+          .from(TABLES.STAFF)
+          .select('id, staff_name')
+          .in('id', creatorIds);
+
+        if (staffData) {
+          staffData.forEach((s) => {
+            if (s.staff_name) {
+              creatorMap.set(s.id, { id: s.id, staff_name: s.staff_name });
+            }
+          });
+        }
+      }
+
+      return records.map((r: any) => ({
+        ...r,
+        creator: r.created_by ? creatorMap.get(r.created_by) || null : null,
+      }));
     },
 
     async create(comm: {

@@ -107,7 +107,14 @@ describe('ComplianceTableRow', () => {
     fireEvent.click(screen.getByText(/View \/ Edit Details/i));
 
     // Should show the reason block and the Textarea with the comments value
-    expect(screen.getByText(/marked as Not Applicable/i)).toBeInTheDocument();
+    expect(
+      screen.getByText((_content, element) => {
+        return (
+          element?.tagName.toLowerCase() === 'p' &&
+          /marked as Not Applicable/i.test(element.textContent || '')
+        );
+      })
+    ).toBeInTheDocument();
     expect(screen.getByLabelText('Reason')).toBeInTheDocument();
     expect(screen.getByDisplayValue('Not needed for part-time')).toBeInTheDocument();
 

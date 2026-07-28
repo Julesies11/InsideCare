@@ -75,10 +75,15 @@ export function MedicationDetailPage() {
 
   const isDirty = JSON.stringify(formData) !== JSON.stringify(initialData);
 
-  const canEdit = hasAccess({
-    resource: RBAC_MODULES.MASTER_LISTS,
-    requiredLevel: ACCESS_LEVEL.FULL,
-  });
+  const canEdit =
+    hasAccess({
+      resource: RBAC_MODULES.MASTER_LISTS,
+      requiredLevel: ACCESS_LEVEL.FULL,
+    }) ||
+    hasAccess({
+      resource: RBAC_MODULES.PARTICIPANT_MEDICATIONS,
+      requiredLevel: ACCESS_LEVEL.FULL,
+    });
 
   const canManageTypes = hasAccess({
     resource: RBAC_MODULES.ACCESS_CONTROL,

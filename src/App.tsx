@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { GlobalErrorBoundary } from '@/errors/global-error-boundary';
 import { AppRouting } from '@/routing/app-routing';
 import { BrowserRouter } from 'react-router';
@@ -13,6 +14,14 @@ import { TooltipsProvider } from './providers/tooltips-provider';
 const { BASE_URL } = import.meta.env;
 
 export function App() {
+  useEffect(() => {
+    try {
+      sessionStorage.removeItem('dynamic-import-failed-reload');
+    } catch (e) {
+      // Ignore sessionStorage access errors
+    }
+  }, []);
+
   return (
     <GlobalErrorBoundary>
       <QueryProvider>

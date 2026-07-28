@@ -8,6 +8,7 @@ import {
   ShowerHead,
   Utensils,
   Plus,
+  Trash2,
 } from 'lucide-react';
 import { useClinicalTrackersMaster } from '@/hooks/use-clinical-trackers-master';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -43,6 +44,34 @@ export function ShiftNoteTrackersSection({
   const { data: trackerMasters = {} as any } = useClinicalTrackersMaster();
 
   const disabled = !canEdit;
+
+  const sleepRecords = (formData.sleep_records as any[]) || [];
+
+  const handleAddSleepRecord = () => {
+    const newRecord = {
+      sleep_start_time: '',
+      sleep_wake_time: '',
+      sleep_type_id: null,
+      sleep_quality_id: null,
+      sleep_support_required: '',
+    };
+    onFormChange('sleep_records', [...sleepRecords, newRecord]);
+  };
+
+  const handleRemoveSleepRecord = (index: number) => {
+    const updated = sleepRecords.filter((_, idx) => idx !== index);
+    onFormChange('sleep_records', updated);
+  };
+
+  const handleSleepRecordChange = (index: number, key: string, value: any) => {
+    const updated = sleepRecords.map((rec, idx) => {
+      if (idx === index) {
+        return { ...rec, [key]: value };
+      }
+      return rec;
+    });
+    onFormChange('sleep_records', updated);
+  };
 
   const { hasAccess } = useRBAC();
   const canManageMasterLists = hasAccess({
@@ -467,148 +496,152 @@ export function ShiftNoteTrackersSection({
           id="tracker_sleep"
           className="animate-in fade-in slide-in-from-top-2"
         >
-          <CardHeader>
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="flex items-center gap-2">
               <Moon className="size-4 text-primary" />
               Sleep Tracking
             </CardTitle>
+            {!disabled && (
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={handleAddSleepRecord}
+              >
+                <Plus className="size-3.5 me-1" />
+                Add Sleep Interval
+              </Button>
+            )}
           </CardHeader>
-          <CardContent className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="sleep_type_id">Sleep Type</Label>
-                <div className="flex items-center gap-1.5">
-                  <div className="flex-1">
-                    <Select
-                      value={(formData.sleep_type_id as string) || 'none'}
-                      onValueChange={(val) =>
-                        onFormChange(
-                          'sleep_type_id',
-                          val === 'none' ? null : val,
-                        )
-                      }
-                      disabled={disabled}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="none">Select...</SelectItem>
-                        {trackerMasters.SLEEP_TYPES_MASTER?.map((item: any) => (
-                          <SelectItem key={item.id} value={item.id}>
-                            {item.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+          <CardContent className="space-y-4">
+            {sleepRecords.length === 0 ? (
+              <div className="flex flex-col items-center justify-center p-6 border border-dashed border-border rounded-lg text-center">
+                <Moon className="size-8 text-muted-foreground mb-2" />
+                <p className="text-sm font-medium text-muted-foreground">
+                  No sleep intervals recorded
+                </p>
+                <p className="text-xs text-muted-foreground/80 mt-1">
+                  Click "Add Sleep Interval" to record sleep periods
+                </p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {sleepRecords.map((record, index) => (
+                  <div
+                    key={record.id || index}
+                    className="p-4 border border-border rounded-lg bg-card/40 space-y-4 relative group"
+                  >
+                    {!disabled && (
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        className="absolute top-2 end-2 size-8 text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
+                        onClick={() => handleRemoveSleepRecord(index)}
+                      >
+                        <Trash2 className="size-4" />
+                      </Button>
+                    )}
+                    <div className="text-xs font-bold text-muted-foreground/80 uppercase tracking-wider">
+                      Interval #{index + 1}
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 pr-8">
+                      <div className="space-y-2">
+                        <Label htmlFor={`sleep_type_id_${index}`}>Sleep Type</Label>
+                        <Select
+                          value={(record.sleep_type_id as string) || 'none'}
+                          onValueChange={(val) =>
+                            handleSleepRecordChange(
+                              index,
+                              'sleep_type_id',
+                              val === 'none' ? null : val,
+                            )
+                          }
+                          disabled={disabled}
+                        >
+                          <SelectTrigger id={`sleep_type_id_${index}`}>
+                            <SelectValue placeholder="Select" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="none">Select...</SelectItem>
+                            {trackerMasters.SLEEP_TYPES_MASTER?.map((item: any) => (
+                              <SelectItem key={item.id} value={item.id}>
+                                {item.name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor={`sleep_start_time_${index}`}>Sleep Start Time</Label>
+                        <Input
+                          id={`sleep_start_time_${index}`}
+                          type="time"
+                          value={(record.sleep_start_time as string) || ''}
+                          onChange={(e) =>
+                            handleSleepRecordChange(index, 'sleep_start_time', e.target.value)
+                          }
+                          disabled={disabled}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor={`sleep_wake_time_${index}`}>Wake Up Time</Label>
+                        <Input
+                          id={`sleep_wake_time_${index}`}
+                          type="time"
+                          value={(record.sleep_wake_time as string) || ''}
+                          onChange={(e) =>
+                            handleSleepRecordChange(index, 'sleep_wake_time', e.target.value)
+                          }
+                          disabled={disabled}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor={`sleep_quality_id_${index}`}>Sleep Quality</Label>
+                        <Select
+                          value={(record.sleep_quality_id as string) || 'none'}
+                          onValueChange={(val) =>
+                            handleSleepRecordChange(
+                              index,
+                              'sleep_quality_id',
+                              val === 'none' ? null : val,
+                            )
+                          }
+                          disabled={disabled}
+                        >
+                          <SelectTrigger id={`sleep_quality_id_${index}`}>
+                            <SelectValue placeholder="Select" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="none">Select...</SelectItem>
+                            {trackerMasters.SLEEP_QUALITY_MASTER?.map((item: any) => (
+                              <SelectItem key={item.id} value={item.id}>
+                                {item.name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor={`sleep_support_required_${index}`}>
+                        Support Required During Sleep
+                      </Label>
+                      <Textarea
+                        id={`sleep_support_required_${index}`}
+                        value={(record.sleep_support_required as string) || ''}
+                        onChange={(e) =>
+                          handleSleepRecordChange(index, 'sleep_support_required', e.target.value)
+                        }
+                        placeholder="Describe supports..."
+                        rows={2}
+                        disabled={disabled}
+                      />
+                    </div>
                   </div>
-                  {!disabled && canManageMasterLists && (
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="icon"
-                      className="size-9 shrink-0"
-                      onClick={() =>
-                        setSelectedTaxonomy({
-                          id: 'SLEEP_TYPES_MASTER',
-                          label: 'Sleep Type',
-                          table: 'SLEEP_TYPES_MASTER',
-                        })
-                      }
-                      title="Manage Sleep Types"
-                    >
-                      <Plus className="size-4" />
-                    </Button>
-                  )}
-                </div>
+                ))}
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="sleep_start_time">Sleep Start Time</Label>
-                <Input
-                  id="sleep_start_time"
-                  type="time"
-                  value={(formData.sleep_start_time as string) || ''}
-                  onChange={(e) =>
-                    onFormChange('sleep_start_time', e.target.value)
-                  }
-                  disabled={disabled}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="sleep_wake_time">Wake Up Time</Label>
-                <Input
-                  id="sleep_wake_time"
-                  type="time"
-                  value={(formData.sleep_wake_time as string) || ''}
-                  onChange={(e) =>
-                    onFormChange('sleep_wake_time', e.target.value)
-                  }
-                  disabled={disabled}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="sleep_quality_id">Sleep Quality</Label>
-                <div className="flex items-center gap-1.5">
-                  <div className="flex-1">
-                    <Select
-                      value={(formData.sleep_quality_id as string) || 'none'}
-                      onValueChange={(val) =>
-                        onFormChange(
-                          'sleep_quality_id',
-                          val === 'none' ? null : val,
-                        )
-                      }
-                      disabled={disabled}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="none">Select...</SelectItem>
-                        {trackerMasters.SLEEP_QUALITY_MASTER?.map((item: any) => (
-                          <SelectItem key={item.id} value={item.id}>
-                            {item.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  {!disabled && canManageMasterLists && (
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="icon"
-                      className="size-9 shrink-0"
-                      onClick={() =>
-                        setSelectedTaxonomy({
-                          id: 'SLEEP_QUALITY_MASTER',
-                          label: 'Sleep Quality',
-                          table: 'SLEEP_QUALITY_MASTER',
-                        })
-                      }
-                      title="Manage Sleep Quality"
-                    >
-                      <Plus className="size-4" />
-                    </Button>
-                  )}
-                </div>
-              </div>
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="sleep_support_required">
-                Support Required During Sleep
-              </Label>
-              <Textarea
-                id="sleep_support_required"
-                value={(formData.sleep_support_required as string) || ''}
-                onChange={(e) =>
-                  onFormChange('sleep_support_required', e.target.value)
-                }
-                placeholder="Describe supports..."
-                rows={2}
-                disabled={disabled}
-              />
-            </div>
+            )}
           </CardContent>
         </Card>
       )}
@@ -628,51 +661,15 @@ export function ShiftNoteTrackersSection({
           <CardContent className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="behaviour_type_id">Behaviour Type</Label>
-                <div className="flex items-center gap-1.5">
-                  <div className="flex-1">
-                    <Select
-                      value={(formData.behaviour_type_id as string) || 'none'}
-                      onValueChange={(val) =>
-                        onFormChange(
-                          'behaviour_type_id',
-                          val === 'none' ? null : val,
-                        )
-                      }
-                      disabled={disabled}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select type..." />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="none">Select type...</SelectItem>
-                        {trackerMasters.BEHAVIOUR_TYPES_MASTER?.map((t: any) => (
-                          <SelectItem key={t.id} value={t.id}>
-                            {t.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  {!disabled && canManageMasterLists && (
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="icon"
-                      className="size-9 shrink-0"
-                      onClick={() =>
-                        setSelectedTaxonomy({
-                          id: 'BEHAVIOUR_TYPES_MASTER',
-                          label: 'Behaviour Type',
-                          table: 'BEHAVIOUR_TYPES_MASTER',
-                        })
-                      }
-                      title="Manage Behaviour Types"
-                    >
-                      <Plus className="size-4" />
-                    </Button>
-                  )}
-                </div>
+                <Label htmlFor="behaviour_type">Behaviour Type</Label>
+                <Input
+                  id="behaviour_type"
+                  type="text"
+                  placeholder="e.g. Agitation, Wandering"
+                  value={(formData.behaviour_type as string) || ''}
+                  onChange={(e) => onFormChange('behaviour_type', e.target.value)}
+                  disabled={disabled}
+                />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="behaviour_intensity_id">Intensity</Label>

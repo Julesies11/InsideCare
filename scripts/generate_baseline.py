@@ -3,8 +3,7 @@ import os
 import re
 
 # Load schema metadata
-schema_path = 'docs/database_schema/schema_metadata.json'
-rbac_path = 'docs/database_schema/current_database_rbac.json'
+schema_path = 'docs/database_schema/dev/schema_metadata.json'
 
 if not os.path.exists(schema_path):
     print(f"Error: {schema_path} not found.")
@@ -14,15 +13,17 @@ with open(schema_path) as f:
     schema_list = json.load(f)
     schema = schema_list[0]
 
-# with open(rbac_path) as f:
-#     rbac = json.load(f)
-
-sql = ["-- InsideCare Baseline Migration", "-- Generated from docs/database_schema", "-- Date: 2026-05-26", "BEGIN;"]
+sql = [
+    "-- InsideCare Baseline Migration",
+    "-- Generated from docs/database_schema/dev/schema_metadata.json",
+    "-- Date: 2026-07-27",
+    "BEGIN;",
+]
 
 # 1. Extensions
 sql.append("\n-- 0. Extensions")
-sql.append("CREATE EXTENSION IF NOT EXISTS \"uuid-ossp\";")
-sql.append("CREATE EXTENSION IF NOT EXISTS \"pgcrypto\";")
+sql.append('CREATE EXTENSION IF NOT EXISTS "uuid-ossp";')
+sql.append('CREATE EXTENSION IF NOT EXISTS "pgcrypto";')
 
 # 2. Enums
 sql.append("\n-- 1. Enums")
@@ -40,10 +41,21 @@ for t in schema['tables']:
         col_type = c['type']
         if col_type == 'ARRAY':
             col_type = 'text[]'
-        elif col_type == 'USER-DEFINED' and c.get('default'):
-            m = re.search(r'::(\w+)', c['default'])
-            if m:
-                col_type = m.group(1)
+        elif col_type == 'USER-DEFINED':
+            if c.get('default'):
+                m = re.search(r'::(\w+)', c['default'])
+                if m:
+                    col_type = m.group(1)
+                else:
+                    col_type = 'text'
+            else:
+                # Infer enum type from column name if possible
+                if c['name'] == 'status' and t['name'] in ['ic_staff', 'ic_participants', 'ic_houses', 'ic_branches']:
+                    col_type = 'ic_status_enum'
+                elif 'compliance' in c['name'] or 'status' in c['name']:
+                    col_type = 'ic_compliance_status_enum'
+                else:
+                    col_type = 'text'
         
         # Cleanup character varying length
         if col_type == 'character varying':
@@ -69,10 +81,10 @@ for t in schema['tables']:
         cols.append("UNIQUE (auth_user_id)")
     elif t['name'] == 'ic_timesheets':
         cols.append("UNIQUE (shift_id, staff_id)")
+    elif t['name'] == 'ic_organisations':
+        cols.append("UNIQUE (slug)")
         
     sql.append(f"CREATE TABLE public.{t['name']} (\n    " + ",\n    ".join(cols) + "\n);")
-    if t.get('rls_enabled'):
-        sql.append(f"ALTER TABLE public.{t['name']} ENABLE ROW LEVEL SECURITY;")
 
 # 4. Foreign Keys
 sql.append("\n-- 3. Foreign Keys")
@@ -93,11 +105,21 @@ for f_obj in schema.get('functions', []):
 
 # 6. Storage Buckets
 sql.append("\n-- 5. Storage Buckets")
-buckets = ['ic_branch_documents', 'ic_checklist_attachments', 'ic_house_documents', 'ic_participant_documents', 'ic_participant_photos', 'ic_staff_documents', 'ic_staff_photos', 'ic_house_resources']
+buckets = [
+    'ic_branch_documents',
+    'ic_checklist_attachments',
+    'ic_house_documents',
+    'ic_participant_documents',
+    'ic_participant_photos',
+    'ic_staff_documents',
+    'ic_staff_photos',
+    'ic_house_resources',
+    'ic_id_documents'
+]
 for b in buckets:
     sql.append(f"INSERT INTO storage.buckets (id, name, public) VALUES ('{b}', '{b}', false) ON CONFLICT (id) DO UPDATE SET public = false;")
 
-# 8. Triggers
+# 7. Triggers
 sql.append("\n-- 6. Triggers")
 for tr in schema.get('triggers', []):
     sql.append(f"DROP TRIGGER IF EXISTS {tr['name']} ON public.{tr['table']};")
@@ -105,7 +127,7 @@ for tr in schema.get('triggers', []):
 
 sql.append("\nCOMMIT;")
 
-output_file = 'migrations/2026052602_baseline_schema.sql'
+output_file = 'migrations/2026072701_baseline_schema.sql'
 with open(output_file, 'w') as f:
     f.write("\n".join(sql))
 

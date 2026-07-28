@@ -34,16 +34,41 @@ export const SupabaseAdapter = {
   },
 
   /**
-   * Request password reset
+   * Request password reset via custom Resend Edge Function
    */
   async requestPasswordReset(email: string): Promise<void> {
-    const redirectUrl = `${window.location.origin}/auth/reset-password`;
+    try {
+      const redirectUrl = `${window.location.origin}/auth/change-password`;
+      const { data, error } = await supabase.functions.invoke(
+        'ic-send-password-reset',
+        {
+          body: {
+            email,
+            redirectTo: redirectUrl,
+          },
+        },
+      );
 
-    const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: redirectUrl,
-    });
+      if (error) {
+        let detailedMessage = error.message;
+        try {
+          if ('context' in error && error.context instanceof Response) {
+            const errJson = await (error.context as Response).clone().json();
+            if (errJson?.error) detailedMessage = errJson.error;
+          }
+        } catch (_) {
+          // ignore parsing error
+        }
+        throw new Error(detailedMessage);
+      }
 
-    if (error) throw new Error(error.message);
+      if (data?.error) {
+        throw new Error(data.error);
+      }
+    } catch (err) {
+      console.error('Unexpected error in password reset:', err);
+      throw err;
+    }
   },
 
   /**

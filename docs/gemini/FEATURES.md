@@ -171,3 +171,21 @@ Central registry for system-wide analytics and compliance exports.
   - **Persistence**: User filter and grouping preferences are saved to the database, ensuring a consistent workspace upon return.
   - **Print Optimized**: Clean, professional layout with summary KPIs and organizational parameters, designed for regulatory compliance audits.
   - **Remediation Integration**: Deep links from report rows directly to staff compliance profiles for immediate resolution of gaps.
+
+## 11. Public Landing Page & Redirection Routing
+
+The public gateway and session listener structure.
+
+- **Public Landing Page (`/`)**: A modern, high-fidelity landing page detailing the platform's core operational capabilities (Houses, Rostering, Staff App, Checklists, Compliance, and Reporting). Built with clean responsive design and dark mode support.
+- **Session Redirection Listener**: Uses a session provider hook (`useAuth()`) to detect active user sessions. To prevent layout flashes, the page remains blocked with a `<ScreenLoader />` while auth context status resolves. Once resolved, authenticated users are dynamically routed to their target dashboard:
+  - **Administrators**: Redirected to the central Admin Dashboard (`/dashboard`).
+  - **Support Staff**: Redirected to the Worker Dashboard (`/my-dashboard`).
+- **Route Separation**: Moving the default admin landing page to a protected `/dashboard` path keeps unauthenticated visitors from accessing internal layouts, ensuring total data boundary isolation.
+
+## 12. White-Labeled Resend Auth & Email Delivery
+
+The application implements a white-labeled, zero-leak email architecture powered by **Resend** and Supabase Edge Functions.
+
+- **Domain Isolation (`insidecare.app`)**: All staff invitations and password reset requests generate clean, domain-matching action links pointing to `https://insidecare.app/auth/confirm` (or `http://localhost:5173/auth/confirm` during dev), completely hiding any `supabase.co` backend URLs.
+- **Resend Edge Functions**: Email delivery is handled directly by dedicated TypeScript Supabase Edge Functions (`ic-invite-staff-user`, `ic-send-password-reset`) invoking the Resend REST API via `IC_RESEND_API_KEY`.
+- **Client Confirmation Route (`/auth/confirm`)**: A dedicated `<ConfirmPage />` component extracts single-use token hashes (`token_hash`), validates them with `supabase.auth.verifyOtp`, and safely navigates users to `/auth/change-password` without risk of open-redirect vulnerabilities.

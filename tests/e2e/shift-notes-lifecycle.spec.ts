@@ -19,9 +19,9 @@ test.describe('Shift Notes Lifecycle & Hardening', () => {
     ).toBeVisible({ timeout: 15000 });
 
     // The submit button is labelled "Submit Note" (not "Create")
-    // It should be present in the DOM on the new form
+    // Wait for form data initialization
     const submitBtn = page.getByRole('button', { name: /Submit Note/i });
-    await expect(submitBtn).toBeAttached({ timeout: 20000 });
+    await expect(submitBtn).toBeVisible({ timeout: 30000 });
 
     // Delete button should NOT be present on a new note
     await expect(

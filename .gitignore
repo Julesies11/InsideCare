@@ -50,3 +50,4 @@ playwright/.auth*
 
 stats.html
 *.DS_Store
+.env*

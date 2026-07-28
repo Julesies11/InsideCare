@@ -31,6 +31,9 @@ const mockTimesheet: Partial<TimesheetRow> & {
   sick_shift: false,
   overtime_hours: 0,
   travel_km: 0,
+  travel_km_description: '',
+  participant_km: 0,
+  participant_km_description: '',
   created_at: '2024-01-01T17:05:00Z',
   staff: { id: 'staff-1', staff_name: 'John Doe', auth_user_id: 'user-1' },
   shift: {
@@ -109,5 +112,40 @@ describe('AdminTimesheetsPage', () => {
       expect(screen.queryByText('John Doe')).not.toBeInTheDocument();
       expect(screen.getByText(/no timesheets found/i)).toBeInTheDocument();
     });
+  });
+
+  it('renders participant kms and travel kms descriptions in details sheet', async () => {
+    // Setup server mock to return a timesheet with kms
+    const timesheetWithKms = {
+      ...mockTimesheet,
+      participant_km: 15.5,
+      participant_km_description: 'Driving client to doctor',
+      travel_km: 10.2,
+      travel_km_description: 'Driving between houses',
+    };
+    server.use(
+      http.get(`${SUPABASE_URL}/rest/v1/${TABLES.TIMESHEETS}`, () => {
+        return HttpResponse.json([timesheetWithKms]);
+      }),
+    );
+
+    const { user } = renderWithProviders(<AdminTimesheetsPage />);
+
+    await waitFor(() => {
+      expect(screen.getByText('John Doe')).toBeInTheDocument();
+    });
+
+    // Click "Approve" to open details sheet
+    const approveBtn = screen.getByRole('button', { name: /approve/i });
+    await user.click(approveBtn);
+
+    // Verify detail elements
+    expect(screen.getByText('Approve Timesheet')).toBeInTheDocument();
+    expect(screen.getByText('15.5 km')).toBeInTheDocument();
+    expect(screen.getByText('10.2 km')).toBeInTheDocument();
+    expect(screen.getByText('Participant Driving Kms Description')).toBeInTheDocument();
+    expect(screen.getByText('Driving client to doctor')).toBeInTheDocument();
+    expect(screen.getByText('Travel Kms Description (Between Shifts)')).toBeInTheDocument();
+    expect(screen.getByText('Driving between houses')).toBeInTheDocument();
   });
 });

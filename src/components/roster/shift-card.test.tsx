@@ -34,6 +34,7 @@ describe('ShiftCard', () => {
           shift={mockShift}
           compact={true}
           showStaffName={true}
+          showChecklists={true}
           onClick={onClick}
         />
       </TooltipProvider>,
@@ -53,6 +54,7 @@ describe('ShiftCard', () => {
           shift={mockShift}
           compact={false}
           showStaffName={true}
+          showChecklists={true}
           onClick={onClick}
         />
       </TooltipProvider>,

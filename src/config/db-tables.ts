@@ -56,6 +56,7 @@ export const TABLES = {
   // Operations
   SHIFT_PARTICIPANTS: 'ic_shift_participants',
   SHIFT_NOTES: 'ic_shift_notes',
+  SHIFT_NOTE_SLEEP_RECORDS: 'ic_shift_note_sleep_records',
   INCIDENT_REPORTS: 'ic_incident_reports',
   SHIFT_ASSIGNED_CHECKLISTS: 'ic_shift_assigned_checklists',
   SHIFT_TEMPLATE_DEFAULT_CHECKLISTS: 'ic_shift_template_default_checklists',
@@ -74,7 +75,6 @@ export const TABLES = {
   HOUSE_TYPES_MASTER: 'ic_house_types_master',
   LEAVE_TYPES: 'ic_leave_types',
   SEIZURE_TYPES_MASTER: 'ic_seizure_types_master',
-  BEHAVIOUR_TYPES_MASTER: 'ic_behaviour_types_master',
   INCIDENT_TYPES_MASTER: 'ic_incident_types_master',
   RESTRICTIVE_PRACTICE_TYPES_MASTER: 'ic_restrictive_practice_types_master',
   COMPLIANCE_TYPES_MASTER: 'ic_compliance_types_master',

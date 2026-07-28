@@ -60,7 +60,7 @@ export const timesheetsApi = {
         id, shift_id, clock_in, clock_out, actual_start, actual_end,
         break_minutes, shift_notes_text, status, admin_notes,
         rejection_reason, submitted_at, incident_tag, sick_shift,
-        overtime_hours, travel_km, created_at, approved_at, approved_by,
+        overtime_hours, travel_km, participant_km, participant_km_description, travel_km_description, created_at, approved_at, approved_by,
         approved_by_staff:ic_staff!timesheets_approved_by_fkey(id, staff_name),
         staff:ic_staff!timesheets_staff_id_fkey(id, staff_name, photo_url),
         shift:ic_staff_shifts!timesheets_shift_id_fkey(id, start_date, end_date, start_time, end_time, shift_template, house_id, house:ic_houses(id, house_name))
@@ -99,7 +99,7 @@ export const timesheetsApi = {
     const { data, error } = await supabase
       .from(TABLES.TIMESHEETS)
       .select(
-        'id, actual_start, actual_end, break_minutes, overtime_explanation, travel_km, sick_shift, notes, status',
+        'id, actual_start, actual_end, break_minutes, overtime_explanation, travel_km, participant_km, participant_km_description, travel_km_description, sick_shift, notes, status',
       )
       .eq('shift_id', shiftId)
       .eq('staff_id', staffId)

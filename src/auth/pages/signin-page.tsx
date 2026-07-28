@@ -128,7 +128,7 @@ export function SignInPage() {
       // NOTE: We ignore the 'next' parameter for Development buttons
       // to ensure the user lands on a page they actually have access to.
       if (user?.is_admin) {
-        navigate(ROUTES.HOME);
+        navigate(ROUTES.DASHBOARD);
       } else {
         navigate(ROUTES.MY_DASHBOARD);
       }
@@ -160,7 +160,7 @@ export function SignInPage() {
       if (nextPath) {
         navigate(nextPath);
       } else if (user?.is_admin) {
-        navigate(ROUTES.HOME);
+        navigate(ROUTES.DASHBOARD);
       } else {
         navigate(ROUTES.MY_DASHBOARD);
       }

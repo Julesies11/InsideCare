@@ -455,7 +455,7 @@ export function HouseChecklistSetup({
   };
 
   return (
-    <div id="checklists" className="space-y-4">
+    <div className="space-y-4">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <CheckSquare className="size-5 text-primary" />

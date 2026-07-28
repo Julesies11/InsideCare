@@ -5,6 +5,7 @@ export const ROUTES = {
   AUTH_SIGNUP: '/auth/signup',
   AUTH_RESET_PASSWORD: '/auth/reset-password',
   AUTH_CHANGE_PASSWORD: '/auth/change-password',
+  AUTH_CONFIRM: '/auth/confirm',
   AUTH_CALLBACK: '/auth/callback',
   AUTH_CHECK_EMAIL: '/auth/check-email',
   AUTH_WELCOME: '/auth/welcome-message',
@@ -12,6 +13,7 @@ export const ROUTES = {
 
   // Dashboards & Home
   HOME: '/',
+  DASHBOARD: '/dashboard',
   MY_DASHBOARD: '/my-dashboard',
 
   // Staff Portal

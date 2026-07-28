@@ -10,6 +10,20 @@ As of **May 21, 2026**, the database schema uses the `ic_` prefix for all object
 - **Storage Buckets:** `ic_` prefix required (e.g., `ic_staff_photos`).
 - **Edge Functions:** `ic-` prefix required (e.g., `ic-invite-user`).
 
+## Multi-Tenant (Multi-Organisation) Foundation Standard (July 2026)
+
+As of **July 27, 2026**, the database schema implements a forward-compatible **Multi-Tenant (Multi-Organisation)** foundation:
+
+- **`ic_organisations`**: Master tenant table (`id`, `name`, `slug`, `settings`). Default primary organisation: `'00000000-0000-0000-0000-000000000001'`.
+- **`ic_staff_organisations`**: Junction table allowing staff (e.g., agency workers) to belong to multiple organisations.
+- **Tenant Row Isolation**: All core entity and operational tables contain an `organisation_id` UUID column referencing `ic_organisations`.
+- **Hybrid Master List Model**: Master reference tables support system-wide globals (`organisation_id IS NULL`) and tenant-customized entries (`organisation_id = active_organisation_id`).
+- **Security Helper**: `public.ic_jwt_get_organisation_id()` extracts `active_organisation_id` from session JWT claims with automatic fallback.
+- **Enforced RLS & Audit Triggers (July 28, 2026 - Migration `2026072800`)**:
+  - `ic_set_audit_columns()` trigger automatically populates `NEW.organisation_id := public.ic_jwt_get_organisation_id()` on insert when missing or matching default fallback.
+  - Active tenant RLS policies (`organisation_id = public.ic_jwt_get_organisation_id()`) are enforced on all core entity tables (`ic_houses`, `ic_staff`, `ic_participants`, `ic_incident_reports`, `ic_staff_shifts`, `ic_shift_notes`, `ic_timesheets`, `ic_staff_compliance`, `ic_leave_requests`, `ic_house_resources`, `ic_house_checklists`).
+  - Edge function `ic-invite-staff-user` automatically upserts membership in `ic_staff_organisations` upon user invitation.
+
 ## Data Access Layer (DAL) Adherence
 
 As of **May 31, 2026**, the application has achieved **100% DAL adherence** for the UI layer.
@@ -26,13 +40,15 @@ Following a comprehensive modernization refactor, all redundant data columns and
 2.  **Strict Integrity**: Foreign keys for core classifications must be `NOT NULL` to prevent orphaned records.
 3.  **Environment Agnostic Triggers**: Database functions must use the "Auto-Discovery" pattern for Supabase URLs and keys (resolving from request headers or internal vault), ensuring portability across Dev and Prod without manual configuration.
 
-## Database Source of Truth
+## Database Source of Truth & Baseline
 
 The schema source of truth is maintained in:
 
+- **Baseline Migration:** `migrations/2026072701_baseline_schema.sql` (Consolidated schema baseline: extensions, enums, tables, FKs, functions, storage buckets, and triggers without RLS policy statements).
 - **Directory:** `docs/database_schema/dev/`
-- **Schema Metadata:** `docs/database_schema/dev/schema_metadata.json` (Tables, Columns, Enums, Logic).
-- **RBAC Policies:** `docs/database_schema/dev/current_database_rbac.json` (Live RLS policy state).
+- **Schema Metadata:** `docs/database_schema/dev/schema_metadata.json` (Tables, Columns, Enums, Functions, Triggers).
+- **RBAC Policies:** `docs/database_schema/dev/current_database_rbac.json` (Live RLS policy state, managed separately to keep baseline migration concise).
+- **Baseline Generator:** `scripts/generate_baseline.py` (Script to regenerate baseline SQL from dev metadata).
 
 **AI Workflow:** Before generating any SQL, always audit these live metadata files.
 

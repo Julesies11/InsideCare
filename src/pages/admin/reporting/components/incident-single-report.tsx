@@ -57,10 +57,10 @@ export function IncidentSingleReport({ incident }: IncidentSingleReportProps) {
               </div>
               <div>
                 <span className="text-[9px] uppercase font-bold text-gray-400 block tracking-wider">
-                  Witnessed by Staff
+                  Witness(es)
                 </span>
                 <span className="font-semibold text-gray-950">
-                  {incident.staff?.staff_name || 'N/A'}
+                  {incident.witnesses || incident.staff?.staff_name || 'N/A'}
                 </span>
               </div>
               <div>

@@ -36,6 +36,9 @@ test.describe('Compliance Comprehensive Coverage', () => {
       const firstStaffLink = page.locator('a[href*="/employees/staff-detail/"]').first();
       await expect(firstStaffLink).toBeVisible();
       await firstStaffLink.click({ force: true });
+      await expect(page.getByText(/Loading staff member/i)).not.toBeVisible({
+        timeout: 30000,
+      });
       
       try {
         await page.locator('[data-scrollspy-anchor="staff_compliance"]').click({ timeout: 5000, force: true });

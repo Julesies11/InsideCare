@@ -110,7 +110,7 @@ export const PARTICIPANT_VIEWS = {
   /**
    * View for participant goals.
    */
-  GOALS: 'id, participant_id, goal_type, description, created_at, updated_at',
+  GOALS: 'id, participant_id, goal_type, description, is_active, created_at, updated_at',
 
   /**
    * View for participant medications.
@@ -164,7 +164,7 @@ export const PARTICIPANT_VIEWS = {
     mime_type, 
     created_at, 
     updated_at,
-    uploader_info:${TABLES.STAFF}!created_by(id, staff_name)
+    created_by
   `,
 } as const;
 
@@ -235,7 +235,7 @@ export const STAFF_VIEWS = {
     mime_type, 
     created_at, 
     updated_at,
-    uploader_info:${TABLES.STAFF}!created_by(id, staff_name)
+    created_by
   `,
 } as const;
 
@@ -311,16 +311,14 @@ export const HOUSE_VIEWS = {
    * View for house communications/logs.
    */
   COMMS: `
-    id, house_id, created_by, content, entry_date, created_at, updated_at,
-    creator:${TABLES.STAFF}!created_by(id, staff_name)
+    id, house_id, created_by, content, entry_date, created_at, updated_at
   `,
 
   /**
    * View for house files (Storage links).
    */
   FILES: `
-    id, house_id, file_name, file_path, file_size, mime_type, category, created_at, updated_at,
-    uploader_info:${TABLES.STAFF}!created_by(id, staff_name)
+    id, house_id, file_name, file_path, file_size, mime_type, category, created_at, updated_at, created_by
   `,
   /**
    * View for house compliance requirements.
@@ -496,16 +494,18 @@ export const SHIFT_NOTE_VIEWS = {
     seizure_emergency_services,
     seizure_notes,
     sleep_occurred,
-    sleep_type_id,
-    sleep_type:ic_sleep_types_master!sleep_type_id(name),
-    sleep_start_time,
-    sleep_wake_time,
-    sleep_quality_id,
-    sleep_quality:ic_sleep_quality_master!sleep_quality_id(name),
-    sleep_support_required,
+    sleep_records:ic_shift_note_sleep_records!shift_note_id (
+      id,
+      sleep_start_time,
+      sleep_wake_time,
+      sleep_type_id,
+      sleep_quality_id,
+      sleep_support_required,
+      sleep_type:ic_sleep_types_master!sleep_type_id(name),
+      sleep_quality:ic_sleep_quality_master!sleep_quality_id(name)
+    ),
     behaviour_observed,
-    behaviour_type_id,
-    behaviour_type:ic_behaviour_types_master!behaviour_type_id(name),
+    behaviour_type,
     behaviour_intensity_id,
     behaviour_intensity:ic_behaviour_intensity_master!behaviour_intensity_id(name),
     behaviour_notes,
@@ -699,7 +699,6 @@ export const CALENDAR_VIEWS = {
     created_by, created_at, updated_at, is_checklist_event, house_checklist_id, checklist_schedule_id,
     type:${TABLES.HOUSE_CALENDAR_EVENT_TYPES_MASTER}!event_type_id(event_type_name, color),
     attachments:${TABLES.HOUSE_CALENDAR_EVENT_ATTACHMENTS}!event_id(*),
-    creator:${TABLES.STAFF}!created_by(id, staff_name, email),
     submissions:${TABLES.HOUSE_CHECKLIST_SUBMISSIONS}!calendar_event_id(
       id, status, completed_at,
       items:${TABLES.HOUSE_CHECKLIST_SUBMISSION_ITEMS}!submission_id(

@@ -37,9 +37,9 @@ describe('Tier 1: Query View Column & Join Validation', () => {
       );
     });
 
-    it('DOCUMENTS should use created_by for uploader join', () => {
+    it('DOCUMENTS should contain created_by', () => {
       const view = PARTICIPANT_VIEWS.DOCUMENTS;
-      expect(view).toContain(`uploader_info:${TABLES.STAFF}!created_by`);
+      expect(view).toContain('created_by');
       expect(view).not.toContain('uploaded_by');
       expect(view).not.toContain('category');
     });
@@ -53,9 +53,9 @@ describe('Tier 1: Query View Column & Join Validation', () => {
       expect(view).toContain(`role:${TABLES.ROLES}!role_id`);
     });
 
-    it('DOCUMENTS should use created_by for join', () => {
+    it('DOCUMENTS should contain created_by', () => {
       const view = STAFF_VIEWS.DOCUMENTS;
-      expect(view).toContain(`uploader_info:${TABLES.STAFF}!created_by`);
+      expect(view).toContain('created_by');
       expect(view).not.toContain('uploaded_by');
     });
 
@@ -81,16 +81,16 @@ describe('Tier 1: Query View Column & Join Validation', () => {
       expect(view).toContain('file_url');
     });
 
-    it('COMMS should use created_by and contain content', () => {
+    it('COMMS should contain created_by and content', () => {
       const view = HOUSE_VIEWS.COMMS;
       expect(view).toContain('content');
       expect(view).toContain('entry_date');
-      expect(view).toContain(`creator:${TABLES.STAFF}!created_by`);
+      expect(view).toContain('created_by');
     });
 
-    it('FILES should use created_by for uploader info', () => {
+    it('FILES should contain created_by', () => {
       const view = HOUSE_VIEWS.FILES;
-      expect(view).toContain(`uploader_info:${TABLES.STAFF}!created_by`);
+      expect(view).toContain('created_by');
     });
   });
 

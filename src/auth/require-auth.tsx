@@ -113,7 +113,7 @@ export const RequireStaff = () => {
 
   // user is loaded and is admin — redirect away
   if (user && isAdmin) {
-    return <Navigate to={ROUTES.HOME} replace />;
+    return <Navigate to={ROUTES.DASHBOARD} replace />;
   }
 
   // user not yet loaded but auth token exists — wait

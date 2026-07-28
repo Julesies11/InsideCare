@@ -54,6 +54,7 @@ interface ShiftCardProps {
   compact: boolean;
   showStaffName: boolean;
   showHouseName?: boolean;
+  showChecklists?: boolean;
   onClick: (e?: React.MouseEvent) => void;
   onWriteNote?: (shift: ShiftCardData) => void;
   onNotesClick?: (shift: ShiftCardData) => void;
@@ -69,6 +70,7 @@ export function ShiftCard({
   compact,
   showStaffName,
   showHouseName = true,
+  showChecklists = false,
   onClick,
   onWriteNote,
   onNotesClick,
@@ -302,32 +304,34 @@ export function ShiftCard({
           </span>
         </div>
 
-        {shift.assigned_checklists && shift.assigned_checklists.length > 0 && (
-          <div className="mt-1 pt-1 border-t border-dashed space-y-0.5">
-            <span className="text-[8px] font-bold text-muted-foreground uppercase tracking-widest block mb-0.5">
-              Checklists
-            </span>
-            {shift.assigned_checklists.map((cl) => (
-              <div key={cl.id} className="flex items-center gap-1">
-                {cl.is_completed ? (
-                  <CheckCircle2 className="h-2.5 w-2.5 text-emerald-500 shrink-0" />
-                ) : (
-                  <ClipboardList className="h-2.5 w-2.5 text-primary shrink-0" />
-                )}
-                <span
-                  className={cn(
-                    'text-[9px] truncate',
-                    cl.is_completed
-                      ? 'text-emerald-600 font-bold'
-                      : 'text-muted-foreground font-normal',
+        {showChecklists &&
+          shift.assigned_checklists &&
+          shift.assigned_checklists.length > 0 && (
+            <div className="mt-1 pt-1 border-t border-dashed space-y-0.5">
+              <span className="text-[8px] font-bold text-muted-foreground uppercase tracking-widest block mb-0.5">
+                Checklists
+              </span>
+              {shift.assigned_checklists.map((cl) => (
+                <div key={cl.id} className="flex items-center gap-1">
+                  {cl.is_completed ? (
+                    <CheckCircle2 className="h-2.5 w-2.5 text-emerald-500 shrink-0" />
+                  ) : (
+                    <ClipboardList className="h-2.5 w-2.5 text-primary shrink-0" />
                   )}
-                >
-                  {cl.assignment_title}
-                </span>
-              </div>
-            ))}
-          </div>
-        )}
+                  <span
+                    className={cn(
+                      'text-[9px] truncate',
+                      cl.is_completed
+                        ? 'text-emerald-600 font-bold'
+                        : 'text-muted-foreground font-normal',
+                    )}
+                  >
+                    {cl.assignment_title}
+                  </span>
+                </div>
+              ))}
+            </div>
+          )}
 
         <div className="flex items-center justify-end mt-1 pt-1 border-t">
           <button
@@ -536,34 +540,36 @@ export function ShiftCard({
           )}
         </div>
 
-        {shift.assigned_checklists && shift.assigned_checklists.length > 0 && (
-          <div className="flex flex-col gap-1 mt-1 pt-2 border-t border-dashed">
-            <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest block mb-1">
-              Checklists
-            </span>
-            <div className="space-y-1">
-              {shift.assigned_checklists.map((cl) => (
-                <div key={cl.id} className="flex items-center gap-1.5">
-                  {cl.is_completed ? (
-                    <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500 shrink-0" />
-                  ) : (
-                    <ClipboardList className="h-3.5 w-3.5 text-primary shrink-0" />
-                  )}
-                  <span
-                    className={cn(
-                      'text-[10px] truncate',
-                      cl.is_completed
-                        ? 'text-emerald-600 font-bold'
-                        : 'text-muted-foreground font-normal',
+        {showChecklists &&
+          shift.assigned_checklists &&
+          shift.assigned_checklists.length > 0 && (
+            <div className="flex flex-col gap-1 mt-1 pt-2 border-t border-dashed">
+              <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest block mb-1">
+                Checklists
+              </span>
+              <div className="space-y-1">
+                {shift.assigned_checklists.map((cl) => (
+                  <div key={cl.id} className="flex items-center gap-1.5">
+                    {cl.is_completed ? (
+                      <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500 shrink-0" />
+                    ) : (
+                      <ClipboardList className="h-3.5 w-3.5 text-primary shrink-0" />
                     )}
-                  >
-                    {cl.assignment_title}
-                  </span>
-                </div>
-              ))}
+                    <span
+                      className={cn(
+                        'text-[10px] truncate',
+                        cl.is_completed
+                          ? 'text-emerald-600 font-bold'
+                          : 'text-muted-foreground font-normal',
+                      )}
+                    >
+                      {cl.assignment_title}
+                    </span>
+                  </div>
+                ))}
+              </div>
             </div>
-          </div>
-        )}
+          )}
 
         {!isEvent && (
           <button

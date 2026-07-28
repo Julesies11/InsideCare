@@ -260,38 +260,56 @@ export function StaffDetailContent({
   }, [scrollPosition]);
 
   useEffect(() => {
-    if (staffData && !hasInitialized) {
+    if (staffData) {
       setStaffMember(staffData);
-      const initialData = {
-        staff_name: staffData.staff_name ?? '',
-        email: staffData.email ?? '',
-        phone: staffData.phone ?? '',
-        date_of_birth: staffData.date_of_birth ?? '',
-        address: staffData.address ?? '',
-        hobbies: staffData.hobbies ?? '',
-        allergies: staffData.allergies ?? '',
-        emergency_contact_name: staffData.emergency_contact_name ?? '',
-        emergency_contact_phone: staffData.emergency_contact_phone ?? '',
-        photo_url: staffData.photo_url ?? null,
-        department_id: staffData.department_id ?? '',
-        employment_type_id: staffData.employment_type_id ?? '',
-        role_id: staffData.role_id ?? '',
-        manager_id: staffData.manager_id ?? '',
-        hire_date: staffData.hire_date ?? '',
-        separation_date: staffData.separation_date ?? '',
-        availability: staffData.availability ?? '',
-        notes: staffData.notes ?? '',
-        status: staffData.status ?? 'draft',
-      };
-      setFormData(initialData);
-      latestFormData.current = initialData;
-      latestOriginalData.current = initialData;
-
-      setOriginalPhotoUrl(staffData.photo_url ?? null);
-      if (staffData.photo_url) setPhotoPreview(staffData.photo_url);
-
-      setHasInitialized(true);
       (window as any).entityName = staffData.staff_name;
+
+      if (!hasInitialized) {
+        const initialData = {
+          staff_name: staffData.staff_name ?? '',
+          email: staffData.email ?? '',
+          phone: staffData.phone ?? '',
+          date_of_birth: staffData.date_of_birth ?? '',
+          address: staffData.address ?? '',
+          hobbies: staffData.hobbies ?? '',
+          allergies: staffData.allergies ?? '',
+          emergency_contact_name: staffData.emergency_contact_name ?? '',
+          emergency_contact_phone: staffData.emergency_contact_phone ?? '',
+          photo_url: staffData.photo_url ?? null,
+          department_id: staffData.department_id ?? '',
+          employment_type_id: staffData.employment_type_id ?? '',
+          role_id: staffData.role_id ?? '',
+          manager_id: staffData.manager_id ?? '',
+          hire_date: staffData.hire_date ?? '',
+          separation_date: staffData.separation_date ?? '',
+          availability: staffData.availability ?? '',
+          notes: staffData.notes ?? '',
+          status: staffData.status ?? 'draft',
+        };
+        setFormData(initialData);
+        latestFormData.current = initialData;
+        latestOriginalData.current = initialData;
+
+        setOriginalPhotoUrl(staffData.photo_url ?? null);
+        if (staffData.photo_url) setPhotoPreview(staffData.photo_url);
+
+        setHasInitialized(true);
+      } else {
+        setFormData((prev) => {
+          if (prev.status !== staffData.status) {
+            const updated = { ...prev, status: staffData.status ?? 'draft' };
+            latestFormData.current = updated;
+            return updated;
+          }
+          return prev;
+        });
+        if (latestOriginalData.current.status !== staffData.status) {
+          latestOriginalData.current = {
+            ...latestOriginalData.current,
+            status: staffData.status ?? 'draft',
+          };
+        }
+      }
     }
   }, [staffData, hasInitialized]);
 

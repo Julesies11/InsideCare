@@ -75,10 +75,9 @@ test.describe('Staff Detail Marathon CRUD', () => {
     await expect(page.getByText('Loading roles...')).not.toBeVisible({
       timeout: 15000,
     });
-    await page
-      .locator('[data-slot="command-item"]')
-      .first()
-      .click({ force: true });
+    const roleItem = page.locator('[data-slot="command-item"]').first();
+    await expect(roleItem).toBeVisible({ timeout: 10000 });
+    await roleItem.click({ force: true });
 
     //  department
     await page
@@ -87,10 +86,9 @@ test.describe('Staff Detail Marathon CRUD', () => {
     await expect(page.getByText('Loading departments...')).not.toBeVisible({
       timeout: 15000,
     });
-    await page
-      .locator('[data-slot="command-item"]')
-      .first()
-      .click({ force: true });
+    const deptItem = page.locator('[data-slot="command-item"]').first();
+    await expect(deptItem).toBeVisible({ timeout: 10000 });
+    await deptItem.click({ force: true });
 
     // 3. Employment Type
     await page
@@ -99,10 +97,9 @@ test.describe('Staff Detail Marathon CRUD', () => {
     await expect(page.getByText('Loading employment types...')).not.toBeVisible(
       { timeout: 15000 },
     );
-    await page
-      .locator('[data-slot="command-item"]')
-      .first()
-      .click({ force: true });
+    const empItem = page.locator('[data-slot="command-item"]').first();
+    await expect(empItem).toBeVisible({ timeout: 10000 });
+    await empItem.click({ force: true });
 
     // Status and Manager use standard Radix Select
     const statusBtn = page.locator('button#status');

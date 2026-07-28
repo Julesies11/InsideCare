@@ -88,6 +88,9 @@ const AuthWelcomeMessagePage = lazy(() =>
 const HomePage = lazy(() =>
   import('@/pages/dashboards').then((m) => ({ default: m.HomePage })),
 );
+const LandingPage = lazy(() =>
+  import('@/pages/public/landing-page').then((m) => ({ default: m.LandingPage })),
+);
 
 const StaffDashboard = lazy(() =>
   import('@/pages/staff').then((m) => ({ default: m.StaffDashboard })),
@@ -238,6 +241,7 @@ export function AppRoutingSetup() {
   return (
     <Suspense fallback={<PageLoader />}>
       <Routes>
+        <Route path={ROUTES.HOME} element={<LandingPage />} />
         <Route element={<RequireAuth />}>
           <Route element={<Demo1Layout />}>
             <Route
@@ -312,7 +316,7 @@ export function AppRoutingSetup() {
 
             <Route path={ROUTES.STAFF_PROFILE} element={<StaffProfile />} />
 
-            <Route path={ROUTES.HOME} element={<HomePage />} />
+            <Route path={ROUTES.DASHBOARD} element={<HomePage />} />
 
             <Route
               element={<RequirePermission module={RBAC_MODULES.PARTICIPANTS} />}
@@ -332,7 +336,14 @@ export function AppRoutingSetup() {
             </Route>
 
             <Route
-              element={<RequirePermission module={RBAC_MODULES.MASTER_LISTS} />}
+              element={
+                <RequirePermission
+                  module={[
+                    RBAC_MODULES.PARTICIPANT_MEDICATIONS,
+                    RBAC_MODULES.MASTER_LISTS,
+                  ]}
+                />
+              }
             >
               <Route
                 path={ROUTES.MEDICATION_REGISTER}
@@ -354,6 +365,10 @@ export function AppRoutingSetup() {
               <Route path={ROUTES.SHIFT_NOTES} element={<ShiftNotesPage />} />
               <Route
                 path={`${ROUTES.SHIFT_NOTES_DETAIL}/:id`}
+                element={<ShiftNoteDetailPage />}
+              />
+              <Route
+                path={`${ROUTES.SHIFT_NOTES_DETAIL}/:id/print`}
                 element={<ShiftNoteDetailPage />}
               />
             </Route>

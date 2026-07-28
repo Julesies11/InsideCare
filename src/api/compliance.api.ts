@@ -154,7 +154,7 @@ export const complianceApi = {
           document_number,
           comments,
           updated_at,
-          updater:${TABLES.STAFF}!updated_by(staff_name)
+          updated_by
         `,
         )
         .in('staff_id', staffIds);
@@ -173,6 +173,29 @@ export const complianceApi = {
         const key = `${r.staff_id}_${r.compliance_type_id}`;
         recordMap.set(key, r);
       });
+
+      const staffNameMap = new Map(staff.map((s) => [s.id, s.staff_name]));
+
+      const missingUpdaterIds = Array.from(
+        new Set(
+          (allRecords || [])
+            .map((r: any) => r.updated_by)
+            .filter((id) => id && !staffNameMap.has(id)),
+        ),
+      ) as string[];
+
+      if (missingUpdaterIds.length > 0) {
+        const { data: missingUpdaters } = await supabase
+          .from(TABLES.STAFF)
+          .select('id, staff_name')
+          .in('id', missingUpdaterIds);
+
+        if (missingUpdaters) {
+          missingUpdaters.forEach((u) => {
+            if (u.staff_name) staffNameMap.set(u.id, u.staff_name);
+          });
+        }
+      }
 
       staff.forEach((s) => {
         const houseNames =
@@ -220,7 +243,9 @@ export const complianceApi = {
             comments: record?.comments || null,
             assigned_houses: houseNames,
             updated_at: record?.updated_at || null,
-            updated_by_name: record?.updater?.staff_name || null,
+            updated_by_name: record?.updated_by
+              ? staffNameMap.get(record.updated_by) || null
+              : null,
           });
         });
       });

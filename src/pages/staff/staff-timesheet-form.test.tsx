@@ -205,4 +205,28 @@ describe('StaffTimesheetForm', () => {
     fireEvent.click(submitBtn);
     expect(mockNavigate).not.toHaveBeenCalled();
   });
+
+  it('allows entering participant kms and travel kms with descriptions', async () => {
+    renderWithProviders(<StaffTimesheetForm />);
+
+    await waitFor(() => {
+      expect(document.getElementById('participantKm')).toBeInTheDocument();
+    });
+
+    // Use element IDs directly — labels contain SVG icons which interfere with accessible name matching
+    const participantKmInput = document.getElementById('participantKm') as HTMLInputElement;
+    const participantKmDescInput = document.getElementById('participantKmDescription') as HTMLTextAreaElement;
+    const travelKmInput = document.getElementById('travelKm') as HTMLInputElement;
+    const travelKmDescInput = document.getElementById('travelKmDescription') as HTMLTextAreaElement;
+
+    fireEvent.change(participantKmInput, { target: { value: '15.5' } });
+    fireEvent.change(participantKmDescInput, { target: { value: 'Driving client to doctor' } });
+    fireEvent.change(travelKmInput, { target: { value: '10.2' } });
+    fireEvent.change(travelKmDescInput, { target: { value: 'Driving from Sunset to Comfort house' } });
+
+    expect(participantKmInput).toHaveValue(15.5);
+    expect(participantKmDescInput).toHaveValue('Driving client to doctor');
+    expect(travelKmInput).toHaveValue(10.2);
+    expect(travelKmDescInput).toHaveValue('Driving from Sunset to Comfort house');
+  });
 });
