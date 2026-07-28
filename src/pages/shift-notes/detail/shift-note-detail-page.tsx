@@ -203,7 +203,7 @@ export function ShiftNoteDetailPage() {
 
   return (
     <Fragment>
-      {settings?.layout === 'demo1' && (
+      {(!settings?.layout || settings?.layout === 'demo1') && (
         <div className="sticky top-0 z-20 bg-background border-b border-border">
           <Container>
             <Toolbar>

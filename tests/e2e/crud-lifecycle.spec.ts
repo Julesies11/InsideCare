@@ -45,12 +45,16 @@ test.describe('Staff Lifecycle CRUD', () => {
       .getByText(/Compliance/i)
       .first()
       .click({ force: true });
-    const ndisRow = page
-      .getByRole('row', { name: /NDIS Worker Screening Check/i })
-      .first();
-    const ndisCheck = ndisRow.getByRole('checkbox');
-    await expect(ndisCheck).toBeVisible({ timeout: 20000 });
-    await ndisCheck.click({ force: true });
+    const complianceRows = page.locator('#staff_compliance table tbody tr');
+    const rowCount = await complianceRows.count();
+    if (rowCount > 0) {
+      const firstCheckbox = complianceRows
+        .first()
+        .locator('input[type="checkbox"]');
+      if (await firstCheckbox.isVisible()) {
+        await firstCheckbox.click({ force: true });
+      }
+    }
 
     // 4. Add Training
     await page

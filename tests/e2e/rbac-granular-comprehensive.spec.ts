@@ -19,7 +19,7 @@ test.describe('RBAC Comprehensive', () => {
     // On mobile, open the sidebar drawer first
     const mobileToggle = page
       .locator('header button')
-      .filter({ has: page.locator('svg') })
+      .filter({ has: page.locator('svg.lucide-menu') })
       .first();
     if (await mobileToggle.isVisible({ timeout: 3000 })) {
       await mobileToggle.click({ force: true });

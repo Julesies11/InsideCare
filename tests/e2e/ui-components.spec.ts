@@ -87,13 +87,18 @@ test.describe('UI Components & Responsiveness', () => {
     const backBtn = page.getByRole('button', { name: /Back/i });
     await expect(backBtn).toBeVisible({ timeout: 10000 });
 
-    const [dialog] = await Promise.all([
-      page.waitForEvent('dialog', { timeout: 15000 }),
-      backBtn.click({ force: true }),
-    ]);
+    let dialogMessage = '';
+    const dialogPromise = page
+      .waitForEvent('dialog', { timeout: 15000 })
+      .then(async (dialog) => {
+        dialogMessage = dialog.message();
+        await dialog.accept();
+      });
 
-    expect(dialog.message().toLowerCase()).toContain('unsaved');
-    await dialog.accept(); // Actually leave
+    await backBtn.click({ force: true });
+    await dialogPromise;
+
+    expect(dialogMessage.toLowerCase()).toContain('unsaved');
   });
 
   test('Toast Notifications for Mutations', async ({ page }) => {
