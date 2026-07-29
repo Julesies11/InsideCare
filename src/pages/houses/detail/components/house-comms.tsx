@@ -89,7 +89,7 @@ export function HouseComms({
     onPendingChangesChange(newPending);
     setNewEntryContent('');
     setShowAddForm(false);
-    toast.info('Entry added to save queue');
+    toast.info('Entry pending save');
   };
 
   const handleSaveEdit = (id: string, isPending: boolean) => {
@@ -125,7 +125,7 @@ export function HouseComms({
     onPendingChangesChange(newPending);
     setEditingId(null);
     setEditContent('');
-    toast.info('Changes added to save queue');
+    toast.info('Changes pending save');
   };
 
   const handleRemovePendingEntry = (tempId: string) => {

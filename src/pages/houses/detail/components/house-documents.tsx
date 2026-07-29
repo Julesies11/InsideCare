@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Clock, Download, FileText, Plus, Trash2 } from 'lucide-react';
+import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import {
   getHouseFileUrl as getFileUrl,
@@ -87,6 +88,7 @@ export function HouseDocuments({
     onPendingChangesChange(newPending);
     setShowUploadSheet(false);
     setSelectedFile(null);
+    toast.info('Document pending save');
   };
 
   const handleDownload = async (filePath: string, fileName: string) => {
@@ -361,7 +363,7 @@ export function HouseDocuments({
                           <span>{pending.fileName}</span>
                           <span className="text-xs text-primary flex items-center gap-1">
                             <Clock className="size-3" />
-                            Pending upload
+                            Pending save
                           </span>
                         </div>
                       </TableCell>

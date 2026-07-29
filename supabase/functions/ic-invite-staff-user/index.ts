@@ -46,6 +46,36 @@ function getTrustedOrigin(redirectTo?: string, requestOrigin?: string): string {
   return defaultOrigin;
 }
 
+function renderEmailTemplate({
+  title,
+  bodyText,
+  buttonText,
+  buttonUrl,
+  footerNote,
+}: {
+  title: string;
+  bodyText: string;
+  buttonText: string;
+  buttonUrl: string;
+  footerNote: string;
+}): string {
+  return `
+    <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; max-width: 500px; margin: 40px auto; padding: 32px; border: 1px solid #e5e7eb; border-radius: 16px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); background-color: #ffffff;">
+      <div style="margin-bottom: 24px; text-align: center;">
+        <span style="font-size: 24px; font-weight: 800; color: #0f172a; letter-spacing: -0.5px;">Inside<span style="color: #2563eb;">Care</span></span>
+      </div>
+      <h2 style="font-size: 20px; font-weight: 700; color: #0f172a; margin-top: 0; margin-bottom: 12px; text-align: center;">${title}</h2>
+      <p style="font-size: 14px; color: #475569; line-height: 1.6; margin-bottom: 24px; text-align: center;">${bodyText}</p>
+      <div style="text-align: center; margin-bottom: 28px;">
+        <a href="${buttonUrl}" style="background-color: #2563eb; color: #ffffff; padding: 12px 28px; text-decoration: none; border-radius: 10px; font-weight: 600; font-size: 14px; display: inline-block; box-shadow: 0 4px 10px rgba(37, 99, 235, 0.25);">${buttonText}</a>
+      </div>
+      <div style="border-top: 1px solid #e5e7eb; padding-top: 16px; margin-top: 16px; text-align: center;">
+        <p style="font-size: 11px; color: #94a3b8; margin: 0; line-height: 1.4;">${footerNote}</p>
+      </div>
+    </div>
+  `;
+}
+
 async function sendResendEmail({
   apiKey,
   to,
@@ -217,22 +247,19 @@ serve(async (req) => {
           apiKey: resendApiKey,
           to: email,
           subject: 'Reset your InsideCare password',
-          html: `
-            <div style="font-family: sans-serif; max-width: 500px; margin: 0 auto; padding: 24px; border: 1px solid #e2e8f0; border-radius: 8px; background-color: #ffffff;">
-              <h2 style="color: #0f172a; margin-top: 0; margin-bottom: 16px; font-size: 20px;">Reset Your Password</h2>
-              <p style="color: #475569; line-height: 1.6; margin-bottom: 24px;">You requested to reset your password for InsideCare. Click the button below to set a new password:</p>
-              <div style="margin-bottom: 24px;">
-                <a href="${confirmUrl}" style="background-color: #2563eb; color: #ffffff; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: 500; display: inline-block;">Reset Password</a>
-              </div>
-              <p style="color: #94a3b8; font-size: 13px; line-height: 1.4; margin-bottom: 0;">If you didn't request this email, you can safely ignore it.</p>
-            </div>
-          `,
+          html: renderEmailTemplate({
+            title: 'Reset Your Password',
+            bodyText: 'You requested to reset your password for InsideCare. Click the button below to set a new password:',
+            buttonText: 'Reset Password',
+            buttonUrl: confirmUrl,
+            footerNote: "If you didn't request this email, you can safely ignore it.",
+          }),
         });
 
-        // Ensure staff record is linked
+        // Ensure staff record is linked and active
         await supabaseAdmin
           .from('ic_staff')
-          .update({ auth_user_id: existingUser.id })
+          .update({ auth_user_id: existingUser.id, status: 'active' })
           .eq('id', staffId);
 
         return new Response(
@@ -309,22 +336,19 @@ serve(async (req) => {
         apiKey: resendApiKey,
         to: email,
         subject: 'You have been invited to InsideCare',
-        html: `
-          <div style="font-family: sans-serif; max-width: 500px; margin: 0 auto; padding: 24px; border: 1px solid #e2e8f0; border-radius: 8px; background-color: #ffffff;">
-            <h2 style="color: #0f172a; margin-top: 0; margin-bottom: 16px; font-size: 20px;">Welcome to InsideCare</h2>
-            <p style="color: #475569; line-height: 1.6; margin-bottom: 24px;">You have been invited to join the InsideCare platform. Click the button below to complete your registration and set your account password:</p>
-            <div style="margin-bottom: 24px;">
-              <a href="${confirmUrl}" style="background-color: #2563eb; color: #ffffff; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: 500; display: inline-block;">Accept Invitation</a>
-            </div>
-            <p style="color: #94a3b8; font-size: 13px; line-height: 1.4; margin-bottom: 0;">If you were not expecting this invitation, please contact your administrator.</p>
-          </div>
-        `,
+        html: renderEmailTemplate({
+          title: 'Welcome to InsideCare',
+          bodyText: 'You have been invited to join the InsideCare platform. Click the button below to complete your registration and set your account password:',
+          buttonText: 'Accept Invitation',
+          buttonUrl: confirmUrl,
+          footerNote: 'If you were not expecting this invitation, please contact your administrator.',
+        }),
       });
 
-      // Link the auth user to the staff record
+      // Link the auth user to the staff record and activate profile
       const { data: staffRecord, error: updateError } = await supabaseAdmin
         .from('ic_staff')
-        .update({ auth_user_id: authUserId })
+        .update({ auth_user_id: authUserId, status: 'active' })
         .eq('id', staffId)
         .select('id, organisation_id, role_id')
         .maybeSingle();
@@ -377,14 +401,29 @@ serve(async (req) => {
       }
 
       const authUserId = inviteData.user.id;
-      const { error: updateError } = await supabaseAdmin
+      const { data: staffRecord, error: updateError } = await supabaseAdmin
         .from('ic_staff')
-        .update({ auth_user_id: authUserId })
-        .eq('id', staffId);
+        .update({ auth_user_id: authUserId, status: 'active' })
+        .eq('id', staffId)
+        .select('id, organisation_id, role_id')
+        .maybeSingle();
 
       if (updateError) {
         console.error('Database Update Error:', updateError.message);
         throw updateError;
+      }
+
+      if (staffRecord?.organisation_id) {
+        await supabaseAdmin
+          .from('ic_staff_organisations')
+          .upsert(
+            {
+              staff_id: staffId,
+              organisation_id: staffRecord.organisation_id,
+              role_id: staffRecord.role_id,
+            },
+            { onConflict: 'staff_id,organisation_id' },
+          );
       }
 
       return new Response(JSON.stringify({ success: true, authUserId }), {

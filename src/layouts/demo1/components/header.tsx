@@ -53,7 +53,7 @@ export function Header() {
   return (
     <header
       className={cn(
-        'header fixed top-0 z-10 start-0 flex items-stretch shrink-0 border-b border-transparent bg-background end-0 pe-[var(--removed-body-scroll-bar-size,0px)]',
+        'header fixed top-0 z-30 start-0 flex items-stretch shrink-0 border-b border-transparent bg-background end-0 pe-[var(--removed-body-scroll-bar-size,0px)]',
         headerSticky && 'border-b border-border',
       )}
     >
@@ -117,13 +117,17 @@ export function Header() {
             />
             <UserDropdownMenu
               trigger={
-                <div className="cursor-pointer">
+                <button
+                  type="button"
+                  className="cursor-pointer rounded-full focus:outline-hidden focus:ring-2 focus:ring-primary/20 shrink-0"
+                  aria-label="User Menu"
+                >
                   <SecureAvatar
                     src={user?.photo_url}
                     initials={initials}
                     className="size-9 border-2 border-green-500"
                   />
-                </div>
+                </button>
               }
             />
           </>

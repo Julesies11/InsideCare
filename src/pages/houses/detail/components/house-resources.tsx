@@ -7,6 +7,7 @@ import {
   Upload,
   X,
 } from 'lucide-react';
+import { toast } from 'sonner';
 import { toAbsoluteUrl } from '@/lib/helpers';
 import { cn } from '@/lib/utils';
 import { useHouseResources } from '@/hooks/useHouseResources';
@@ -278,6 +279,7 @@ export function HouseResources({
       onPendingChangesChange(newPending);
     }
     setShowResourceDialog(false);
+    toast.info('Resource pending save');
   };
 
   const handleView = async (filePath: string) => {
@@ -482,7 +484,7 @@ export function HouseResources({
                             {isPendingAdd && (
                               <span className="text-xs text-primary flex items-center gap-1">
                                 <Clock className="size-3" />
-                                Pending add
+                                Pending save
                               </span>
                             )}
                             {isPendingUpdate && (

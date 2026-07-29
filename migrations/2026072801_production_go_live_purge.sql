@@ -97,6 +97,6 @@ TRUNCATE TABLE public.ic_notifications CASCADE;
 TRUNCATE TABLE public.ic_error_logs CASCADE;
 
 -- Re-enable normal trigger execution
-SET session_replication_role = 'DEFAULT';
+SET session_replication_role = 'origin';
 
 COMMIT;

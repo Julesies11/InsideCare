@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { useAuth } from '@/auth/context/auth-context';
 import {
   IncidentPriority,
@@ -164,7 +165,7 @@ export function IncidentForm({
     resolver: zodResolver(incidentSchema),
     defaultValues: {
       involved_participant_id: initialData?.involved_participant_id || null,
-      involved_staff_id: initialData?.involved_staff_id || null,
+      involved_staff_id: initialData?.involved_staff_id || user?.staff_id || null,
       incident_date: initialData?.incident_date
         ? format(new Date(initialData.incident_date), "yyyy-MM-dd'T'HH:mm")
         : format(new Date(), "yyyy-MM-dd'T'HH:mm"),
@@ -201,13 +202,30 @@ export function IncidentForm({
 
   const isRP = watch('is_restrictive_practice');
   const isNDIS = watch('is_ndis_reportable');
+  const currentInvolvedStaffId = watch('involved_staff_id');
+
+  useEffect(() => {
+    if (!currentInvolvedStaffId && !initialData?.involved_staff_id) {
+      if (user?.staff_id) {
+        setValue('involved_staff_id', user.staff_id);
+      } else if (staffList.length > 0) {
+        setValue('involved_staff_id', staffList[0].id);
+      }
+    }
+  }, [currentInvolvedStaffId, initialData?.involved_staff_id, user?.staff_id, staffList, setValue]);
 
   const onSubmit = async (data: IncidentFormData) => {
+    const fallbackStaffId =
+      user?.staff_id ||
+      (staffList.length > 0 ? staffList[0].id : null) ||
+      initialData?.involved_staff_id ||
+      initialData?.reported_by;
+
     // Sanitize empty strings to null for optional fields
     const sanitizedData: any = {
       ...data,
       involved_participant_id: data.involved_participant_id || null,
-      involved_staff_id: data.involved_staff_id || null,
+      involved_staff_id: data.involved_staff_id || fallbackStaffId,
       restrictive_practice_type_id: data.restrictive_practice_type_id || null,
       rp_start_time: data.rp_start_time || null,
       rp_end_time: data.rp_end_time || null,
@@ -217,6 +235,8 @@ export function IncidentForm({
     // Add reported_by if this is a new incident
     if (!initialData?.id && user?.staff_id) {
       sanitizedData.reported_by = user.staff_id;
+    } else if (!sanitizedData.reported_by && fallbackStaffId) {
+      sanitizedData.reported_by = fallbackStaffId;
     }
 
     // Generate reference_id if new
@@ -328,6 +348,43 @@ export function IncidentForm({
                   {errors.involved_participant_id && (
                     <p className="text-xs text-destructive">
                       {errors.involved_participant_id.message}
+                    </p>
+                  )}
+                </div>
+
+                <div className="space-y-2">
+                  <Label>
+                    Involved Staff <span className="text-destructive">*</span>
+                  </Label>
+                  <Select
+                    value={watch('involved_staff_id') || ''}
+                    onValueChange={(val) => setValue('involved_staff_id', val)}
+                  >
+                    <SelectTrigger
+                      className={
+                        errors.involved_staff_id ? 'border-destructive' : ''
+                      }
+                    >
+                      <SelectValue placeholder="Select staff member" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {staffList.map((s) => (
+                        <SelectItem key={s.id} value={s.id}>
+                          <div className="flex items-center gap-2">
+                            <SecureAvatar
+                              src={s.photo_url}
+                              alt={s.staff_name}
+                              className="size-6"
+                            />
+                            <span>{s.staff_name}</span>
+                          </div>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  {errors.involved_staff_id && (
+                    <p className="text-xs text-destructive">
+                      {errors.involved_staff_id.message}
                     </p>
                   )}
                 </div>

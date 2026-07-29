@@ -3,6 +3,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { Calendar, Clock, Edit, Plus, Trash2, Users } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { Link, useNavigate } from 'react-router';
+import { toast } from 'sonner';
 import * as z from 'zod';
 import { ROUTES } from '@/config/routes.config';
 import { STORAGE_BUCKETS } from '@/config/storage-buckets';
@@ -228,6 +229,7 @@ export function HouseParticipants({
       onPendingChangesChange(newPending);
     }
     setShowDialog(false);
+    toast.info('Participant link pending save');
   };
 
   const handleDelete = (participant: any) => {
@@ -408,7 +410,7 @@ export function HouseParticipants({
                               {isPendingAdd && (
                                 <span className="text-[10px] text-primary font-bold uppercase tracking-widest flex items-center gap-1">
                                   <Clock className="size-3" />
-                                  New
+                                  Pending save
                                 </span>
                               )}
                               {isPendingUpdate && (

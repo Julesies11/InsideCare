@@ -37,8 +37,10 @@ To prevent the "Refresh Token Reuse" security lockout common in multi-tab SPAs:
 As of **July 2026**, the application uses a custom Edge Function + Resend API strategy to deliver white-labeled authentication emails:
 
 - **Token Generation**: Edge Functions (`ic-invite-staff-user`, `ic-send-password-reset`) use `supabaseAdmin.auth.admin.generateLink()` to generate one-time `hashed_token` values without sending Supabase default emails.
+- **Unified Email Design System**: All outgoing notification emails share a unified HTML design template (`renderEmailTemplate`) featuring a centered card container, brand logo header, system font stack, and primary action buttons.
 - **Client Route Exchange**: Action links point directly to `${origin}/auth/confirm?token_hash=${hashed_token}&type=${type}`. The `<ConfirmPage />` component verifies the token via `supabase.auth.verifyOtp()` and redirects to `/auth/change-password`.
 - **Domain Security & Open-Redirect Protection**: Edge Functions enforce `getTrustedOrigin()` checks on redirect targets to prevent link hijacking.
+- **Self-Sync & Auto-Activation**: `ic-update-user-permissions` permits self-sync authorization (`callingUserId === userId`) and automatically promotes staff profiles from `'draft'` to `'active'` when an invited user accepts their invitation and verifies permissions.
 
 ## 3. Security & Row Level Security (RLS)
 

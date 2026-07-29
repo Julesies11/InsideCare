@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { HousePendingChanges } from '@/models/house-pending-changes';
 import { Clock, Edit, Plus, Star, Trash2 } from 'lucide-react';
 import { Link } from 'react-router';
+import { toast } from 'sonner';
 import { ROUTES } from '@/config/routes.config';
 import { STORAGE_BUCKETS } from '@/config/storage-buckets';
 import { useHouseStaffAssignments } from '@/hooks/use-house-staff-assignments';
@@ -168,6 +169,7 @@ export function HouseStaff({
       onPendingChangesChange(newPending);
     }
     setShowDialog(false);
+    toast.info('Staff assignment pending save');
   };
 
   const handleDelete = (staffAssignment: { id: string; tempId?: string }) => {
@@ -416,7 +418,7 @@ export function HouseStaff({
                               {isPendingAdd && (
                                 <span className="text-[10px] text-primary font-bold uppercase tracking-widest flex items-center gap-1">
                                   <Clock className="size-3" />
-                                  New
+                                  Pending save
                                 </span>
                               )}
                               {isPendingUpdate && (
@@ -488,7 +490,7 @@ export function HouseStaff({
                                 variant="outline"
                                 className="border-primary text-primary"
                               >
-                                New Assignment
+                                Pending Save
                               </Badge>
                             )}
                           </div>

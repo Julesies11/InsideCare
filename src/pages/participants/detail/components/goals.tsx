@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { ParticipantPendingChanges } from '@/models/participant-pending-changes';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { format } from 'date-fns';
+import { toast } from 'sonner';
 import {
   Check,
   ChevronRight,
@@ -383,6 +384,7 @@ export function Goals({
       onPendingChangesChange(newPending);
     }
     setShowGoalDialog(false);
+    toast.info('Goal pending save');
   };
 
   const handleDelete = (goal: ParticipantGoal) => {

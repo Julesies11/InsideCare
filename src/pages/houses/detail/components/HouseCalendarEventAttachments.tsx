@@ -220,7 +220,7 @@ export function HouseCalendarEventAttachments({
                   {q.file.name}
                 </span>
                 <span className="text-[10px] text-primary/60 font-medium">
-                  Pending Upload
+                  Pending Save
                 </span>
               </div>
             </div>

@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { rosterApi } from '@/api/roster.api';
+import { useQueryClient } from '@tanstack/react-query';
 import { addMonths, format } from 'date-fns';
 import {
   CalendarDays,
@@ -9,6 +10,7 @@ import {
   UserCheck,
 } from 'lucide-react';
 import { toast } from 'sonner';
+import { QUERY_KEYS } from '@/config/query-keys';
 import { cn } from '@/lib/utils';
 import { useHouseShiftTemplates } from '@/hooks/use-house-shift-templates';
 import { useChecklistSchedules } from '@/hooks/useChecklistSchedules';
@@ -36,6 +38,7 @@ interface HouseChecklistScheduleModalProps {
     house_checklist_name?: string;
     name?: string;
   } | null;
+  onSuccess?: () => void;
 }
 
 type AssignmentPath = 'calendar' | 'shift';
@@ -45,7 +48,9 @@ export function HouseChecklistScheduleModal({
   onClose,
   houseId,
   checklist,
+  onSuccess,
 }: HouseChecklistScheduleModalProps) {
+  const queryClient = useQueryClient();
   const [path, setAssignmentPath] = useState<AssignmentPath>('calendar');
   const [rrule, setRrule] = useState('');
   const [selectedShiftIds, setSelectedShiftIds] = useState<string[]>([]);
@@ -98,6 +103,16 @@ export function HouseChecklistScheduleModal({
 
         toast.success('Checklist linked to shift routines.');
       }
+      await queryClient.invalidateQueries({
+        queryKey: [QUERY_KEYS.CALENDAR_EVENTS],
+      });
+      await queryClient.invalidateQueries({
+        queryKey: [QUERY_KEYS.CHECKLISTS],
+      });
+      await queryClient.invalidateQueries({
+        queryKey: [QUERY_KEYS.SHIFT_ASSIGNED_CHECKLISTS],
+      });
+      if (onSuccess) onSuccess();
       onClose();
     } catch (err: any) {
       toast.error(`Failed to schedule: ${err.message}`);

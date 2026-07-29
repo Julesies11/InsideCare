@@ -275,9 +275,9 @@ export function ShiftNotes({
                       {isPendingAdd && (
                         <Badge
                           variant="outline"
-                          className="text-[10px] uppercase"
+                          className="text-[10px] uppercase border-primary text-primary"
                         >
-                          New
+                          Pending save
                         </Badge>
                       )}
                       {isPendingUpdate && (
