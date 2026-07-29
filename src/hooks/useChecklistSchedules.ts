@@ -28,6 +28,16 @@ export function useChecklistSchedules(houseId?: string) {
     try {
       setLoading(true);
 
+      if (
+        !schedule.house_checklist_id ||
+        schedule.house_checklist_id.startsWith('temp-')
+      ) {
+        const errorMsg =
+          'Please save changes to persist this checklist before scheduling it.';
+        toast.error(errorMsg);
+        throw new Error(errorMsg);
+      }
+
       // 1. Insert the Schedule via API
       const newSchedule = await checklistsApi.createSchedule(schedule);
 

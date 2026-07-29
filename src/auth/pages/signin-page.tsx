@@ -51,9 +51,6 @@ const TEST_FINANCE = {
   password: 'Password123!',
 };
 
-const PROD_ADMIN = { email: 'demo@kt.com', password: 'demo123' };
-const PROD_SUPPORT_WORKER = { email: 'staff@kt.com', password: 'demo123' };
-
 export function SignInPage() {
   const isProd = import.meta.env.VITE_APP_ENV === 'production';
   const isDev = !isProd;
@@ -317,34 +314,6 @@ export function SignInPage() {
             'Sign In'
           )}
         </Button>
-
-        {isProd && (
-          <div className="border-t pt-4 mt-2">
-            <p className="text-xs text-center text-muted-foreground mb-3 font-medium uppercase tracking-wide">
-              Live Production
-            </p>
-            <div className="grid grid-cols-2 gap-2">
-              <Button
-                type="button"
-                className="bg-purple-800 text-white hover:bg-purple-900 border-none"
-                size="sm"
-                onClick={() => loginAs(PROD_ADMIN)}
-                disabled={isProcessing}
-              >
-                Prod Admin
-              </Button>
-              <Button
-                type="button"
-                className="bg-blue-800 text-white hover:bg-blue-900 border-none"
-                size="sm"
-                onClick={() => loginAs(PROD_SUPPORT_WORKER)}
-                disabled={isProcessing}
-              >
-                Prod Support
-              </Button>
-            </div>
-          </div>
-        )}
 
         {isDev && (
           <div className="border-t pt-4 mt-2">

@@ -67,6 +67,18 @@ export function HouseChecklistScheduleModal({
   const handleSave = async () => {
     if (!checklist) return;
 
+    const checklistId =
+      checklist.id ||
+      (checklist as any).house_checklist_id ||
+      (checklist as any).checklist_id;
+
+    if (!checklistId || checklistId.startsWith('temp-')) {
+      toast.error(
+        'Please click "Save Changes" to save this checklist before scheduling it on the calendar.',
+      );
+      return;
+    }
+
     try {
       if (path === 'calendar') {
         if (!rrule) {
@@ -75,7 +87,7 @@ export function HouseChecklistScheduleModal({
         }
         await createSchedule({
           house_id: houseId,
-          house_checklist_id: checklist.id,
+          house_checklist_id: checklistId,
           rrule,
           start_date: startDate,
           end_date: endDate,
@@ -92,7 +104,7 @@ export function HouseChecklistScheduleModal({
         await rosterApi.appendShiftAssignments(
           selectedShiftIds.map((stId) => ({
             house_id: houseId,
-            checklist_id: checklist.id,
+            checklist_id: checklistId,
             shift_template_id: stId,
             assignment_title:
               checklist.house_checklist_name ||
