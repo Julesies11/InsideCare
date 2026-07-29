@@ -8,6 +8,12 @@
 
 BEGIN;
 
+-- SAFETY: Delete non-admin auth users FIRST, while triggers are still active.
+-- This ensures Supabase Auth's built-in cleanup hooks (e.g. on_auth_user_deleted)
+-- fire correctly, cleaning up sessions and tokens for deleted users.
+DELETE FROM auth.users 
+WHERE LOWER(email) != 'julian.gibbings@gmail.com';
+
 -- Disable triggers temporarily for high-speed foreign key cleanup
 SET session_replication_role = 'replica';
 
@@ -90,10 +96,6 @@ DELETE FROM public.ic_staff_organisations WHERE staff_id NOT IN (
 DELETE FROM public.ic_staff 
 WHERE LOWER(email) != 'julian.gibbings@gmail.com';
 
--- Delete dummy auth users (excluding Sys Admin: julian.gibbings@gmail.com)
-DELETE FROM auth.users 
-WHERE LOWER(email) != 'julian.gibbings@gmail.com';
-
 -- 5. PURGE AUDIT & NOTIFICATION LOGS
 TRUNCATE TABLE public.ic_activity_log CASCADE;
 TRUNCATE TABLE public.ic_notifications CASCADE;
@@ -103,3 +105,4 @@ TRUNCATE TABLE public.ic_error_logs CASCADE;
 SET session_replication_role = 'origin';
 
 COMMIT;
+

@@ -172,6 +172,7 @@ export function Medications({
       }
     } else {
       // Add new medication
+      // eslint-disable-next-line react-hooks/purity
       const tempId = `temp-${Date.now()}-${Math.random()}`;
       const newPending = {
         ...pendingChanges,

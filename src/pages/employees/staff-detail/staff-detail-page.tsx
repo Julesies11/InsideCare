@@ -8,7 +8,6 @@ import {
 import {
   Toolbar,
   ToolbarActions,
-  ToolbarDescription,
   ToolbarHeading,
   ToolbarPageTitle,
 } from '@/partials/common/toolbar';
@@ -17,8 +16,9 @@ import {
   Archive,
   ArrowLeft,
   CheckCircle,
+  Clock,
   HelpCircle,
-  LogOut,
+  Key,
   Mail,
   MoreHorizontal,
   ShieldX,
@@ -81,6 +81,10 @@ export function StaffDetailPage() {
 
   const staffAuthUserId = staffMember?.auth_user_id;
 
+  // Derive portal confirmation state early so handlers capture the correct value
+  const authUserStatus = staffAuthUserId ? authStatusData?.[staffAuthUserId] : null;
+  const isPortalConfirmed = !!(authUserStatus?.confirmed_at || authUserStatus?.last_sign_in_at);
+
   const handleStatusToggle = async () => {
     if (!id || !staffMember) return;
 
@@ -99,10 +103,15 @@ export function StaffDetailPage() {
 
     setArchiving(true);
     try {
-      // 1. Perform Activation
+      // 1. Save staff record first if save handler exists
+      if (saveHandlerRef.current) {
+        await saveHandlerRef.current();
+      }
+
+      // 2. Perform Activation
       await updateStaff({ id, updates: { status: 'active' } });
 
-      // 2. Perform Invitation if requested
+      // 3. Perform Invitation if requested
       let inviteMsg = '';
       if (sendInvite && formData?.email && !staffAuthUserId) {
         await inviteStaff({ staffId: id, email: formData.email });
@@ -155,9 +164,15 @@ export function StaffDetailPage() {
     }
     setInviting(true);
     try {
+      // Save staff record first if save handler exists
+      if (saveHandlerRef.current) {
+        await saveHandlerRef.current();
+      }
       await inviteStaff({ staffId: id, email: formData.email });
       toast.success(
-        'Invite sent! The staff member will receive an email to set their password.',
+        isPortalConfirmed
+          ? 'Password reset email sent! The staff member will receive a link to reset their password.'
+          : 'Invite sent! The staff member will receive an email to set their password.',
       );
     } catch (err) {
       const error = err as Error;
@@ -225,6 +240,12 @@ export function StaffDetailPage() {
     }
   };
 
+  const portalBadge = !staffAuthUserId
+    ? { label: 'No Portal Access', variant: 'destructive' as const }
+    : isPortalConfirmed
+      ? { label: 'Portal Active', variant: 'success' as const }
+      : { label: 'Invite Pending', variant: 'warning' as const };
+
   return (
     <Fragment>
       <div className="sticky top-0 z-20 bg-background border-b border-border">
@@ -242,14 +263,12 @@ export function StaffDetailPage() {
                     {id && (
                       <div className="flex items-center gap-1.5">
                         <Badge
-                          variant={staffAuthUserId ? 'success' : 'destructive'}
+                          variant={portalBadge.variant}
                           appearance="light"
                           size="sm"
                           className="font-semibold uppercase tracking-wider text-[10px]"
                         >
-                          {staffAuthUserId
-                            ? 'Portal Active'
-                            : 'No Portal Access'}
+                          {portalBadge.label}
                         </Badge>
                         <TooltipProvider>
                           <Tooltip>
@@ -388,18 +407,20 @@ export function StaffDetailPage() {
                       {staffAuthUserId ? (
                         <>
                           <div className="px-2 py-1.5 flex flex-col gap-0.5">
-                            <div className="flex items-center gap-2 text-[11px] text-green-600 font-bold uppercase tracking-wider">
-                              <CheckCircle className="size-3" /> Access Active
-                            </div>
-                            {authStatusData?.[staffAuthUserId]
-                              ?.last_sign_in_at && (
+                            {isPortalConfirmed ? (
+                              <div className="flex items-center gap-2 text-[11px] text-green-600 font-bold uppercase tracking-wider">
+                                <CheckCircle className="size-3" /> Access Active
+                              </div>
+                            ) : (
+                              <div className="flex items-center gap-2 text-[11px] text-amber-600 font-bold uppercase tracking-wider">
+                                <Clock className="size-3" /> Invite Pending
+                              </div>
+                            )}
+                            {authUserStatus?.last_sign_in_at && (
                               <div className="text-[10px] text-muted-foreground ps-5">
                                 Last login:{' '}
                                 {format(
-                                  new Date(
-                                    authStatusData[staffAuthUserId]
-                                      .last_sign_in_at!,
-                                  ),
+                                  new Date(authUserStatus.last_sign_in_at),
                                   'PP p',
                                 )}
                               </div>
@@ -410,8 +431,17 @@ export function StaffDetailPage() {
                             onClick={handleInvite}
                             disabled={inviting}
                           >
-                            <Mail className="size-4 mr-2" />
-                            {inviting ? 'Sending...' : 'Resend Invite'}
+                            {isPortalConfirmed ? (
+                              <>
+                                <Key className="size-4 mr-2" />
+                                {inviting ? 'Sending Reset...' : 'Send Password Reset'}
+                              </>
+                            ) : (
+                              <>
+                                <Mail className="size-4 mr-2" />
+                                {inviting ? 'Sending Invite...' : 'Resend Invite'}
+                              </>
+                            )}
                           </DropdownMenuItem>
                           <DropdownMenuItem
                             onClick={handleRevokeInvite}

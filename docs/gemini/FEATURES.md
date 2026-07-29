@@ -17,6 +17,14 @@ Central hub for all information related to care recipients.
 Management of care providers and support staff.
 
 - **Profiles**: Personal and professional information, qualifications, and certifications.
+- **Portal Access Lifecycle**: Secure, three-state model for managing staff logins to the staff portal:
+  - **No Portal Access** (destructive/red badge): Staff has no `auth_user_id`. An invitation has never been sent. The admin can send an initial invite via the "Invite to Portal" dropdown action.
+  - **Invite Pending** (warning/amber badge): An `auth_user_id` exists but the staff member has not yet confirmed their email (`confirmed_at` and `last_sign_in_at` are both null). The admin can "Resend Invite" to re-send the original invitation email.
+  - **Portal Active** (success/green badge): The staff member has confirmed their account (`confirmed_at` or `last_sign_in_at` is set). The admin can send a "Send Password Reset" link for the confirmed account.
+  - **Smart Button Labels**: The dropdown correctly shows "Resend Invite" for unconfirmed accounts and "Send Password Reset" for confirmed accounts, preventing the UX confusion of sending a signup link to an already-active user.
+  - **Context Tooltip**: A `?` tooltip displays the staff member's `invited_at`, `confirmed_at`, and `last_sign_in_at` timestamps for at-a-glance audit.
+  - **Revoke Access**: Admins can revoke a staff member's login entirely, deleting their `auth.users` record and clearing `auth_user_id` from their staff profile.
+- **Auto-Save on Lifecycle Actions**: Clicking "Activate Staff", "Invite to Portal", or "Deactivate" automatically persists any pending form changes before executing the lifecycle operation. This prevents data loss when an admin edits a staff record and immediately clicks an action button.
 - **My Roster**: Personalized staff view of upcoming commitments.
   - **Personalized Filtering**: Automatically filters the roster to only show Houses the staff member is actively assigned to.
   - **Robust Tracking**: Intelligent data mapping ensures participants and routines are correctly linked and displayed even across complex database relationships.
@@ -99,7 +107,8 @@ Management of the physical locations where care is provided.
     - **Security**: Supports secure document attachments stored in Supabase with house-level RLS.
 - **Setup Wizard**: Interactive guide for configuring shift templates and facility routines.
 - **House Directory**: Searchable list view with real-time occupancy tracking and deep links to participant profiles.
-- **Checklists**: Recurring operational tasks for house maintenance and compliance.
+- **Checklists**: Recurring operational tasks for house maintenance and compliance. Bulk scheduling incorporates strict unsaved ID safeguards, preventing scheduling errors for checklists pending save.
+- **Unified 'Pending Save' Staging Model**: Standardized badge (`Pending save`), button (`Save` / `Save Changes`), and toast feedback across all child section forms (Houses, Staff, and Participants), giving clear visual confirmation when items are staged prior to clicking the primary toolbar "Save Changes" button.
 - **House Calendar**: Centralized hub for all house activities.
 - **Forms**: Data collection forms for various house-related activities.
 - **House Files**: General document management for regulatory and facility records.
@@ -181,6 +190,7 @@ The public gateway and session listener structure.
   - **Administrators**: Redirected to the central Admin Dashboard (`/dashboard`).
   - **Support Staff**: Redirected to the Worker Dashboard (`/my-dashboard`).
 - **Route Separation**: Moving the default admin landing page to a protected `/dashboard` path keeps unauthenticated visitors from accessing internal layouts, ensuring total data boundary isolation.
+- **Production Environment Hardening**: The Sign In page's quick-login bypass buttons ("Prod Admin", "Prod Support") have been permanently removed. Dev-only test accounts (Admin, Support Worker, Supervisor, House Manager, Director, Finance Manager) remain visible strictly when `VITE_APP_ENV !== 'production'`, with no shortcuts for production environments.
 
 ## 12. White-Labeled Resend Auth & Email Delivery
 

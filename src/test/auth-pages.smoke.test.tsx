@@ -96,4 +96,23 @@ describe('Auth Pages Smoke Tests', () => {
 
     expect(screen.getByText(/Verification Failed/i)).toBeInTheDocument();
   });
+
+  it('SignInPage does not render hardcoded "Prod Admin" or "Prod Support" quick-login buttons', () => {
+    (useAuth as any).mockReturnValue({
+      login: vi.fn(),
+      getUser: vi.fn(),
+      logout: vi.fn(),
+    });
+
+    render(
+      <MemoryRouter>
+        <SignInPage />
+      </MemoryRouter>,
+    );
+
+    // These labels were removed as part of the production go-live cleanup.
+    // They MUST NOT appear regardless of environment.
+    expect(screen.queryByRole('button', { name: /^Prod Admin$/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /^Prod Support$/i })).not.toBeInTheDocument();
+  });
 });

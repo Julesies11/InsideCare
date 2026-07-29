@@ -376,6 +376,7 @@ export function Goals({
         onPendingChangesChange(newPending);
       }
     } else {
+      // eslint-disable-next-line react-hooks/purity
       const tempId = `temp-${Date.now()}-${Math.random()}`;
       const newPending = {
         ...pendingChanges,
