@@ -58,38 +58,41 @@ TRUNCATE TABLE public.ic_provider_participants CASCADE;
 TRUNCATE TABLE public.ic_service_participants CASCADE;
 TRUNCATE TABLE public.ic_participants CASCADE;
 
--- 4. PURGE DUMMY STAFF DATA (PRESERVING SYS ADMIN: julian.gibbings@gmail.com)
+-- 4. PURGE DUMMY STAFF DATA (PRESERVING SYS ADMIN ONLY: julian.gibbings@gmail.com)
 DELETE FROM public.ic_staff_compliance_documents WHERE staff_compliance_id IN (
   SELECT id FROM public.ic_staff_compliance WHERE staff_id NOT IN (
-    SELECT id FROM public.ic_staff WHERE LOWER(email) = 'julian.gibbings@gmail.com' OR auth_user_id = auth.uid()
+    SELECT id FROM public.ic_staff WHERE LOWER(email) = 'julian.gibbings@gmail.com'
   )
 );
 DELETE FROM public.ic_staff_compliance WHERE staff_id NOT IN (
-  SELECT id FROM public.ic_staff WHERE LOWER(email) = 'julian.gibbings@gmail.com' OR auth_user_id = auth.uid()
+  SELECT id FROM public.ic_staff WHERE LOWER(email) = 'julian.gibbings@gmail.com'
 );
 DELETE FROM public.ic_staff_training WHERE staff_id NOT IN (
-  SELECT id FROM public.ic_staff WHERE LOWER(email) = 'julian.gibbings@gmail.com' OR auth_user_id = auth.uid()
+  SELECT id FROM public.ic_staff WHERE LOWER(email) = 'julian.gibbings@gmail.com'
 );
 DELETE FROM public.ic_staff_qualifications WHERE staff_id NOT IN (
-  SELECT id FROM public.ic_staff WHERE LOWER(email) = 'julian.gibbings@gmail.com' OR auth_user_id = auth.uid()
+  SELECT id FROM public.ic_staff WHERE LOWER(email) = 'julian.gibbings@gmail.com'
 );
 DELETE FROM public.ic_staff_documents WHERE staff_id NOT IN (
-  SELECT id FROM public.ic_staff WHERE LOWER(email) = 'julian.gibbings@gmail.com' OR auth_user_id = auth.uid()
+  SELECT id FROM public.ic_staff WHERE LOWER(email) = 'julian.gibbings@gmail.com'
 );
 DELETE FROM public.ic_staff_availability WHERE staff_id NOT IN (
-  SELECT id FROM public.ic_staff WHERE LOWER(email) = 'julian.gibbings@gmail.com' OR auth_user_id = auth.uid()
+  SELECT id FROM public.ic_staff WHERE LOWER(email) = 'julian.gibbings@gmail.com'
 );
 DELETE FROM public.ic_staff_onboarding WHERE staff_id NOT IN (
-  SELECT id FROM public.ic_staff WHERE LOWER(email) = 'julian.gibbings@gmail.com' OR auth_user_id = auth.uid()
+  SELECT id FROM public.ic_staff WHERE LOWER(email) = 'julian.gibbings@gmail.com'
 );
 DELETE FROM public.ic_staff_organisations WHERE staff_id NOT IN (
-  SELECT id FROM public.ic_staff WHERE LOWER(email) = 'julian.gibbings@gmail.com' OR auth_user_id = auth.uid()
+  SELECT id FROM public.ic_staff WHERE LOWER(email) = 'julian.gibbings@gmail.com'
 );
 
 -- Delete dummy staff members (excluding Sys Admin: julian.gibbings@gmail.com)
 DELETE FROM public.ic_staff 
-WHERE LOWER(email) != 'julian.gibbings@gmail.com' 
-  AND (auth_user_id IS NULL OR auth_user_id != auth.uid());
+WHERE LOWER(email) != 'julian.gibbings@gmail.com';
+
+-- Delete dummy auth users (excluding Sys Admin: julian.gibbings@gmail.com)
+DELETE FROM auth.users 
+WHERE LOWER(email) != 'julian.gibbings@gmail.com';
 
 -- 5. PURGE AUDIT & NOTIFICATION LOGS
 TRUNCATE TABLE public.ic_activity_log CASCADE;

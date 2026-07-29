@@ -111,4 +111,24 @@ describe('useChecklistSchedules', () => {
 
     expect(mockFrom).toHaveBeenCalledWith('ic_checklist_schedules');
   });
+
+  it('should throw error when trying to create schedule with temp/unsaved house_checklist_id', async () => {
+    const { result } = renderHook(() => useChecklistSchedules('house-1'));
+
+    const unsavedScheduleData = {
+      house_id: 'house-1',
+      house_checklist_id: 'temp-12345',
+      rrule: 'FREQ=DAILY',
+      start_date: '2026-07-01',
+      end_date: '2026-07-10',
+      target_shift: 'all',
+      is_active: true,
+    };
+
+    await expect(
+      act(async () => {
+        await result.current.createSchedule(unsavedScheduleData);
+      }),
+    ).rejects.toThrow('Please save changes to persist this checklist before scheduling it.');
+  });
 });
