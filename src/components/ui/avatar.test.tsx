@@ -10,9 +10,12 @@ describe('Avatar', () => {
     window.Image = class {
       onload: () => void = () => {};
       src: string = '';
+      complete: boolean = true;
+      naturalWidth: number = 100;
+      naturalHeight: number = 100;
       addEventListener = vi.fn((event, cb) => {
         if (event === 'load') {
-          setTimeout(() => cb(), 50);
+          setTimeout(() => cb({ currentTarget: this }), 50);
         }
       });
       removeEventListener = vi.fn();

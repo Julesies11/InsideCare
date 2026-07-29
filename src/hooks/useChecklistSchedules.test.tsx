@@ -1,8 +1,20 @@
 import { act, renderHook } from '@testing-library/react';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { ReactNode } from 'react';
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
 import { TABLES } from '@/config/db-tables';
 import { supabase } from '@/lib/supabase';
 import { useChecklistSchedules } from './useChecklistSchedules';
+
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: { retry: false },
+  },
+});
+
+const wrapper = ({ children }: { children: ReactNode }) => (
+  <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+);
 
 // Mock Supabase
 const mockInsert = vi.fn().mockImplementation(() => ({
@@ -76,7 +88,7 @@ describe('useChecklistSchedules', () => {
   });
 
   it('should create a schedule and materialize events', async () => {
-    const { result } = renderHook(() => useChecklistSchedules('house-1'));
+    const { result } = renderHook(() => useChecklistSchedules('house-1'), { wrapper });
 
     const scheduleData = {
       house_id: 'house-1',
@@ -103,7 +115,7 @@ describe('useChecklistSchedules', () => {
   });
 
   it('should delete a schedule', async () => {
-    const { result } = renderHook(() => useChecklistSchedules('house-1'));
+    const { result } = renderHook(() => useChecklistSchedules('house-1'), { wrapper });
 
     await act(async () => {
       await result.current.deleteSchedule('schedule-1');
@@ -113,7 +125,7 @@ describe('useChecklistSchedules', () => {
   });
 
   it('should throw error when trying to create schedule with temp/unsaved house_checklist_id', async () => {
-    const { result } = renderHook(() => useChecklistSchedules('house-1'));
+    const { result } = renderHook(() => useChecklistSchedules('house-1'), { wrapper });
 
     const unsavedScheduleData = {
       house_id: 'house-1',

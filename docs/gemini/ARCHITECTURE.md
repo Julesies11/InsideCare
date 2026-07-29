@@ -107,6 +107,7 @@ The application uses a combination of local state, TanStack Query, and Context P
   - **Standard (staleTime: 30s - 5m)**: General operational data.
   - **Static (staleTime: 1h+)**: Master lists and configuration.
 - **Pending Changes Management**: For complex entities, a "pending changes" pattern (`src/models/*-pending-changes.ts`) is used to track batch updates locally before committing to the DAL.
+- **`saveHandlerRef` Pattern (Auto-Save on Lifecycle Actions)**: Detail pages (e.g., `StaffDetailPage`) expose a `saveHandlerRef = useRef<() => Promise<void>>()` to the child content component. Before executing lifecycle operations (Activate, Deactivate, Invite to Portal), the page calls `await saveHandlerRef.current?.()` to persist any pending form changes first. This prevents data loss when an admin modifies a form and immediately clicks a toolbar action button.
 - **"No Legacy" Refactor (June 2026)**: Following the modernization mandate, complex entities have been refactored to be strictly **ID-Driven**. Redundant string fields (e.g., `compliance_name`) have been removed from pending state models and DAL mutation payloads. The system now relies exclusively on relational joins for display names, ensuring data integrity and eliminating synchronization debt.
 - **Surgical Synchronization (Transactional Safety)**: For nested sub-entities (like Checklist Items), the DAL implements a "Surgical Sync" pattern using `upsert` and targeted `delete`. This ensures clinical history and foreign key links (e.g. from submissions) are preserved while still allowing full CRUD flexibility on the parent entity.
 
@@ -133,9 +134,10 @@ Every operational table includes standard audit columns (`created_at`, `created_
 
 ## 7. Testing Strategy
 
-- **Unit & Integration (Vitest)**: Verifying business logic, DAL methods, and hook state transitions.
-- **Smoke Testing (Vitest)**: Checking major UI pages for successful rendering without crashing (No WSoD).
-- **Functional E2E (Playwright)**: CI-only validation of critical business workflows.
+- **Unit & Integration (Vitest)**: Verifying business logic, DAL methods, and hook state transitions. Pure business logic (e.g., portal status derivation) is extracted into standalone functions in `.test.ts` files and tested in isolation.
+- **Smoke Testing (Vitest)**: Checking major UI pages for successful rendering without crashing (No WSoD). Pages with deep hook dependency trees use **shallow component mocking** — child content components (e.g., `StaffDetailContent`) are mocked with `vi.mock()` to prevent transitive hook failures, keeping smoke tests focused on the page's toolbar layer and critical UI states.
+- **Functional E2E (Playwright)**: CI-only validation of critical business workflows. Never run locally.
+- **Test Co-location**: Component-specific tests (e.g., dialog unit tests) are co-located with their component in `src/pages/**/*.test.tsx`. Cross-cutting tests live in `src/test/unit/` (unit) or `src/test/*.smoke.test.tsx` (smoke).
 
 ## 8. Maintainability Standards
 

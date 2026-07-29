@@ -181,6 +181,7 @@ export function Documents({
       existingOverrides.forEach((p: any) => {
         initialOverrides[p.role_id] = p.access_level as AccessLevel;
       });
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setOverrides(initialOverrides);
     }
   }, [existingOverrides, accessDialogOpen]);
