@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { Link } from 'react-router';
+import { toast } from 'sonner';
 import * as z from 'zod';
 import { cn } from '@/lib/utils';
 import { useActiveParticipants } from '@/hooks/use-participants';
@@ -259,6 +260,7 @@ export function HouseForms({
       onPendingChangesChange(newPending);
     }
     setShowFormDialog(false);
+    toast.info('Form pending save');
   };
 
   const handleDeleteForm = (form: { id?: string; tempId?: string }) => {
@@ -367,6 +369,7 @@ export function HouseForms({
       onPendingChangesChange(newPending);
     }
     setShowAssignmentDialog(false);
+    toast.info('Form assignment pending save');
   };
 
   const handleDeleteAssignment = (assignment: {
@@ -570,7 +573,7 @@ export function HouseForms({
                             {isPendingAdd && (
                               <span className="text-xs text-primary flex items-center gap-1">
                                 <Clock className="size-3" />
-                                Pending add
+                                Pending save
                               </span>
                             )}
                             {isPendingUpdate && (
@@ -742,7 +745,7 @@ export function HouseForms({
                                           {isAssignmentPendingAdd && (
                                             <span className="text-xs text-primary flex items-center gap-1">
                                               <Clock className="size-3" />
-                                              Pending add
+                                              Pending save
                                             </span>
                                           )}
                                           {isAssignmentPendingUpdate && (

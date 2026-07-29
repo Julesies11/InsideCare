@@ -7,6 +7,7 @@ import {
 } from 'react';
 import { checklistsApi } from '@/api/checklists.api';
 import { HousePendingChanges } from '@/models/house-pending-changes';
+import { useQueryClient } from '@tanstack/react-query';
 import {
   CheckSquare,
   Clock,
@@ -19,6 +20,7 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { STATUS } from '@/config/enums';
+import { QUERY_KEYS } from '@/config/query-keys';
 import { cn } from '@/lib/utils';
 import { useChecklistMaster } from '@/hooks/use-checklist-master';
 import { useHouseChecklists } from '@/hooks/use-house-checklists';
@@ -70,6 +72,7 @@ export function HouseChecklistSetup({
   canDelete = true,
   onRefresh,
 }: HouseChecklistSetupProps) {
+  const queryClient = useQueryClient();
   const [showChecklistDialog, setShowChecklistDialog] = useState(false);
   const [showItemDialog, setShowItemDialog] = useState(false);
   const [showScheduleModal, setShowScheduleModal] = useState(false);
@@ -1038,6 +1041,9 @@ export function HouseChecklistSetup({
         checklist={selectedForSchedule}
         houseId={houseId}
         onSuccess={() => {
+          queryClient.invalidateQueries({
+            queryKey: [QUERY_KEYS.CALENDAR_EVENTS],
+          });
           refreshChecklists();
           if (onRefresh) onRefresh();
         }}

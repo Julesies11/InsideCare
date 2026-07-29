@@ -168,6 +168,7 @@ export function StaffHousesSection({
       onPendingChangesChange(newPending);
     }
     setShowDialog(false);
+    toast.info('House assignment pending save');
   };
 
   const handleDelete = (assignment: any) => {
@@ -296,7 +297,7 @@ export function StaffHousesSection({
     if ('tempId' in assignment) {
       return (
         <Badge variant="outline" className="border-primary text-primary uppercase tracking-widest text-[9px] font-black">
-          Staged
+          Pending Save
         </Badge>
       );
     }
@@ -406,7 +407,7 @@ export function StaffHousesSection({
                               <div className="flex items-center gap-1.5 mt-0.5">
                                 {isPendingAdd && (
                                   <span className="text-[10px] text-primary font-bold uppercase tracking-widest flex items-center gap-0.5">
-                                    <Clock className="size-3" /> Staged
+                                    <Clock className="size-3" /> Pending save
                                   </span>
                                 )}
                                 {isPendingUpdate && (
@@ -656,7 +657,7 @@ export function StaffHousesSection({
               onClick={handleSave}
               className="flex-1 sm:flex-none"
             >
-              Save Staged Assignment
+              Save Assignment
             </Button>
           </DialogFooter>
         </DialogContent>

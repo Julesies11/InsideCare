@@ -201,7 +201,7 @@ export const ComplianceTableRow = React.memo(function ComplianceTableRow({
             </span>
             {isPendingAdd && (
               <Badge variant="primary" className="text-[9px] px-1.5 py-0 h-4">
-                Draft: New
+                Pending save
               </Badge>
             )}
             {isPendingUpdate && (

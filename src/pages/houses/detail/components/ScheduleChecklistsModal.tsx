@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { checklistsApi } from '@/api/checklists.api';
 import { useAuth } from '@/auth/context/auth-context';
+import { useQueryClient } from '@tanstack/react-query';
 import { addDays, format, isBefore, startOfDay, startOfWeek } from 'date-fns';
 import {
   CalendarCheck,
@@ -10,6 +11,7 @@ import {
   Loader2,
 } from 'lucide-react';
 import { toast } from 'sonner';
+import { QUERY_KEYS } from '@/config/query-keys';
 import { cn } from '@/lib/utils';
 import { useHouseChecklists } from '@/hooks/use-house-checklists';
 import { Button } from '@/components/ui/button';
@@ -49,6 +51,7 @@ export function ScheduleChecklistsModal({
   houseName,
   onSuccess,
 }: ScheduleChecklistsModalProps) {
+  const queryClient = useQueryClient();
   const { user } = useAuth();
   const [startDate, setStartDate] = useState(
     format(
@@ -178,6 +181,10 @@ export function ScheduleChecklistsModal({
       if (eventsToInsert.length > 0) {
         await checklistsApi.upsertCalendarEvents(eventsToInsert);
       }
+
+      await queryClient.invalidateQueries({
+        queryKey: [QUERY_KEYS.CALENDAR_EVENTS],
+      });
 
       toast.success('Checklists scheduled successfully!', {
         description: `Scheduled ${eventsToInsert.length} checklist events.`,

@@ -1,7 +1,9 @@
 import { useState } from 'react';
 import { checklistsApi } from '@/api/checklists.api';
+import { useQueryClient } from '@tanstack/react-query';
 import { addDays, format, parseISO } from 'date-fns';
 import { toast } from 'sonner';
+import { QUERY_KEYS } from '@/config/query-keys';
 import { expandRRule } from '@/lib/rrule-utils';
 
 export interface ChecklistSchedule {
@@ -17,6 +19,7 @@ export interface ChecklistSchedule {
 
 export function useChecklistSchedules(houseId?: string) {
   const [loading, setLoading] = useState(false);
+  const queryClient = useQueryClient();
 
   /**
    * Creates a schedule and materializes the first batch of calendar events.
@@ -67,6 +70,13 @@ export function useChecklistSchedules(houseId?: string) {
         await checklistsApi.upsertCalendarEvents(calendarEvents);
       }
 
+      await queryClient.invalidateQueries({
+        queryKey: [QUERY_KEYS.CALENDAR_EVENTS],
+      });
+      await queryClient.invalidateQueries({
+        queryKey: [QUERY_KEYS.CHECKLISTS],
+      });
+
       toast.success('Checklist schedule created and calendar populated.');
       return newSchedule;
     } catch (err) {
@@ -85,6 +95,12 @@ export function useChecklistSchedules(houseId?: string) {
     try {
       setLoading(true);
       await checklistsApi.deleteSchedule(scheduleId);
+      await queryClient.invalidateQueries({
+        queryKey: [QUERY_KEYS.CALENDAR_EVENTS],
+      });
+      await queryClient.invalidateQueries({
+        queryKey: [QUERY_KEYS.CHECKLISTS],
+      });
       toast.success('Schedule removed.');
     } catch (err) {
       console.error('Error deleting schedule:', err);
@@ -101,6 +117,9 @@ export function useChecklistSchedules(houseId?: string) {
     try {
       setLoading(true);
       await checklistsApi.deleteCalendarEvent(eventId);
+      await queryClient.invalidateQueries({
+        queryKey: [QUERY_KEYS.CALENDAR_EVENTS],
+      });
       toast.success('Event removed.');
     } catch (err) {
       console.error('Error deleting event:', err);

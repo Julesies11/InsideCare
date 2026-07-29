@@ -275,6 +275,7 @@ export function StaffTrainingSection({
       onPendingChangesChange(newPending);
     }
     setShowDialog(false);
+    toast.info('Training record pending save');
   };
 
   const handleDelete = (item: any) => {
@@ -480,7 +481,7 @@ export function StaffTrainingSection({
                               <Clock className="size-3" />
                               Pending{' '}
                               {isPendingAdd
-                                ? 'add'
+                                ? 'save'
                                 : isPendingUpdate
                                   ? 'update'
                                   : 'deletion'}

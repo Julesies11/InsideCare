@@ -3,6 +3,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { Edit, Pill, Plus, Trash2 } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { Link } from 'react-router';
+import { toast } from 'sonner';
 import * as z from 'zod';
 import { ROUTES } from '@/config/routes.config';
 import { cn } from '@/lib/utils';
@@ -180,6 +181,7 @@ export function Medications({
     }
 
     setShowDialog(false);
+    toast.info('Medication pending save');
   };
 
   const handleDelete = (medication: {
@@ -326,9 +328,9 @@ export function Medications({
                           {isPendingAdd && (
                             <Badge
                               variant="outline"
-                              className="text-[10px] uppercase"
+                              className="text-[10px] uppercase border-primary text-primary"
                             >
-                              New
+                              Pending save
                             </Badge>
                           )}
                           {isPendingUpdate && (
@@ -542,7 +544,7 @@ export function Medications({
                   Cancel
                 </Button>
                 <Button type="submit">
-                  {editingMedication ? 'Update Queue' : 'Add to Queue'}
+                  {editingMedication ? 'Save Changes' : 'Save'}
                 </Button>
               </DialogFooter>
             </form>

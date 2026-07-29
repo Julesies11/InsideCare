@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Building2, Clock, Edit, Plus, Trash2 } from 'lucide-react';
+import { toast } from 'sonner';
 import { useParticipantProviders } from '@/hooks/use-participant-providers';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -142,6 +143,7 @@ export function ServiceProviders({
       onPendingChangesChange(newPending);
     }
     setShowDialog(false);
+    toast.info('Service provider pending save');
   };
 
   const handleDelete = (provider: { id: string; tempId?: string }) => {
@@ -295,7 +297,7 @@ export function ServiceProviders({
                           {isPendingAdd && (
                             <span className="text-xs text-primary flex items-center gap-1">
                               <Clock className="size-3" />
-                              Pending add
+                              Pending save
                             </span>
                           )}
                           {isPendingUpdate && (

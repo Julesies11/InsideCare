@@ -293,6 +293,7 @@ export function Documents({
     onPendingChangesChange(newPending);
     setShowUploadSheet(false);
     clearFiles();
+    toast.info('Document(s) pending save');
   };
 
   const handleDownload = async (filePath: string, fileName: string) => {
@@ -871,7 +872,7 @@ export function Documents({
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
                   <h3 className="text-xs font-bold uppercase text-gray-500 tracking-wider">
-                    Upload Queue ({uploadQueue.length})
+                    Selected Files ({uploadQueue.length})
                   </h3>
                   <Button
                     variant="ghost"

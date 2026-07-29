@@ -135,6 +135,11 @@ export const incidentsApi = {
   async create(report: IncidentReportInsert) {
     let finalReferenceId = report.reference_id;
 
+    // Ensure involved_staff_id is not null as required by database schema
+    if (!report.involved_staff_id && report.reported_by) {
+      report.involved_staff_id = report.reported_by;
+    }
+
     if (finalReferenceId) {
       let isUnique = false;
       let counter = 1;

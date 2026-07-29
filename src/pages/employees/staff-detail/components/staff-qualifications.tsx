@@ -271,6 +271,7 @@ export function StaffQualificationsSection({
       onPendingChangesChange(newPending);
     }
     setShowDialog(false);
+    toast.info('Qualification pending save');
   };
 
   const handleDelete = (item: any) => {
@@ -478,7 +479,7 @@ export function StaffQualificationsSection({
                               <Clock className="size-3" />
                               Pending{' '}
                               {isPendingAdd
-                                ? 'add'
+                                ? 'save'
                                 : isPendingUpdate
                                   ? 'update'
                                   : 'deletion'}

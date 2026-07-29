@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { Clock, Edit, Plus, Trash2, Users } from 'lucide-react';
+import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { useContactTypesMaster } from '@/hooks/use-contact-types-master';
 import { useParticipantContacts } from '@/hooks/use-participant-contacts';
@@ -159,6 +160,7 @@ export function Contacts({
     }
 
     setShowDialog(false);
+    toast.info('Contact pending save');
   };
 
   const handleDelete = (contact: any) => {
@@ -301,9 +303,9 @@ export function Contacts({
                           {isPendingAdd && (
                             <Badge
                               variant="outline"
-                              className="text-[10px] uppercase"
+                              className="text-[10px] uppercase border-primary text-primary"
                             >
-                              New
+                              Pending save
                             </Badge>
                           )}
                           {isPendingUpdate && (
@@ -520,7 +522,7 @@ export function Contacts({
               onClick={handleSave}
               disabled={!formData.contact_name || !formData.contact_type_id}
             >
-              {editingContact ? 'Update Queue' : 'Add to Queue'}
+              {editingContact ? 'Save Changes' : 'Save'}
             </Button>
           </DialogFooter>
         </DialogContent>
