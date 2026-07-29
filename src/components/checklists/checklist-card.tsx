@@ -93,7 +93,7 @@ export function ChecklistCard({
                   variant="outline"
                   className="text-[9px] h-4 border-primary-200 text-primary bg-primary/10 px-1"
                 >
-                  PENDING ADD
+                  PENDING SAVE
                 </Badge>
               )}
               {isPendingUpdate && (
