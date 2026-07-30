@@ -17,13 +17,15 @@ Central hub for all information related to care recipients.
 Management of care providers and support staff.
 
 - **Profiles**: Personal and professional information, qualifications, and certifications.
-- **Portal Access Lifecycle**: Secure, three-state model for managing staff logins to the staff portal:
-  - **No Portal Access** (destructive/red badge): Staff has no `auth_user_id`. An invitation has never been sent. The admin can send an initial invite via the "Invite to Portal" dropdown action.
-  - **Invite Pending** (warning/amber badge): An `auth_user_id` exists but the staff member has not yet confirmed their email (`confirmed_at` and `last_sign_in_at` are both null). The admin can "Resend Invite" to re-send the original invitation email.
-  - **Portal Active** (success/green badge): The staff member has confirmed their account (`confirmed_at` or `last_sign_in_at` is set). The admin can send a "Send Password Reset" link for the confirmed account.
-  - **Smart Button Labels**: The dropdown correctly shows "Resend Invite" for unconfirmed accounts and "Send Password Reset" for confirmed accounts, preventing the UX confusion of sending a signup link to an already-active user.
-  - **Context Tooltip**: A `?` tooltip displays the staff member's `invited_at`, `confirmed_at`, and `last_sign_in_at` timestamps for at-a-glance audit.
-  - **Revoke Access**: Admins can revoke a staff member's login entirely, deleting their `auth.users` record and clearing `auth_user_id` from their staff profile.
+- **Portal Access Lifecycle**: Unambiguous, plain-English model for managing staff logins to the staff portal:
+  - **Login Disabled** (secondary badge): Staff member has no `auth_user_id` or web access is turned off. An admin can send an initial invite via the "Send Portal Invite" action.
+  - **Invite Pending** (warning/amber badge): An `auth_user_id` exists but the staff member has not yet confirmed their email (`confirmed_at` and `last_sign_in_at` are both null). The admin can "Resend Invite" to send a fresh invitation email.
+  - **Login Enabled** (success/green badge): The staff member has confirmed their account (`confirmed_at` or `last_sign_in_at` is set). The admin can send a "Send Password Reset" link for the confirmed account.
+  - **Compact Portal Access Bar**: A high-density, single-row bar on the staff profile housing all login credentials, timestamps, email, and action buttons (*Send Invite*, *Resend Invite*, *Copy Link*, *Disable Web Login*) as a single source of truth.
+  - **Disable Web Login**: Admins can turn off web access for a staff member, deleting their `auth.users` record and unlinking `auth_user_id` from their staff profile.
+  - **1-Click Automated Workflows**:
+    - **Activation**: Activating a staff member defaults to "Activate & Send Invite" when an email is present.
+    - **Deactivation**: Deactivating a staff member automatically disables their web portal login in a single click ("Deactivate & Disable Login"). Active employment is enforced before invites can be issued.
 - **Auto-Save on Lifecycle Actions**: Clicking "Activate Staff", "Invite to Portal", or "Deactivate" automatically persists any pending form changes before executing the lifecycle operation. This prevents data loss when an admin edits a staff record and immediately clicks an action button.
 - **My Roster**: Personalized staff view of upcoming commitments.
   - **Personalized Filtering**: Automatically filters the roster to only show Houses the staff member is actively assigned to.

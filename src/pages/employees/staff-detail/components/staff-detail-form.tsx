@@ -1,3 +1,4 @@
+import { AuthUserStatus } from '@/hooks/use-auth-status';
 import { StaffPendingChanges } from '@/models/staff-pending-changes';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { RBAC_MODULES } from '@/config/rbac-modules';
@@ -8,12 +9,13 @@ import { EmploymentDetails } from './employment-details';
 import { PersonalDetails } from './personal-details';
 import { StaffActivityLog } from './staff-activity-log';
 import { StaffAvailability } from './staff-availability';
-import { StaffOnboardingSection } from './staff-onboarding';
 import { StaffComplianceSection } from './staff-compliance';
+import { StaffHousesSection } from './staff-houses';
+import { StaffOnboardingSection } from './staff-onboarding';
+import { StaffPortalAccountCard } from './staff-portal-account-card';
+import { StaffQualificationsSection } from './staff-qualifications';
 import { StaffRoster } from './staff-roster';
 import { StaffTrainingSection } from './staff-training';
-import { StaffQualificationsSection } from './staff-qualifications';
-import { StaffHousesSection } from './staff-houses';
 
 interface StaffDetailFormProps {
   staffId: string;
@@ -52,6 +54,16 @@ interface StaffDetailFormProps {
   staffName?: string;
   documentsRefreshKey?: number;
   trainingRefreshKey?: number;
+  qualificationsRefreshKey?: number;
+  staffAuthUserId?: string | null;
+  authUserStatus?: AuthUserStatus | null;
+  onInvite?: () => Promise<void>;
+  onCopyInviteUrl?: () => void;
+  onRevokeInvite?: () => Promise<void>;
+  lastInviteUrl?: string | null;
+  inviting?: boolean;
+  revoking?: boolean;
+  isAdmin?: boolean;
 }
 
 export function StaffDetailForm({
@@ -91,6 +103,15 @@ export function StaffDetailForm({
   documentsRefreshKey = 0,
   trainingRefreshKey = 0,
   qualificationsRefreshKey = 0,
+  staffAuthUserId,
+  authUserStatus,
+  onInvite,
+  onCopyInviteUrl,
+  onRevokeInvite,
+  lastInviteUrl,
+  inviting,
+  revoking,
+  isAdmin,
 }: StaffDetailFormProps) {
   const { hasAccess } = useRBAC();
 
@@ -112,6 +133,24 @@ export function StaffDetailForm({
 
   return (
     <div className="grid gap-2.5 lg:gap-7.5">
+      {/* 0. Portal Account & Access Card */}
+      {onInvite && (
+        <StaffPortalAccountCard
+          staffId={staffId}
+          email={formData?.email || ''}
+          staffAuthUserId={staffAuthUserId}
+          authUserStatus={authUserStatus}
+          staffEmploymentStatus={formData?.status}
+          onInvite={onInvite}
+          onCopyInviteUrl={onCopyInviteUrl}
+          onRevokeInvite={onRevokeInvite}
+          lastInviteUrl={lastInviteUrl}
+          inviting={inviting}
+          revoking={revoking}
+          isAdmin={isAdmin}
+        />
+      )}
+
       {/* 1. Personal Details */}
       {canViewPersonal && (
         <PersonalDetails

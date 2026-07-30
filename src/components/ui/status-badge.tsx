@@ -37,7 +37,7 @@ export function StatusBadge({ status, className }: StatusBadgeProps) {
     archived: 'Archived',
     invite_pending: 'Invite Pending',
     invite_expired: 'Invite Expired',
-    no_portal: 'No Portal Access',
+    no_portal: 'Login Disabled',
   };
 
   const config = variantMap[status] || {

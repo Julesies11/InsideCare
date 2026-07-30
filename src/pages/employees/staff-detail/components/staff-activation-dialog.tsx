@@ -67,15 +67,13 @@ export function StaffActivationDialog({
           </div>
 
           {email && (
-            <Alert className="bg-slate-50 border-slate-200">
-              <Mail className="h-4 w-4 text-slate-600" />
-              <AlertTitle className="text-slate-800 font-semibold text-sm">
-                Portal Access Required
+            <Alert className="bg-green-50/70 dark:bg-green-950/30 border-green-200 dark:border-green-800">
+              <Mail className="h-4 w-4 text-green-600 dark:text-green-400" />
+              <AlertTitle className="text-green-900 dark:text-green-200 font-semibold text-sm">
+                1-Click Activation & Invitation
               </AlertTitle>
-              <AlertDescription className="text-slate-600 text-xs mt-1">
-                This staff member does not currently have portal access. You can
-                send an invitation to <strong>{email}</strong> now, or activate
-                them without login access.
+              <AlertDescription className="text-green-800 dark:text-green-300 text-xs mt-1">
+                Activating will make <strong>{staffName}</strong> active and send a portal invitation email to <strong>{email}</strong> so they can set their password and log in immediately.
               </AlertDescription>
             </Alert>
           )}
@@ -96,12 +94,13 @@ export function StaffActivationDialog({
             {email && (
               <Button
                 type="button"
-                className="bg-green-600 hover:bg-green-700 text-white w-full sm:w-auto"
+                className="bg-green-600 hover:bg-green-700 text-white font-medium w-full sm:w-auto"
                 onClick={() => handleActivate(true)}
                 disabled={isProcessing}
+                autoFocus
               >
                 <Mail className="size-4 mr-2" />
-                Activate & Invite
+                Activate & Send Invite
               </Button>
             )}
 
@@ -109,12 +108,12 @@ export function StaffActivationDialog({
               type="button"
               variant={email ? 'outline' : 'default'}
               className={
-                !email ? 'bg-green-600 hover:bg-green-700 text-white' : ''
+                !email ? 'bg-green-600 hover:bg-green-700 text-white font-medium' : ''
               }
               onClick={() => handleActivate(false)}
               disabled={isProcessing}
             >
-              {email ? 'Activate Only' : 'Activate Staff'}
+              {email ? 'Activate Without Invite' : 'Activate Staff'}
             </Button>
           </div>
         </DialogFooter>

@@ -82,7 +82,9 @@ export const staffApi = {
 
     if (filters.statuses && filters.statuses.length > 0) {
       const dbStatuses = filters.statuses.map((s: string) =>
-        s === 'invite_pending' || s === 'invite_expired' ? 'active' : s,
+        s === 'invite_pending' || s === 'invite_expired' || s === 'no_portal'
+          ? 'active'
+          : s,
       );
       query = query.in('status', Array.from(new Set(dbStatuses)) as any);
     }
@@ -350,7 +352,12 @@ export const staffApi = {
       .select('*', { count: 'exact', head: true });
 
     if (filters.statuses && filters.statuses.length > 0) {
-      query = query.in('status', filters.statuses);
+      const dbStatuses = filters.statuses.map((s: string) =>
+        s === 'invite_pending' || s === 'invite_expired' || s === 'no_portal'
+          ? 'active'
+          : s,
+      );
+      query = query.in('status', Array.from(new Set(dbStatuses)) as any);
     }
 
     if (filters.roleIds && filters.roleIds.length > 0) {

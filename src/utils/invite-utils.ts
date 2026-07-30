@@ -20,7 +20,7 @@ export function isInviteExpired(
     const inviteDate = typeof invitedAt === 'string' ? parseISO(invitedAt) : new Date(invitedAt);
     const diffInHours = (Date.now() - inviteDate.getTime()) / (1000 * 60 * 60);
     return diffInHours >= expiryHours;
-  } catch (_) {
+  } catch {
     return false;
   }
 }
@@ -49,7 +49,7 @@ export function getInviteTimeRemaining(
 
     const minsLeft = Math.max(1, differenceInMinutes(expiresAt, now));
     return `${minsLeft}m remaining`;
-  } catch (_) {
+  } catch {
     return '';
   }
 }
