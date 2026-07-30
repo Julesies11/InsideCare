@@ -81,7 +81,10 @@ export const staffApi = {
     }
 
     if (filters.statuses && filters.statuses.length > 0) {
-      query = query.in('status', filters.statuses);
+      const dbStatuses = filters.statuses.map((s: string) =>
+        s === 'invite_pending' || s === 'invite_expired' ? 'active' : s,
+      );
+      query = query.in('status', Array.from(new Set(dbStatuses)) as any);
     }
 
     if (filters.roleIds && filters.roleIds.length > 0) {
@@ -456,7 +459,10 @@ export const staffApi = {
   /**
    * Invites a staff member.
    */
-  async invite(staffId: string, email: string) {
+  async invite(
+    staffId: string,
+    email: string,
+  ): Promise<{ success: boolean; authUserId?: string; confirmUrl?: string }> {
     const { data, error } = await supabase.functions.invoke(
       'ic-invite-staff-user',
       {

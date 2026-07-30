@@ -371,7 +371,7 @@ serve(async (req) => {
           );
       }
 
-      return new Response(JSON.stringify({ success: true, authUserId, via: 'resend' }), {
+      return new Response(JSON.stringify({ success: true, authUserId, confirmUrl, via: 'resend' }), {
         status: 200,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });

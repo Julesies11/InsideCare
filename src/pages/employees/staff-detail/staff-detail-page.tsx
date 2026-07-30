@@ -13,12 +13,15 @@ import {
 } from '@/partials/common/toolbar';
 import { format } from 'date-fns';
 import {
+  AlertTriangle,
   Archive,
   ArrowLeft,
   CheckCircle,
   Clock,
+  Copy,
   HelpCircle,
   Key,
+  Link as LinkIcon,
   Mail,
   MoreHorizontal,
   ShieldX,
@@ -34,6 +37,11 @@ import {
   useUpdateStaff,
 } from '@/hooks/use-staff';
 import { useDirtyTracker } from '@/hooks/useDirtyTracker';
+import {
+  getInviteTimeRemaining,
+  getStaffPortalState,
+} from '@/utils/invite-utils';
+import { Alert } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -134,10 +142,15 @@ export function StaffDetailPage() {
 
     setArchiving(true);
     try {
-      // 1. Update status to inactive
+      // 1. Save staff record & pending changes first if save handler exists
+      if (saveHandlerRef.current) {
+        await saveHandlerRef.current();
+      }
+
+      // 2. Update status to inactive
       await updateStaff({ id, updates: { status: 'inactive' } });
 
-      // 2. Revoke access if requested
+      // 3. Revoke access if requested
       if (revokeAccess && staffAuthUserId) {
         await revokeInvite({ staffId: id, authUserId: staffAuthUserId });
       }
@@ -157,6 +170,8 @@ export function StaffDetailPage() {
     }
   };
 
+  const [lastInviteUrl, setLastInviteUrl] = useState<string | null>(null);
+
   const handleInvite = async () => {
     if (!id || !formData?.email) {
       toast.error('Staff email is required to send an invite');
@@ -168,7 +183,10 @@ export function StaffDetailPage() {
       if (saveHandlerRef.current) {
         await saveHandlerRef.current();
       }
-      await inviteStaff({ staffId: id, email: formData.email });
+      const res = await inviteStaff({ staffId: id, email: formData.email });
+      if (res?.confirmUrl) {
+        setLastInviteUrl(res.confirmUrl);
+      }
       toast.success(
         isPortalConfirmed
           ? 'Password reset email sent! The staff member will receive a link to reset their password.'
@@ -179,6 +197,16 @@ export function StaffDetailPage() {
       handleError(error, { category: 'network', title: 'Invite Failed' });
     } finally {
       setInviting(false);
+    }
+  };
+
+  const handleCopyInviteUrl = async () => {
+    if (!lastInviteUrl) return;
+    try {
+      await navigator.clipboard.writeText(lastInviteUrl);
+      toast.success('Invite link copied to clipboard!');
+    } catch (_) {
+      toast.error('Failed to copy invite link');
     }
   };
 
@@ -240,11 +268,18 @@ export function StaffDetailPage() {
     }
   };
 
+  const portalState = getStaffPortalState(staffAuthUserId, authUserStatus);
+
   const portalBadge = !staffAuthUserId
     ? { label: 'No Portal Access', variant: 'destructive' as const }
-    : isPortalConfirmed
+    : portalState === 'active'
       ? { label: 'Portal Active', variant: 'success' as const }
-      : { label: 'Invite Pending', variant: 'warning' as const };
+      : portalState === 'invite_expired'
+        ? { label: 'Invite Expired', variant: 'destructive' as const }
+        : {
+            label: `Invite Pending ${getInviteTimeRemaining(authUserStatus?.invited_at) ? `(${getInviteTimeRemaining(authUserStatus?.invited_at)})` : ''}`,
+            variant: 'warning' as const,
+          };
 
   return (
     <Fragment>
@@ -276,8 +311,11 @@ export function StaffDetailPage() {
                               <HelpCircle className="size-3.5 text-muted-foreground cursor-help hover:text-foreground transition-colors" />
                             </TooltipTrigger>
                             <TooltipContent
+                              side="bottom"
+                              align="start"
+                              sideOffset={8}
                               variant="light"
-                              className="max-w-[280px] p-3 shadow-lg border-border"
+                              className="max-w-[280px] p-3 shadow-lg border-border z-[100]"
                             >
                               <p className="font-semibold mb-1">
                                 About Portal Access
@@ -411,6 +449,10 @@ export function StaffDetailPage() {
                               <div className="flex items-center gap-2 text-[11px] text-green-600 font-bold uppercase tracking-wider">
                                 <CheckCircle className="size-3" /> Access Active
                               </div>
+                            ) : portalState === 'invite_expired' ? (
+                              <div className="flex items-center gap-2 text-[11px] text-red-600 dark:text-red-400 font-bold uppercase tracking-wider">
+                                <AlertTriangle className="size-3" /> Invite Expired
+                              </div>
                             ) : (
                               <div className="flex items-center gap-2 text-[11px] text-amber-600 font-bold uppercase tracking-wider">
                                 <Clock className="size-3" /> Invite Pending
@@ -443,6 +485,12 @@ export function StaffDetailPage() {
                               </>
                             )}
                           </DropdownMenuItem>
+                          {lastInviteUrl && (
+                            <DropdownMenuItem onClick={handleCopyInviteUrl}>
+                              <Copy className="size-4 mr-2" />
+                              Copy Invite Link
+                            </DropdownMenuItem>
+                          )}
                           <DropdownMenuItem
                             onClick={handleRevokeInvite}
                             disabled={revoking}
@@ -471,6 +519,48 @@ export function StaffDetailPage() {
       </div>
 
       <Container className="py-6">
+        {portalState === 'invite_expired' && (
+          <Alert
+            variant="warning"
+            className="mb-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-amber-300 dark:border-amber-700 bg-amber-50 dark:bg-amber-950/40"
+          >
+            <div className="flex items-start gap-3">
+              <AlertTriangle className="size-5 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
+              <div>
+                <h4 className="font-semibold text-amber-900 dark:text-amber-200 text-sm">
+                  Portal Invitation Expired
+                </h4>
+                <p className="text-xs text-amber-800 dark:text-amber-300 mt-0.5">
+                  The invitation link sent to{' '}
+                  <span className="font-medium">
+                    {formData?.email || staffMember?.email}
+                  </span>{' '}
+                  on{' '}
+                  {authUserStatus?.invited_at
+                    ? format(new Date(authUserStatus.invited_at), 'PPP p')
+                    : 'a previous date'}{' '}
+                  has expired (24-hour limit).
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2 shrink-0">
+              <Button size="sm" onClick={handleInvite} disabled={inviting}>
+                <Mail className="size-4 me-1.5" />
+                {inviting ? 'Resending...' : 'Resend Invitation'}
+              </Button>
+              {lastInviteUrl && (
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={handleCopyInviteUrl}
+                >
+                  <Copy className="size-4 me-1.5" />
+                  Copy Invite Link
+                </Button>
+              )}
+            </div>
+          </Alert>
+        )}
         {id && (
           <StaffDetailContent
             staffId={id}
