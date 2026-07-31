@@ -1,4 +1,4 @@
-import { RouteObject } from 'react-router';
+import { Navigate, RouteObject } from 'react-router';
 import { BrandedLayout } from './layouts/branded';
 import { ClassicLayout } from './layouts/classic';
 import { CallbackPage } from './pages/callback-page';
@@ -10,7 +10,6 @@ import { ResetPasswordCheckEmail } from './pages/extended/reset-password-check-e
 import { TwoFactorAuth } from './pages/extended/tfa';
 import { ResetPasswordPage } from './pages/reset-password-page';
 import { SignInPage } from './pages/signin-page';
-import { SignUpPage } from './pages/signup-page';
 
 // Define the auth routes
 export const authRoutes: RouteObject[] = [
@@ -24,7 +23,7 @@ export const authRoutes: RouteObject[] = [
       },
       {
         path: 'signup',
-        element: <SignUpPage />,
+        element: <Navigate to="/auth/signin" replace />,
       },
       {
         path: 'change-password',
@@ -67,7 +66,7 @@ export const authRoutes: RouteObject[] = [
       },
       {
         path: 'branded/signup',
-        element: <SignUpPage />,
+        element: <Navigate to="/auth/signin" replace />,
       },
       {
         path: 'branded/change-password',
