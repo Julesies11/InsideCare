@@ -126,6 +126,13 @@ export function StaffPortalAccountCard({
               (Invited: {invitedAtFormatted})
             </span>
           ) : null}
+
+          {staffEmploymentStatus === 'draft' && (
+            <span className="text-[11px] font-medium text-amber-800 dark:text-amber-300 bg-amber-100/80 dark:bg-amber-950/60 px-2 py-0.5 rounded border border-amber-200 dark:border-amber-800/60 flex items-center gap-1">
+              <AlertTriangle className="size-3 shrink-0" />
+              Draft profile — activate employee to send portal invite
+            </span>
+          )}
         </div>
 
         {/* Right Side: Inline Action Buttons */}

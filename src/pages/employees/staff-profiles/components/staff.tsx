@@ -44,13 +44,17 @@ import { StatusFilter, StatusOption } from '@/components/ui/status-filter';
 import { useAdminAuthStatus } from '@/hooks/use-auth-status';
 import { getStaffPortalState } from '@/utils/invite-utils';
 
-const STAFF_STATUS_OPTIONS: StatusOption[] = [
+const STAFF_EMPLOYMENT_STATUS_OPTIONS: StatusOption[] = [
   { value: 'active', label: 'Active', badge: 'success' },
-  { value: 'invite_pending', label: 'Invite Pending', badge: 'warning' },
-  { value: 'invite_expired', label: 'Invite Expired', badge: 'destructive' },
-  { value: 'no_portal', label: 'No Portal Access', badge: 'secondary' },
   { value: 'draft', label: 'Draft', badge: 'warning' },
   { value: 'inactive', label: 'Inactive', badge: 'secondary' },
+];
+
+const STAFF_PORTAL_STATUS_OPTIONS: StatusOption[] = [
+  { value: 'active', label: 'Login Enabled', badge: 'success' },
+  { value: 'invite_pending', label: 'Invite Pending', badge: 'warning' },
+  { value: 'invite_expired', label: 'Invite Expired', badge: 'destructive' },
+  { value: 'no_portal', label: 'Login Disabled', badge: 'secondary' },
 ];
 
 const StaffTable = () => {
@@ -87,7 +91,15 @@ const StaffTable = () => {
     if (!param) return ['active', 'draft']; // default visible
     return param
       .split(',')
-      .filter((s) => STAFF_STATUS_OPTIONS.some((opt) => opt.value === s));
+      .filter((s) => STAFF_EMPLOYMENT_STATUS_OPTIONS.some((opt) => opt.value === s));
+  };
+
+  const getInitialPortalStatuses = (): string[] => {
+    const param = searchParams.get('portal_statuses');
+    if (!param) return [];
+    return param
+      .split(',')
+      .filter((s) => STAFF_PORTAL_STATUS_OPTIONS.some((opt) => opt.value === s));
   };
 
   const getInitialRoles = (): string[] => {
@@ -103,6 +115,8 @@ const StaffTable = () => {
   const [searchQuery, setSearchQuery] = useState(getInitialSearch());
   const [selectedStatuses, setSelectedStatuses] =
     useState<string[]>(getInitialStatuses());
+  const [selectedPortalStatuses, setSelectedPortalStatuses] =
+    useState<string[]>(getInitialPortalStatuses());
   const [selectedRoles, setSelectedRoles] =
     useState<string[]>(getInitialRoles());
 
@@ -124,10 +138,43 @@ const StaffTable = () => {
     error,
   } = useStaff(pagination.pageIndex, pagination.pageSize, sorting, filters);
   const staff = data?.data || [];
-  const count = data?.count || 0;
+  const totalCount = data?.count || 0;
+
+  // Perform client-side portal state filtering if portal filter options are selected
+  const filteredStaff = useMemo(() => {
+    if (selectedPortalStatuses.length === 0) return staff;
+    return staff.filter((staffMember) => {
+      let portalStateValue = 'no_portal';
+      if (staffMember.status === 'active') {
+        if (!staffMember.auth_user_id) {
+          portalStateValue = 'no_portal';
+        } else {
+          const authStatus = authStatusData?.[staffMember.auth_user_id];
+          const portalState = getStaffPortalState(
+            staffMember.auth_user_id,
+            authStatus,
+          );
+          if (portalState === 'invite_expired') {
+            portalStateValue = 'invite_expired';
+          } else if (portalState === 'invite_pending') {
+            portalStateValue = 'invite_pending';
+          } else if (portalState === 'active') {
+            portalStateValue = 'active';
+          } else if (portalState === 'no_access') {
+            portalStateValue = 'no_portal';
+          }
+        }
+      } else {
+        portalStateValue = 'no_portal';
+      }
+      return selectedPortalStatuses.includes(portalStateValue);
+    });
+  }, [staff, selectedPortalStatuses, authStatusData]);
+
+  const count = selectedPortalStatuses.length > 0 ? filteredStaff.length : totalCount;
 
   console.log('[DEBUG] Staff rendering:', {
-    staffCount: staff.length,
+    staffCount: filteredStaff.length,
     count,
     loading,
     error,
@@ -268,40 +315,68 @@ const StaffTable = () => {
         id: 'status',
         accessorKey: 'status',
         header: ({ column }) => (
-          <DataGridColumnHeader title="Status" column={column} />
+          <DataGridColumnHeader title="Status & Access" column={column} />
         ),
         cell: ({ row }) => {
           const staffMember = row.original;
-          let displayStatus: string = staffMember.status;
+          const employmentStatus = staffMember.status;
 
-          if (staffMember.status === 'active') {
-            if (!staffMember.auth_user_id) {
-              displayStatus = 'no_portal';
-            } else {
-              const authStatus = authStatusData?.[staffMember.auth_user_id];
-              const portalState = getStaffPortalState(
-                staffMember.auth_user_id,
-                authStatus,
-              );
-              if (portalState === 'invite_expired') {
-                displayStatus = 'invite_expired';
-              } else if (portalState === 'invite_pending') {
-                displayStatus = 'invite_pending';
-              }
+          let portalBadgeVariant: 'warning' | 'destructive' | 'secondary' = 'secondary';
+          let portalBadgeLabel = 'Login Disabled';
+          let showSecondaryBadge = false;
+
+          if (!staffMember.auth_user_id) {
+            showSecondaryBadge = true;
+            portalBadgeVariant = 'secondary';
+            portalBadgeLabel = 'Login Disabled';
+          } else {
+            const authStatus = authStatusData?.[staffMember.auth_user_id];
+            const portalState = getStaffPortalState(
+              staffMember.auth_user_id,
+              authStatus,
+            );
+            if (portalState === 'invite_pending') {
+              showSecondaryBadge = true;
+              portalBadgeVariant = 'warning';
+              portalBadgeLabel = 'Invite Pending';
+            } else if (portalState === 'invite_expired') {
+              showSecondaryBadge = true;
+              portalBadgeVariant = 'destructive';
+              portalBadgeLabel = 'Invite Expired';
+            } else if (portalState === 'no_access') {
+              showSecondaryBadge = true;
+              portalBadgeVariant = 'secondary';
+              portalBadgeLabel = 'Login Disabled';
             }
+            // Note: When portalState === 'active' (Login Enabled), showSecondaryBadge remains false to keep UI clean
           }
 
           return (
-            <div className="break-words whitespace-normal">
-              <StatusBadge status={displayStatus} />
+            <div className="flex flex-col gap-1 items-start break-words whitespace-normal text-left">
+              <StatusBadge status={employmentStatus} />
+              {showSecondaryBadge && (
+                <Badge
+                  variant={portalBadgeVariant}
+                  appearance="light"
+                  size="sm"
+                  className="font-normal text-[10px] px-1.5 py-0.5"
+                >
+                  {portalBadgeLabel}
+                </Badge>
+              )}
             </div>
           );
         },
         meta: {
-          skeleton: <Skeleton className="h-5 w-16 rounded-full" />,
+          skeleton: (
+            <div className="flex flex-col gap-1">
+              <Skeleton className="h-5 w-16 rounded-full" />
+              <Skeleton className="h-4 w-20 rounded-full" />
+            </div>
+          ),
         },
         enableSorting: true,
-        size: 100,
+        size: 140,
       },
     ],
     [authStatusData],
@@ -339,11 +414,18 @@ const StaffTable = () => {
       params.delete('search');
     }
 
-    // Always update the URL with the current statuses
+    // Update URL with employment status
     if (selectedStatuses.length > 0) {
       params.set('statuses', selectedStatuses.join(','));
     } else {
       params.delete('statuses');
+    }
+
+    // Update URL with portal access status
+    if (selectedPortalStatuses.length > 0) {
+      params.set('portal_statuses', selectedPortalStatuses.join(','));
+    } else {
+      params.delete('portal_statuses');
     }
 
     // Role filter
@@ -362,6 +444,7 @@ const StaffTable = () => {
     sorting,
     searchQuery,
     selectedStatuses,
+    selectedPortalStatuses,
     selectedRoles,
     setSearchParams,
     searchParams,
@@ -372,7 +455,7 @@ const StaffTable = () => {
   }, [count, pagination.pageSize]);
 
   const table = useReactTable({
-    data: staff,
+    data: filteredStaff,
     columns,
     state: {
       pagination,
@@ -420,7 +503,7 @@ const StaffTable = () => {
     >
       <Card>
         <CardHeader className="flex-wrap gap-2.5">
-          <div className="flex items-center gap-2.5">
+          <div className="flex items-center gap-2.5 flex-wrap">
             <div className="relative">
               <Search className="size-4 text-muted-foreground absolute start-3 top-1/2 -translate-y-1/2" />
               <Input
@@ -443,8 +526,14 @@ const StaffTable = () => {
             <StatusFilter
               value={selectedStatuses}
               onChange={setSelectedStatuses}
-              options={STAFF_STATUS_OPTIONS}
+              options={STAFF_EMPLOYMENT_STATUS_OPTIONS}
               label="Status"
+            />
+            <StatusFilter
+              value={selectedPortalStatuses}
+              onChange={setSelectedPortalStatuses}
+              options={STAFF_PORTAL_STATUS_OPTIONS}
+              label="Portal Access"
             />
             <StatusFilter
               value={selectedRoles}

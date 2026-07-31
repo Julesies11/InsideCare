@@ -21,12 +21,17 @@ Management of care providers and support staff.
   - **Login Disabled** (secondary badge): Staff member has no `auth_user_id` or web access is turned off. An admin can send an initial invite via the "Send Portal Invite" action.
   - **Invite Pending** (warning/amber badge): An `auth_user_id` exists but the staff member has not yet confirmed their email (`confirmed_at` and `last_sign_in_at` are both null). The admin can "Resend Invite" to send a fresh invitation email.
   - **Login Enabled** (success/green badge): The staff member has confirmed their account (`confirmed_at` or `last_sign_in_at` is set). The admin can send a "Send Password Reset" link for the confirmed account.
+  - **Staff Table Dual Status Filters**: Staff table features two separate filter controls:
+    - **Status (Employment)**: Filter by `Active`, `Draft`, `Inactive` (defaults to `['active', 'draft']`).
+    - **Portal Access**: Filter by `Login Enabled`, `Invite Pending`, `Invite Expired`, `Login Disabled` (defaults to `[]` / All).
+  - **Status & Access Cell Rendering**: The table column header is titled **"Status & Access"**. Line 1 renders the primary employment badge (`Active`, `Draft`, `Inactive`). Line 2 renders the secondary portal badge (`Invite Pending`, `Invite Expired`, `Login Disabled`) when action/attention is needed, while hiding the secondary badge for standard `Login Enabled` active staff to prevent visual clutter.
+  - **Draft Profile Helper Notice**: Viewing a `Draft` profile card displays an explicit helper notice: *"Draft profile — activate employee to send portal invite"*, clearly communicating why invitation actions are disabled.
   - **Compact Portal Access Bar**: A high-density, single-row bar on the staff profile housing all login credentials, timestamps, email, and action buttons (*Send Invite*, *Resend Invite*, *Copy Link*, *Disable Web Login*) as a single source of truth.
   - **Disable Web Login**: Admins can turn off web access for a staff member, deleting their `auth.users` record and unlinking `auth_user_id` from their staff profile.
   - **1-Click Automated Workflows**:
     - **Activation**: Activating a staff member defaults to "Activate & Send Invite" when an email is present.
     - **Deactivation**: Deactivating a staff member automatically disables their web portal login in a single click ("Deactivate & Disable Login"). Active employment is enforced before invites can be issued.
-- **Auto-Save on Lifecycle Actions**: Clicking "Activate Staff", "Invite to Portal", or "Deactivate" automatically persists any pending form changes before executing the lifecycle operation. This prevents data loss when an admin edits a staff record and immediately clicks an action button.
+- **Auto-Save on Lifecycle Actions**: Clicking "Activate Staff", "Invite to Portal", or "Deactivate" automatically persists any pending form changes before executing the lifecycle operation and synchronizes dirty tracker state (`isDirty = false`). This prevents data loss and avoids unnecessary manual save prompts when an admin edits a staff record and activates it.
 - **My Roster**: Personalized staff view of upcoming commitments.
   - **Personalized Filtering**: Automatically filters the roster to only show Houses the staff member is actively assigned to.
   - **Robust Tracking**: Intelligent data mapping ensures participants and routines are correctly linked and displayed even across complex database relationships.
