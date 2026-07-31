@@ -41,9 +41,14 @@ import { SecureAvatar } from '@/components/ui/secure-avatar';
 import { Skeleton } from '@/components/ui/skeleton';
 import { StatusBadge } from '@/components/ui/status-badge';
 import { StatusFilter, StatusOption } from '@/components/ui/status-filter';
+import { useAdminAuthStatus } from '@/hooks/use-auth-status';
+import { getStaffPortalState } from '@/utils/invite-utils';
 
 const STAFF_STATUS_OPTIONS: StatusOption[] = [
   { value: 'active', label: 'Active', badge: 'success' },
+  { value: 'invite_pending', label: 'Invite Pending', badge: 'warning' },
+  { value: 'invite_expired', label: 'Invite Expired', badge: 'destructive' },
+  { value: 'no_portal', label: 'No Portal Access', badge: 'secondary' },
   { value: 'draft', label: 'Draft', badge: 'warning' },
   { value: 'inactive', label: 'Inactive', badge: 'secondary' },
 ];
@@ -52,6 +57,7 @@ const StaffTable = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const { hasAccess } = useRBAC();
   const { roles: allRoles } = useRoles();
+  const { data: authStatusData } = useAdminAuthStatus();
 
   const canManageAny = hasAccess({
     resource: RBAC_MODULES.EMPLOYEES,
@@ -264,19 +270,41 @@ const StaffTable = () => {
         header: ({ column }) => (
           <DataGridColumnHeader title="Status" column={column} />
         ),
-        cell: ({ row }) => (
-          <div className="break-words whitespace-normal">
-            <StatusBadge status={row.original.status} />
-          </div>
-        ),
+        cell: ({ row }) => {
+          const staffMember = row.original;
+          let displayStatus: string = staffMember.status;
+
+          if (staffMember.status === 'active') {
+            if (!staffMember.auth_user_id) {
+              displayStatus = 'no_portal';
+            } else {
+              const authStatus = authStatusData?.[staffMember.auth_user_id];
+              const portalState = getStaffPortalState(
+                staffMember.auth_user_id,
+                authStatus,
+              );
+              if (portalState === 'invite_expired') {
+                displayStatus = 'invite_expired';
+              } else if (portalState === 'invite_pending') {
+                displayStatus = 'invite_pending';
+              }
+            }
+          }
+
+          return (
+            <div className="break-words whitespace-normal">
+              <StatusBadge status={displayStatus} />
+            </div>
+          );
+        },
         meta: {
           skeleton: <Skeleton className="h-5 w-16 rounded-full" />,
         },
         enableSorting: true,
-        size: 80,
+        size: 100,
       },
     ],
-    [],
+    [authStatusData],
   );
 
   // Sync state changes to URL query parameters

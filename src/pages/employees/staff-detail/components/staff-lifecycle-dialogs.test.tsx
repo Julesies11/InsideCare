@@ -1,4 +1,4 @@
-import { renderWithProviders, screen, waitFor } from '@/test/test-utils';
+import { renderWithProviders, screen } from '@/test/test-utils';
 import { describe, expect, it, vi } from 'vitest';
 import { StaffActivationDialog } from './staff-activation-dialog';
 import { StaffDeactivationDialog } from './staff-deactivation-dialog';
@@ -18,10 +18,10 @@ describe('Staff Lifecycle Dialogs', () => {
       );
 
       expect(screen.getByText(/Deactivate Staff Member/i)).toBeInTheDocument();
-      expect(screen.getByText(/John Doe/i)).toBeInTheDocument();
-      expect(screen.getByText(/Portal Access Detected/i)).toBeInTheDocument();
-      expect(screen.getByText(/Revoke Access/i)).toBeInTheDocument();
-      expect(screen.getByText(/Deactivate Only/i)).toBeInTheDocument();
+      expect(screen.getAllByText(/John Doe/i).length).toBeGreaterThan(0);
+      expect(screen.getByText(/1-Click Deactivation & Web Login Disabling/i)).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /Deactivate & Disable Login/i })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /Deactivate Without Disabling Login/i })).toBeInTheDocument();
     });
 
     it('renders simpler UI for user without portal access', async () => {
@@ -36,9 +36,8 @@ describe('Staff Lifecycle Dialogs', () => {
       );
 
       expect(
-        screen.queryByText(/Portal Access Detected/i),
+        screen.queryByText(/1-Click Deactivation/i),
       ).not.toBeInTheDocument();
-      // Use getByRole to target the actual button, avoiding the dialog title
       expect(
         screen.getByRole('button', { name: /^Deactivate Staff$/i }),
       ).toBeInTheDocument();
@@ -58,12 +57,12 @@ describe('Staff Lifecycle Dialogs', () => {
       );
 
       expect(screen.getByText(/Activate Staff Member/i)).toBeInTheDocument();
-      expect(screen.getByText(/Portal Access Required/i)).toBeInTheDocument();
+      expect(screen.getByText(/1-Click Activation & Invitation/i)).toBeInTheDocument();
       expect(
-        screen.getByRole('button', { name: /Activate & Invite/i }),
+        screen.getByRole('button', { name: /Activate & Send Invite/i }),
       ).toBeInTheDocument();
       expect(
-        screen.getByRole('button', { name: /Activate Only/i }),
+        screen.getByRole('button', { name: /Activate Without Invite/i }),
       ).toBeInTheDocument();
     });
 
@@ -78,7 +77,7 @@ describe('Staff Lifecycle Dialogs', () => {
       );
 
       expect(
-        screen.queryByText(/Portal Access Required/i),
+        screen.queryByText(/1-Click Activation/i),
       ).not.toBeInTheDocument();
       expect(
         screen.getByRole('button', { name: /^Activate Staff$/i }),

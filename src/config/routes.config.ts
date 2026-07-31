@@ -2,7 +2,7 @@ export const ROUTES = {
   // Auth
   AUTH: '/auth',
   AUTH_SIGNIN: '/auth/signin',
-  AUTH_SIGNUP: '/auth/signup',
+  AUTH_SIGNUP: '/auth/signin',
   AUTH_RESET_PASSWORD: '/auth/reset-password',
   AUTH_CHANGE_PASSWORD: '/auth/change-password',
   AUTH_CONFIRM: '/auth/confirm',

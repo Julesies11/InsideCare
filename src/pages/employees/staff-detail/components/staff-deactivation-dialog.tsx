@@ -69,15 +69,13 @@ export function StaffDeactivationDialog({
           </div>
 
           {hasPortalAccess && (
-            <Alert className="bg-slate-50 border-slate-200">
-              <AlertCircle className="h-4 w-4 text-slate-600" />
-              <AlertTitle className="text-slate-800 font-semibold text-sm">
-                Portal Access Detected
+            <Alert className="bg-amber-50/70 dark:bg-amber-950/30 border-amber-200 dark:border-amber-800">
+              <AlertCircle className="h-4 w-4 text-amber-600 dark:text-amber-400" />
+              <AlertTitle className="text-amber-900 dark:text-amber-200 font-semibold text-sm">
+                1-Click Deactivation & Web Login Disabling
               </AlertTitle>
-              <AlertDescription className="text-slate-600 text-xs mt-1">
-                This staff member has an active login. You can choose to revoke
-                their access immediately, or keep it active for historical
-                record viewing.
+              <AlertDescription className="text-amber-800 dark:text-amber-300 text-xs mt-1">
+                Deactivating <strong>{staffName}</strong> will set their employment status to Inactive and automatically disable their web portal login credentials.
               </AlertDescription>
             </Alert>
           )}
@@ -101,20 +99,24 @@ export function StaffDeactivationDialog({
                 variant="destructive"
                 onClick={() => handleDeactivate(true)}
                 disabled={isProcessing}
-                className="w-full sm:w-auto"
+                className="w-full sm:w-auto font-medium"
+                autoFocus
               >
                 <LogOut className="size-4 mr-2" />
-                Revoke Access
+                Deactivate & Disable Login
               </Button>
             )}
 
             <Button
               type="button"
-              className="bg-amber-600 hover:bg-amber-700 text-white w-full sm:w-auto"
+              variant={hasPortalAccess ? 'outline' : 'default'}
+              className={
+                !hasPortalAccess ? 'bg-amber-600 hover:bg-amber-700 text-white font-medium' : ''
+              }
               onClick={() => handleDeactivate(false)}
               disabled={isProcessing}
             >
-              {hasPortalAccess ? 'Deactivate Only' : 'Deactivate Staff'}
+              {hasPortalAccess ? 'Deactivate Without Disabling Login' : 'Deactivate Staff'}
             </Button>
           </div>
         </DialogFooter>

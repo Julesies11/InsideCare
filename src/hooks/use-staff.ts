@@ -222,6 +222,9 @@ export function useInviteStaff() {
       queryClient.invalidateQueries({
         queryKey: [QUERY_KEYS.STAFF, variables.staffId],
       });
+      queryClient.invalidateQueries({
+        queryKey: [QUERY_KEYS.ADMIN_AUTH_STATUS],
+      });
     },
   });
 }
@@ -241,6 +244,9 @@ export function useRevokeInvite() {
       queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.STAFF] });
       queryClient.invalidateQueries({
         queryKey: [QUERY_KEYS.STAFF, variables.staffId],
+      });
+      queryClient.invalidateQueries({
+        queryKey: [QUERY_KEYS.ADMIN_AUTH_STATUS],
       });
     },
   });

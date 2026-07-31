@@ -730,7 +730,6 @@ export function LandingPage() {
               <h4 className="text-xs font-black uppercase tracking-wider text-slate-900 dark:text-white">Access</h4>
               <ul className="space-y-2 text-xs font-semibold text-slate-600 dark:text-zinc-400">
                 <li><Link to={ROUTES.AUTH_SIGNIN} className="hover:text-primary transition-colors">Sign In</Link></li>
-                <li><Link to={ROUTES.AUTH_SIGNUP} className="hover:text-primary transition-colors">Sign Up</Link></li>
               </ul>
             </div>
 

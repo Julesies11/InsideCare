@@ -13,15 +13,11 @@ import {
 } from '@/partials/common/toolbar';
 import { format } from 'date-fns';
 import {
+  AlertTriangle,
   Archive,
   ArrowLeft,
-  CheckCircle,
-  Clock,
-  HelpCircle,
-  Key,
+  Copy,
   Mail,
-  MoreHorizontal,
-  ShieldX,
   UserCheck,
 } from 'lucide-react';
 import { useParams } from 'react-router';
@@ -34,22 +30,9 @@ import {
   useUpdateStaff,
 } from '@/hooks/use-staff';
 import { useDirtyTracker } from '@/hooks/useDirtyTracker';
-import { Badge } from '@/components/ui/badge';
+import { getStaffPortalState } from '@/utils/invite-utils';
+import { Alert } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from '@/components/ui/tooltip';
 import { Container } from '@/components/common/container';
 import { StaffActivationDialog } from './components/staff-activation-dialog';
 import { StaffDeactivationDialog } from './components/staff-deactivation-dialog';
@@ -57,7 +40,7 @@ import { StaffDetailContent } from './staff-detail-content.tsx';
 
 export function StaffDetailPage() {
   const { id } = useParams<{ id: string }>();
-  const { isAdmin, user } = useAuth();
+  const { isAdmin } = useAuth();
   const { data: staffMember } = useStaffMember(id);
   const { mutateAsync: updateStaff } = useUpdateStaff();
   const { mutateAsync: inviteStaff } = useInviteStaff();
@@ -134,10 +117,15 @@ export function StaffDetailPage() {
 
     setArchiving(true);
     try {
-      // 1. Update status to inactive
+      // 1. Save staff record & pending changes first if save handler exists
+      if (saveHandlerRef.current) {
+        await saveHandlerRef.current();
+      }
+
+      // 2. Update status to inactive
       await updateStaff({ id, updates: { status: 'inactive' } });
 
-      // 2. Revoke access if requested
+      // 3. Revoke access if requested
       if (revokeAccess && staffAuthUserId) {
         await revokeInvite({ staffId: id, authUserId: staffAuthUserId });
       }
@@ -157,6 +145,8 @@ export function StaffDetailPage() {
     }
   };
 
+  const [lastInviteUrl, setLastInviteUrl] = useState<string | null>(null);
+
   const handleInvite = async () => {
     if (!id || !formData?.email) {
       toast.error('Staff email is required to send an invite');
@@ -168,7 +158,10 @@ export function StaffDetailPage() {
       if (saveHandlerRef.current) {
         await saveHandlerRef.current();
       }
-      await inviteStaff({ staffId: id, email: formData.email });
+      const res = await inviteStaff({ staffId: id, email: formData.email });
+      if (res?.confirmUrl) {
+        setLastInviteUrl(res.confirmUrl);
+      }
       toast.success(
         isPortalConfirmed
           ? 'Password reset email sent! The staff member will receive a link to reset their password.'
@@ -179,6 +172,16 @@ export function StaffDetailPage() {
       handleError(error, { category: 'network', title: 'Invite Failed' });
     } finally {
       setInviting(false);
+    }
+  };
+
+  const handleCopyInviteUrl = async () => {
+    if (!lastInviteUrl) return;
+    try {
+      await navigator.clipboard.writeText(lastInviteUrl);
+      toast.success('Invite link copied to clipboard!');
+    } catch {
+      toast.error('Failed to copy invite link');
     }
   };
 
@@ -240,11 +243,7 @@ export function StaffDetailPage() {
     }
   };
 
-  const portalBadge = !staffAuthUserId
-    ? { label: 'No Portal Access', variant: 'destructive' as const }
-    : isPortalConfirmed
-      ? { label: 'Portal Active', variant: 'success' as const }
-      : { label: 'Invite Pending', variant: 'warning' as const };
+  const portalState = getStaffPortalState(staffAuthUserId, authUserStatus);
 
   return (
     <Fragment>
@@ -257,100 +256,7 @@ export function StaffDetailPage() {
                   <ArrowLeft className="size-4 me-1.5" />
                   Back
                 </Button>
-                <div>
-                  <div className="flex items-center gap-2.5">
-                    <ToolbarPageTitle text="Staff Details" />
-                    {id && (
-                      <div className="flex items-center gap-1.5">
-                        <Badge
-                          variant={portalBadge.variant}
-                          appearance="light"
-                          size="sm"
-                          className="font-semibold uppercase tracking-wider text-[10px]"
-                        >
-                          {portalBadge.label}
-                        </Badge>
-                        <TooltipProvider>
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <HelpCircle className="size-3.5 text-muted-foreground cursor-help hover:text-foreground transition-colors" />
-                            </TooltipTrigger>
-                            <TooltipContent
-                              variant="light"
-                              className="max-w-[280px] p-3 shadow-lg border-border"
-                            >
-                              <p className="font-semibold mb-1">
-                                About Portal Access
-                              </p>
-                              <div className="text-[11px] leading-relaxed text-muted-foreground flex flex-col gap-1.5">
-                                {staffAuthUserId &&
-                                authStatusData?.[staffAuthUserId] ? (
-                                  <>
-                                    {authStatusData[staffAuthUserId]
-                                      .invited_at && (
-                                      <p>
-                                        <span className="font-medium text-foreground">
-                                          Invited:
-                                        </span>{' '}
-                                        {format(
-                                          new Date(
-                                            authStatusData[staffAuthUserId]
-                                              .invited_at,
-                                          ),
-                                          'PPP p',
-                                        )}
-                                      </p>
-                                    )}
-                                    {authStatusData[staffAuthUserId]
-                                      .confirmed_at && (
-                                      <p>
-                                        <span className="font-medium text-foreground">
-                                          Accepted:
-                                        </span>{' '}
-                                        {format(
-                                          new Date(
-                                            authStatusData[staffAuthUserId]
-                                              .confirmed_at,
-                                          ),
-                                          'PPP p',
-                                        )}
-                                      </p>
-                                    )}
-                                    {authStatusData[staffAuthUserId]
-                                      .last_sign_in_at ? (
-                                      <p>
-                                        <span className="font-medium text-foreground">
-                                          Last Login:
-                                        </span>{' '}
-                                        {format(
-                                          new Date(
-                                            authStatusData[staffAuthUserId]
-                                              .last_sign_in_at,
-                                          ),
-                                          'PPP p',
-                                        )}
-                                      </p>
-                                    ) : (
-                                      <p className="text-warning">
-                                        Never logged in
-                                      </p>
-                                    )}
-                                  </>
-                                ) : (
-                                  <p>
-                                    {staffAuthUserId
-                                      ? 'This staff member has an active login and can access the portal to view their roster, timesheets, and participant data.'
-                                      : "This staff member currently has no login credentials. They cannot access the portal until you send them an invitation via the 'More Actions' menu."}
-                                  </p>
-                                )}
-                              </div>
-                            </TooltipContent>
-                          </Tooltip>
-                        </TooltipProvider>
-                      </div>
-                    )}
-                  </div>
-                </div>
+                <ToolbarPageTitle text="Staff Details" />
               </div>
             </ToolbarHeading>
             <ToolbarActions>
@@ -388,82 +294,6 @@ export function StaffDetailPage() {
                     )}
                   </Button>
                 )}
-
-                {isAdmin && staffMember && (
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="size-9 px-0"
-                      >
-                        <MoreHorizontal className="size-4" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end" className="w-56">
-                      <DropdownMenuLabel className="text-xs font-semibold uppercase text-muted-foreground">
-                        Portal Settings
-                      </DropdownMenuLabel>
-                      {staffAuthUserId ? (
-                        <>
-                          <div className="px-2 py-1.5 flex flex-col gap-0.5">
-                            {isPortalConfirmed ? (
-                              <div className="flex items-center gap-2 text-[11px] text-green-600 font-bold uppercase tracking-wider">
-                                <CheckCircle className="size-3" /> Access Active
-                              </div>
-                            ) : (
-                              <div className="flex items-center gap-2 text-[11px] text-amber-600 font-bold uppercase tracking-wider">
-                                <Clock className="size-3" /> Invite Pending
-                              </div>
-                            )}
-                            {authUserStatus?.last_sign_in_at && (
-                              <div className="text-[10px] text-muted-foreground ps-5">
-                                Last login:{' '}
-                                {format(
-                                  new Date(authUserStatus.last_sign_in_at),
-                                  'PP p',
-                                )}
-                              </div>
-                            )}
-                          </div>
-                          <DropdownMenuSeparator />
-                          <DropdownMenuItem
-                            onClick={handleInvite}
-                            disabled={inviting}
-                          >
-                            {isPortalConfirmed ? (
-                              <>
-                                <Key className="size-4 mr-2" />
-                                {inviting ? 'Sending Reset...' : 'Send Password Reset'}
-                              </>
-                            ) : (
-                              <>
-                                <Mail className="size-4 mr-2" />
-                                {inviting ? 'Sending Invite...' : 'Resend Invite'}
-                              </>
-                            )}
-                          </DropdownMenuItem>
-                          <DropdownMenuItem
-                            onClick={handleRevokeInvite}
-                            disabled={revoking}
-                            className="text-destructive focus:text-destructive focus:bg-destructive/10"
-                          >
-                            <ShieldX className="size-4 mr-2" />
-                            Revoke Access
-                          </DropdownMenuItem>
-                        </>
-                      ) : (
-                        <DropdownMenuItem
-                          onClick={handleInvite}
-                          disabled={inviting || !formData?.email}
-                        >
-                          <Mail className="size-4 mr-2" />
-                          {inviting ? 'Sending...' : 'Invite to Portal'}
-                        </DropdownMenuItem>
-                      )}
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                )}
               </div>
             </ToolbarActions>
           </Toolbar>
@@ -471,6 +301,48 @@ export function StaffDetailPage() {
       </div>
 
       <Container className="py-6">
+        {portalState === 'invite_expired' && (
+          <Alert
+            variant="warning"
+            className="mb-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-amber-300 dark:border-amber-700 bg-amber-50 dark:bg-amber-950/40"
+          >
+            <div className="flex items-start gap-3">
+              <AlertTriangle className="size-5 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
+              <div>
+                <h4 className="font-semibold text-amber-900 dark:text-amber-200 text-sm">
+                  Portal Invitation Expired
+                </h4>
+                <p className="text-xs text-amber-800 dark:text-amber-300 mt-0.5">
+                  The invitation link sent to{' '}
+                  <span className="font-medium">
+                    {formData?.email || staffMember?.email}
+                  </span>{' '}
+                  on{' '}
+                  {authUserStatus?.invited_at
+                    ? format(new Date(authUserStatus.invited_at), 'PPP p')
+                    : 'a previous date'}{' '}
+                  has expired (24-hour limit).
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2 shrink-0">
+              <Button size="sm" onClick={handleInvite} disabled={inviting}>
+                <Mail className="size-4 me-1.5" />
+                {inviting ? 'Resending...' : 'Resend Invitation'}
+              </Button>
+              {lastInviteUrl && (
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={handleCopyInviteUrl}
+                >
+                  <Copy className="size-4 me-1.5" />
+                  Copy Invite Link
+                </Button>
+              )}
+            </div>
+          </Alert>
+        )}
         {id && (
           <StaffDetailContent
             staffId={id}
@@ -482,6 +354,15 @@ export function StaffDetailPage() {
             onPendingChangesChange={setPendingChanges}
             updateStaff={updateStaff}
             onPhotoDirtyChange={setPhotoDirty}
+            staffAuthUserId={staffAuthUserId}
+            authUserStatus={authUserStatus}
+            onInvite={handleInvite}
+            onCopyInviteUrl={handleCopyInviteUrl}
+            onRevokeInvite={handleRevokeInvite}
+            lastInviteUrl={lastInviteUrl}
+            inviting={inviting}
+            revoking={revoking}
+            isAdmin={isAdmin}
           />
         )}
       </Container>

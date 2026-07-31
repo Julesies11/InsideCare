@@ -42,6 +42,8 @@ const stickySidebarClasses: Record<string, string> = {
   'demo10-layout': 'top-[1.5rem]',
 };
 
+import { AuthUserStatus } from '@/hooks/use-auth-status';
+
 interface StaffDetailContentProps {
   staffId: string;
   onFormDataChange?: (data: Record<string, any>) => void;
@@ -56,6 +58,15 @@ interface StaffDetailContentProps {
   }) => Promise<any>;
   onSaveSuccess?: () => void;
   onPhotoDirtyChange?: (dirty: boolean) => void;
+  staffAuthUserId?: string | null;
+  authUserStatus?: AuthUserStatus | null;
+  onInvite?: () => Promise<void>;
+  onCopyInviteUrl?: () => void;
+  onRevokeInvite?: () => Promise<void>;
+  lastInviteUrl?: string | null;
+  inviting?: boolean;
+  revoking?: boolean;
+  isAdmin?: boolean;
 }
 
 export function StaffDetailContent({
@@ -69,6 +80,15 @@ export function StaffDetailContent({
   updateStaff,
   onSaveSuccess,
   onPhotoDirtyChange,
+  staffAuthUserId,
+  authUserStatus,
+  onInvite,
+  onCopyInviteUrl,
+  onRevokeInvite,
+  lastInviteUrl,
+  inviting,
+  revoking,
+  isAdmin,
 }: StaffDetailContentProps) {
   const queryClient = useQueryClient();
   const isMobile = useIsMobile();
@@ -256,11 +276,13 @@ export function StaffDetailContent({
   const scrollPosition = useScrollPosition({ targetRef: parentRef });
 
   useEffect(() => {
+    // eslint-disable-next-line
     setSidebarSticky(scrollPosition > 100);
   }, [scrollPosition]);
 
   useEffect(() => {
     if (staffData) {
+      // eslint-disable-next-line
       setStaffMember(staffData);
       (window as any).entityName = staffData.staff_name;
 
@@ -577,12 +599,6 @@ export function StaffDetailContent({
     photoPreview,
     originalPhotoUrl,
     queryClient,
-    canEditPersonal,
-    canEditEmployment,
-    canEditAvailability,
-    canEditEmergency,
-    canEditCompliance,
-    canEditTraining,
     canEditDocuments,
     canDeleteDocuments,
   ]);
@@ -673,6 +689,15 @@ export function StaffDetailContent({
           documentsRefreshKey={refreshKeys.resources}
           trainingRefreshKey={refreshKeys.training}
           qualificationsRefreshKey={refreshKeys.qualifications}
+          staffAuthUserId={staffAuthUserId}
+          authUserStatus={authUserStatus}
+          onInvite={onInvite}
+          onCopyInviteUrl={onCopyInviteUrl}
+          onRevokeInvite={onRevokeInvite}
+          lastInviteUrl={lastInviteUrl}
+          inviting={inviting}
+          revoking={revoking}
+          isAdmin={isAdmin}
         />
       </div>
     </div>
