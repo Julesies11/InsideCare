@@ -326,14 +326,16 @@ export function StaffDetailContent({
           return prev;
         });
         if (latestOriginalData.current.status !== staffData.status) {
-          latestOriginalData.current = {
+          const updatedOriginal = {
             ...latestOriginalData.current,
             status: staffData.status ?? 'draft',
           };
+          latestOriginalData.current = updatedOriginal;
+          onOriginalDataChange?.(updatedOriginal);
         }
       }
     }
-  }, [staffData, hasInitialized]);
+  }, [staffData, hasInitialized, onOriginalDataChange]);
 
   useEffect(() => {
     if (hasInitialized && !staffLoading) {

@@ -76,4 +76,22 @@ describe('StaffPortalAccountCard', () => {
     fireEvent.click(inviteBtn);
     expect(onInvite).toHaveBeenCalledTimes(1);
   });
+
+  it('renders Draft profile helper notice and disables invite button when status is draft', () => {
+    renderWithProviders(
+      <StaffPortalAccountCard
+        staffId="staff-1"
+        email="jane.doe@insidecare.org"
+        staffAuthUserId={null}
+        authUserStatus={null}
+        staffEmploymentStatus="draft"
+        onInvite={async () => {}}
+        isAdmin={true}
+      />,
+    );
+
+    expect(screen.getByText(/Draft profile — activate employee to send portal invite/i)).toBeInTheDocument();
+    const inviteBtn = screen.getByRole('button', { name: /Send Portal Invite/i });
+    expect(inviteBtn).toBeDisabled();
+  });
 });
