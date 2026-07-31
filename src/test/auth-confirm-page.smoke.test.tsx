@@ -12,7 +12,7 @@ vi.mock('@/lib/supabase', () => ({
 }));
 
 describe('ConfirmPage Smoke Test', () => {
-  it('renders without crashing (No WSoD)', () => {
+  it('renders without crashing on missing parameters (No WSoD)', () => {
     const { container } = render(
       <MemoryRouter initialEntries={['/auth/confirm']}>
         <Routes>
@@ -21,8 +21,24 @@ describe('ConfirmPage Smoke Test', () => {
       </MemoryRouter>,
     );
 
-    // Verify main container renders and error boundary doesn't crash
+    // Verify main container renders and error state displays when parameters are missing
     expect(container).toBeDefined();
     expect(screen.getByText(/Verification Failed/i)).toBeInTheDocument();
   });
+
+  it('renders initial confirmation landing screen without crashing (No WSoD)', () => {
+    const { container } = render(
+      <MemoryRouter initialEntries={['/auth/confirm?token_hash=test&type=invite']}>
+        <Routes>
+          <Route path="/auth/confirm" element={<ConfirmPage />} />
+        </Routes>
+      </MemoryRouter>,
+    );
+
+    // Verify landing screen renders with primary CTA button
+    expect(container).toBeDefined();
+    expect(screen.getByText(/Accept Your Invitation/i)).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Confirm & Continue/i })).toBeInTheDocument();
+  });
 });
+
