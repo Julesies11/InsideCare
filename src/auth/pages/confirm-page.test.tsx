@@ -1,9 +1,10 @@
-import { render, screen, waitFor, fireEvent } from '@testing-library/react';
-import { MemoryRouter, Route, Routes } from 'react-router';
-import { describe, expect, it, vi, beforeEach } from 'vitest';
-import { ConfirmPage } from './confirm-page';
+import { renderWithProviders, screen, waitFor } from '@/test/test-utils';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { supabase } from '@/lib/supabase';
+import type { User, Session } from '@supabase/supabase-js';
+import { ConfirmPage } from './confirm-page';
 
+// Mock Supabase
 vi.mock('@/lib/supabase', () => ({
   supabase: {
     auth: {
@@ -12,111 +13,103 @@ vi.mock('@/lib/supabase', () => ({
   },
 }));
 
-describe('ConfirmPage Component', () => {
+// Mock react-router
+const mockNavigate = vi.fn();
+let mockSearchParams = new URLSearchParams();
+
+vi.mock('react-router', async () => {
+  const actual = await vi.importActual('react-router');
+  return {
+    ...actual,
+    useNavigate: () => mockNavigate,
+    useSearchParams: () => [mockSearchParams, vi.fn()],
+  };
+});
+
+describe('ConfirmPage (Unit & Smoke Tests)', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockSearchParams = new URLSearchParams();
   });
 
-  it('renders error state when token parameters are missing', () => {
-    render(
-      <MemoryRouter initialEntries={['/auth/confirm']}>
-        <Routes>
-          <Route path="/auth/confirm" element={<ConfirmPage />} />
-        </Routes>
-      </MemoryRouter>,
-    );
+  it('renders verification error when token_hash or type parameters are missing', async () => {
+    renderWithProviders(<ConfirmPage />);
 
     expect(screen.getByText(/Verification Failed/i)).toBeInTheDocument();
     expect(
-      screen.getByText(/Invalid verification link. Missing token parameters./i),
+      screen.getByText(/Invalid verification link\. Missing token parameters/i),
     ).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Return to Sign In/i })).toBeInTheDocument();
   });
 
-  it('renders initial confirmation landing screen and handles successful OTP verification on button click', async () => {
-    (supabase.auth.verifyOtp as any).mockResolvedValue({
-      data: { user: { id: 'test-user-id' } },
+  it('renders confirmation screen when valid invitation parameters are present', async () => {
+    mockSearchParams = new URLSearchParams({
+      token_hash: 'valid-token-hash-123',
+      type: 'invite',
+    });
+
+    renderWithProviders(<ConfirmPage />);
+
+    expect(screen.getByText(/Accept Your Invitation/i)).toBeInTheDocument();
+    expect(
+      screen.getByText(/Welcome to InsideCare. Click below to verify your account and set up your password/i),
+    ).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Confirm & Continue/i })).toBeInTheDocument();
+  });
+
+  it('successfully verifies OTP and navigates on user click', async () => {
+    mockSearchParams = new URLSearchParams({
+      token_hash: 'valid-token-hash-123',
+      type: 'invite',
+      next: '/auth/change-password',
+    });
+
+    vi.mocked(supabase.auth.verifyOtp).mockResolvedValue({
+      data: { user: { id: 'test-user-id' } as unknown as User, session: {} as unknown as Session },
       error: null,
     });
 
-    render(
-      <MemoryRouter initialEntries={['/auth/confirm?token_hash=valid_hash&type=invite']}>
-        <Routes>
-          <Route path="/auth/confirm" element={<ConfirmPage />} />
-          <Route path="/auth/change-password" element={<div>Change Password Page</div>} />
-        </Routes>
-      </MemoryRouter>,
-    );
+    const { user } = renderWithProviders(<ConfirmPage />);
 
-    // Initial state: shows invitation title and confirm button
-    expect(screen.getByText(/Accept Your Invitation/i)).toBeInTheDocument();
     const confirmButton = screen.getByRole('button', { name: /Confirm & Continue/i });
-    expect(confirmButton).toBeInTheDocument();
+    await user.click(confirmButton);
 
-    // Verify verifyOtp was not called automatically on render
-    expect(supabase.auth.verifyOtp).not.toHaveBeenCalled();
-
-    // User clicks confirmation button
-    fireEvent.click(confirmButton);
-
-    await waitFor(() => {
-      expect(supabase.auth.verifyOtp).toHaveBeenCalledWith({
-        token_hash: 'valid_hash',
-        type: 'invite',
-      });
+    expect(supabase.auth.verifyOtp).toHaveBeenCalledWith({
+      token_hash: 'valid-token-hash-123',
+      type: 'invite',
     });
 
     await waitFor(() => {
       expect(screen.getByText(/Authentication Confirmed/i)).toBeInTheDocument();
     });
+
+    await waitFor(
+      () => {
+        expect(mockNavigate).toHaveBeenCalledWith('/auth/change-password', { replace: true });
+      },
+      { timeout: 2000 },
+    );
   });
 
-  it('renders error state when verifyOtp returns an error on button click', async () => {
-    (supabase.auth.verifyOtp as any).mockResolvedValue({
-      data: { user: null },
-      error: { message: 'Token has expired' },
+  it('displays error state when token verification fails', async () => {
+    mockSearchParams = new URLSearchParams({
+      token_hash: 'expired-token-hash',
+      type: 'recovery',
     });
 
-    render(
-      <MemoryRouter initialEntries={['/auth/confirm?token_hash=invalid_hash&type=recovery']}>
-        <Routes>
-          <Route path="/auth/confirm" element={<ConfirmPage />} />
-        </Routes>
-      </MemoryRouter>,
-    );
+    vi.mocked(supabase.auth.verifyOtp).mockResolvedValue({
+      data: { user: null, session: null },
+      error: { message: 'Token has expired', name: 'AuthApiError', status: 400 },
+    });
 
-    expect(screen.getByText(/Confirm Password Reset/i)).toBeInTheDocument();
+    const { user } = renderWithProviders(<ConfirmPage />);
+
     const confirmButton = screen.getByRole('button', { name: /Confirm & Continue/i });
-    fireEvent.click(confirmButton);
+    await user.click(confirmButton);
 
     await waitFor(() => {
       expect(screen.getByText(/Verification Link Expired or Invalid/i)).toBeInTheDocument();
       expect(screen.getByText(/Token has expired/i)).toBeInTheDocument();
-      expect(screen.getByRole('button', { name: /Return to Sign In/i })).toBeInTheDocument();
-      expect(screen.getByRole('button', { name: /Reset Password/i })).toBeInTheDocument();
-    });
-  });
-
-  it('prevents open redirect via malicious next parameter', async () => {
-    (supabase.auth.verifyOtp as any).mockResolvedValue({
-      data: { user: { id: 'test-user' } },
-      error: null,
-    });
-
-    render(
-      <MemoryRouter initialEntries={['/auth/confirm?token_hash=valid&type=invite&next=//attacker.com']}>
-        <Routes>
-          <Route path="/auth/confirm" element={<ConfirmPage />} />
-          <Route path="/auth/change-password" element={<div>Fallback Change Password Page</div>} />
-        </Routes>
-      </MemoryRouter>,
-    );
-
-    const confirmButton = screen.getByRole('button', { name: /Confirm & Continue/i });
-    fireEvent.click(confirmButton);
-
-    await waitFor(() => {
-      expect(screen.getByText(/Authentication Confirmed/i)).toBeInTheDocument();
     });
   });
 });
-

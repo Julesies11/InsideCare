@@ -81,12 +81,13 @@ export function ConfirmPage() {
           }
         }, 800);
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Failed to verify authentication token:', err);
       if (isMountedRef.current) {
         setStatus('error');
+        const message = err instanceof Error ? err.message : '';
         setErrorMessage(
-          err.message || 'Verification token has expired or is invalid. If your account is already active, you can sign in directly or request a password reset below.',
+          message || 'Verification token has expired or is invalid. If your account is already active, you can sign in directly or request a password reset below.',
         );
       }
     }
