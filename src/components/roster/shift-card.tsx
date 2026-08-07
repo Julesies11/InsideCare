@@ -58,7 +58,7 @@ interface ShiftCardProps {
   onClick: (e?: React.MouseEvent) => void;
   onWriteNote?: (shift: ShiftCardData) => void;
   onNotesClick?: (shift: ShiftCardData) => void;
-  staffList?: Array<{ id: string; name: string }>;
+  staffList?: Array<{ id: string; name?: string; staff_name?: string }>;
   onQuickAssign?: (shiftId: string, staffId: string) => void;
   availabilityBlocks?: any[];
   leaveBlocks?: any[];

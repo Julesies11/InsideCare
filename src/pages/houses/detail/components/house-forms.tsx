@@ -899,7 +899,7 @@ export function HouseForms({
               className="space-y-4 py-4"
             >
               <FormField
-                control={form.control}
+                control={form.control as any}
                 name="name"
                 render={({ field }) => (
                   <FormItem>
@@ -912,7 +912,7 @@ export function HouseForms({
                 )}
               />
               <FormField
-                control={form.control}
+                control={form.control as any}
                 name="type"
                 render={({ field }) => (
                   <FormItem>
@@ -945,7 +945,7 @@ export function HouseForms({
                 )}
               />
               <FormField
-                control={form.control}
+                control={form.control as any}
                 name="description"
                 render={({ field }) => (
                   <FormItem>
@@ -962,7 +962,7 @@ export function HouseForms({
                 )}
               />
               <FormField
-                control={form.control}
+                control={form.control as any}
                 name="status"
                 render={({ field }) => (
                   <FormItem>
@@ -987,7 +987,7 @@ export function HouseForms({
                 )}
               />
               <FormField
-                control={form.control}
+                control={form.control as any}
                 name="is_global"
                 render={({ field }) => (
                   <FormItem>
@@ -1015,7 +1015,7 @@ export function HouseForms({
                 <Button type="submit" variant="primary">
                   Save
                 </Button>
-              </DialogFooter>
+                </DialogFooter>
             </form>
           </Form>
         </DialogContent>
@@ -1043,7 +1043,7 @@ export function HouseForms({
               className="space-y-4 py-4"
             >
               <FormField
-                control={assignmentForm.control}
+                control={assignmentForm.control as any}
                 name="participant_id"
                 render={({ field }) => (
                   <FormItem>
@@ -1074,7 +1074,7 @@ export function HouseForms({
                 )}
               />
               <FormField
-                control={assignmentForm.control}
+                control={assignmentForm.control as any}
                 name="staff_id"
                 render={({ field }) => (
                   <FormItem>
@@ -1141,7 +1141,7 @@ export function HouseForms({
                 )}
               />
               <FormField
-                control={assignmentForm.control}
+                control={assignmentForm.control as any}
                 name="due_date"
                 render={({ field }) => (
                   <FormItem>
@@ -1154,7 +1154,7 @@ export function HouseForms({
                 )}
               />
               <FormField
-                control={assignmentForm.control}
+                control={assignmentForm.control as any}
                 name="status"
                 render={({ field }) => (
                   <FormItem>
@@ -1180,7 +1180,7 @@ export function HouseForms({
                 )}
               />
               <FormField
-                control={assignmentForm.control}
+                control={assignmentForm.control as any}
                 name="notes"
                 render={({ field }) => (
                   <FormItem>

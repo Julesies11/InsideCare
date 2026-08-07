@@ -109,7 +109,7 @@ export function StaffDeactivationDialog({
 
             <Button
               type="button"
-              variant={hasPortalAccess ? 'outline' : 'default'}
+              variant={hasPortalAccess ? 'outline' : 'destructive'}
               className={
                 !hasPortalAccess ? 'bg-amber-600 hover:bg-amber-700 text-white font-medium' : ''
               }

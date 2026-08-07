@@ -65,15 +65,16 @@ export function ComplianceReportPage() {
 
   useEffect(() => {
     if (isSuccess && !prefLoaded) {
-      if (preferences && preferences.criteria) {
+      if (preferences && (preferences as any).criteria) {
+        const prefCriteria = (preferences as any).criteria;
         setCriteria((prev) => ({
           ...prev,
-          ...preferences.criteria,
+          ...prefCriteria,
           // Ensure we don't restore 'house' grouping if it was previously saved
           groupBy:
-            preferences.criteria.groupBy === 'house'
+            prefCriteria.groupBy === 'house'
               ? 'staff'
-              : preferences.criteria.groupBy || 'staff',
+              : prefCriteria.groupBy || 'staff',
         }));
       }
       setPrefLoaded(true);

@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { AccountSettingsSidebar } from '@/pages/account/home/settings-sidebar';
+import { AccountSettingsSidebar } from './account-basic-sidebar';
 import { cn } from '@/lib/utils';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useScrollPosition } from '@/hooks/use-scroll-position';

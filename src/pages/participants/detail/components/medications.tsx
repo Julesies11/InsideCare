@@ -467,7 +467,7 @@ export function Medications({
               className="space-y-4 py-2"
             >
               <FormField
-                control={form.control}
+                control={form.control as any}
                 name="medication_id"
                 render={({ field }) => (
                   <FormItem>
@@ -485,7 +485,7 @@ export function Medications({
               />
 
               <FormField
-                control={form.control}
+                control={form.control as any}
                 name="is_prn"
                 render={({ field }) => (
                   <FormItem className="space-y-2">
@@ -516,7 +516,7 @@ export function Medications({
               />
 
               <FormField
-                control={form.control}
+                control={form.control as any}
                 name="is_active"
                 render={({ field }) => (
                   <FormItem className="flex items-center justify-between rounded-lg border p-3 shadow-sm">

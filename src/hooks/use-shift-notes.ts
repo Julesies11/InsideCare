@@ -196,7 +196,7 @@ export function useUpdateShiftNote() {
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.SHIFT_NOTES] });
-      if (data.shift_id) {
+      if (data?.shift_id) {
         queryClient.invalidateQueries({
           queryKey: [QUERY_KEYS.SHIFT_NOTES, { shiftId: data.shift_id }],
         });

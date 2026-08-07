@@ -129,7 +129,7 @@ export function MedicationMasterQuickAdd({
           >
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <FormField
-                control={form.control}
+                control={form.control as any}
                 name="medication_name"
                 render={({ field }) => (
                   <FormItem>
@@ -142,7 +142,7 @@ export function MedicationMasterQuickAdd({
                 )}
               />
               <FormField
-                control={form.control}
+                control={form.control as any}
                 name="brand_name"
                 render={({ field }) => (
                   <FormItem>
@@ -158,7 +158,7 @@ export function MedicationMasterQuickAdd({
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <FormField
-                control={form.control}
+                control={form.control as any}
                 name="type_id"
                 render={({ field }) => (
                   <FormItem>
@@ -183,7 +183,7 @@ export function MedicationMasterQuickAdd({
                 )}
               />
               <FormField
-                control={form.control}
+                control={form.control as any}
                 name="sub_class"
                 render={({ field }) => (
                   <FormItem>
@@ -198,7 +198,7 @@ export function MedicationMasterQuickAdd({
             </div>
 
             <FormField
-              control={form.control}
+              control={form.control as any}
               name="side_effects"
               render={({ field }) => (
                 <FormItem>
@@ -215,7 +215,7 @@ export function MedicationMasterQuickAdd({
               )}
             />
             <FormField
-              control={form.control}
+              control={form.control as any}
               name="interactions"
               render={({ field }) => (
                 <FormItem>
@@ -232,7 +232,7 @@ export function MedicationMasterQuickAdd({
               )}
             />
             <FormField
-              control={form.control}
+              control={form.control as any}
               name="is_active"
               render={({ field }) => (
                 <FormItem>
