@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { ArrowDown, ArrowUp, ArrowUpDown, Edit, Plus } from 'lucide-react';
+import { Edit, Plus } from 'lucide-react';
 import { toast } from 'sonner';
 import { masterListsApi } from '@/api/master-lists.api';
 import { TABLES } from '@/config/db-tables';
@@ -22,6 +22,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import { SortIcon } from '@/components/common/sort-icon';
 import { ClinicalTrackerMasterQuickAdd } from './clinical-tracker-master-quick-add';
 
 interface ClinicalTrackerMasterDialogProps {
@@ -130,16 +131,6 @@ export function ClinicalTrackerMasterDialog({
     }
   };
 
-  const SortIcon = ({ field }: { field: SortField }) => {
-    if (sortField !== field)
-      return <ArrowUpDown className="size-4 ms-1 inline opacity-30" />;
-    return sortDirection === 'asc' ? (
-      <ArrowUp className="size-4 ms-1 inline" />
-    ) : (
-      <ArrowDown className="size-4 ms-1 inline" />
-    );
-  };
-
   return (
     <>
       <Dialog open={open} onOpenChange={onClose}>
@@ -189,14 +180,22 @@ export function ClinicalTrackerMasterDialog({
                       onClick={() => handleSort('name')}
                     >
                       Option Name
-                      <SortIcon field="name" />
+                      <SortIcon
+                        field="name"
+                        currentField={sortField}
+                        direction={sortDirection}
+                      />
                     </TableHead>
                     <TableHead
                       className="cursor-pointer select-none"
                       onClick={() => handleSort('is_active')}
                     >
                       Status
-                      <SortIcon field="is_active" />
+                      <SortIcon
+                        field="is_active"
+                        currentField={sortField}
+                        direction={sortDirection}
+                      />
                     </TableHead>
                     <TableHead className="text-right">Actions</TableHead>
                   </TableRow>

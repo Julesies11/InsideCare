@@ -1,9 +1,6 @@
 import { useMemo, useState } from 'react';
 import {
   AlertTriangle,
-  ArrowDown,
-  ArrowUp,
-  ArrowUpDown,
   ClipboardCheck,
   Edit,
   Plus,
@@ -44,6 +41,7 @@ import {
 } from '@/components/ui/table';
 import { Textarea } from '@/components/ui/textarea';
 import { Container } from '@/components/common/container';
+import { SortIcon } from '@/components/common/sort-icon';
 
 type SortField = 'item_name' | 'sort_order' | 'is_active';
 type SortDirection = 'asc' | 'desc';
@@ -174,16 +172,6 @@ export function OnboardingSettingsPage() {
     }
   };
 
-  const SortIcon = ({ field }: { field: SortField }) => {
-    if (sortField !== field)
-      return <ArrowUpDown className="size-3.5 ms-2 text-muted-foreground/50" />;
-    return sortDirection === 'asc' ? (
-      <ArrowUp className="size-3.5 ms-2 text-primary" />
-    ) : (
-      <ArrowDown className="size-3.5 ms-2 text-primary" />
-    );
-  };
-
   return (
     <Container>
       <div className="flex flex-col gap-6">
@@ -254,21 +242,33 @@ export function OnboardingSettingsPage() {
                         onClick={() => handleSort('sort_order')}
                       >
                         Order
-                        <SortIcon field="sort_order" />
+                        <SortIcon
+                          field="sort_order"
+                          currentField={sortField}
+                          direction={sortDirection}
+                        />
                       </TableHead>
                       <TableHead
                         className="w-[50%] cursor-pointer select-none"
                         onClick={() => handleSort('item_name')}
                       >
                         Task Name
-                        <SortIcon field="item_name" />
+                        <SortIcon
+                          field="item_name"
+                          currentField={sortField}
+                          direction={sortDirection}
+                        />
                       </TableHead>
                       <TableHead
                         className="w-[20%] cursor-pointer select-none text-center"
                         onClick={() => handleSort('is_active')}
                       >
                         Status
-                        <SortIcon field="is_active" />
+                        <SortIcon
+                          field="is_active"
+                          currentField={sortField}
+                          direction={sortDirection}
+                        />
                       </TableHead>
                       <TableHead className="w-[20%] text-right">
                         Actions
