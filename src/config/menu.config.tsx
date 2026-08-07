@@ -1,4 +1,4 @@
-import { MenuItemConfig } from '@/layouts/demo1/sidebar/SidebarMenu';
+import { MenuItem as MenuItemConfig } from '@/config/types';
 import {
   Activity,
   BarChart3,
@@ -6,7 +6,6 @@ import {
   CheckSquare,
   ClipboardList,
   Clock,
-  FileText,
   Home,
   LogOut,
   Settings,
@@ -236,3 +235,10 @@ export const MENU_SIDEBAR: MenuItemConfig[] = [
     permission: RBAC_MODULES.ACTIVITY_LOG,
   },
 ];
+
+export const MENU_MEGA: MenuItemConfig[] = [];
+export const MENU_ROOT: MenuItemConfig[] = [];
+export const MENU_MEGA_MOBILE: MenuItemConfig[] = [];
+export const MENU_SIDEBAR_COMPACT: MenuItemConfig[] = [];
+export const MENU_SIDEBAR_CUSTOM: MenuItemConfig[] = [];
+export const MENU_HELP: MenuItemConfig[] = [];

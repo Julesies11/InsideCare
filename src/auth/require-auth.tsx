@@ -1,5 +1,6 @@
 import { Navigate, Outlet, useLocation } from 'react-router';
 import { ROUTES } from '@/config/routes.config';
+import { RBACModule } from '@/config/rbac-modules';
 import { ACCESS_LEVEL, useRBAC } from '@/hooks/useRBAC';
 import { ScreenLoader } from '@/components/common/screen-loader';
 import { useAuth } from './context/auth-context';
@@ -32,13 +33,13 @@ export const RequirePermission = ({
     if (Array.isArray(module)) {
       return module.some((m) =>
         hasAccess({
-          resource: m,
+          resource: m as RBACModule,
           requiredLevel: ACCESS_LEVEL.CONTEXT_READ_ONLY,
         }),
       );
     }
     return hasAccess({
-      resource: module,
+      resource: module as RBACModule,
       requiredLevel: ACCESS_LEVEL.CONTEXT_READ_ONLY,
     });
   };

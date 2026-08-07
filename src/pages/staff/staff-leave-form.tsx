@@ -333,7 +333,7 @@ export function StaffLeaveForm() {
                     {canManageLeaveTypes && (
                       <Button
                         type="button"
-                        variant="link"
+                        variant="ghost"
                         size="sm"
                         className="h-auto p-0 text-primary font-medium flex items-center gap-1"
                         onClick={() => setShowManageDialog(true)}

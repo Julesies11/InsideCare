@@ -133,7 +133,7 @@ export function HouseDocuments({
       documents: {
         ...pendingChanges.documents,
         toAdd: pendingChanges.documents.toAdd.filter(
-          (doc) => doc.tempId !== tempId,
+          (doc: any) => doc.tempId !== tempId,
         ),
       },
     };
@@ -149,7 +149,7 @@ export function HouseDocuments({
       documents: {
         ...pendingChanges.documents,
         toDelete: pendingChanges.documents.toDelete.filter(
-          (doc) => doc.id !== id,
+          (doc: any) => doc.id !== id,
         ),
       },
     };
@@ -159,9 +159,9 @@ export function HouseDocuments({
 
   // Filter out documents marked for deletion
   const visibleDocuments = houseDocuments.filter(
-    (doc) =>
+    (doc: any) =>
       !pendingChanges?.documents.toDelete.some(
-        (pending) => pending.id === doc.id,
+        (pending: any) => pending.id === doc.id,
       ),
   );
 
@@ -213,10 +213,10 @@ export function HouseDocuments({
                 </TableHeader>
                 <TableBody>
                   {/* Existing documents */}
-                  {visibleDocuments.map((doc) => {
+                  {visibleDocuments.map((doc: any) => {
                     const isPendingDelete =
                       pendingChanges?.documents.toDelete.some(
-                        (pending) => pending.id === doc.id,
+                        (pending: any) => pending.id === doc.id,
                       );
                     return (
                       <ContextMenu key={doc.id}>
@@ -355,7 +355,7 @@ export function HouseDocuments({
                   })}
 
                   {/* Pending uploads */}
-                  {pendingChanges?.documents.toAdd.map((pending) => (
+                  {pendingChanges?.documents.toAdd.map((pending: any) => (
                     <TableRow key={pending.tempId} className="bg-primary/5">
                       <TableCell>
                         <div className="flex items-center gap-2">

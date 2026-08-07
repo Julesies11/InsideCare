@@ -79,9 +79,9 @@ class SignedUrlBatcherClass {
       >();
 
       const chunkPromises = chunks.map(async (chunk) => {
-        const { data, error } = await supabase.storage
-          .from(bucket)
-          .createSignedUrls(chunk, expiresIn);
+        const { data, error } = await (
+          supabase.storage.from(bucket) as any
+        ).createSignedUrls(chunk, expiresIn);
 
         if (error) {
           console.error(
@@ -92,7 +92,7 @@ class SignedUrlBatcherClass {
         }
 
         if (data) {
-          data.forEach((result) => {
+          data.forEach((result: any) => {
             if (result.path && result.signedUrl) {
               resultsMap.set(result.path, {
                 signedUrl: result.signedUrl,

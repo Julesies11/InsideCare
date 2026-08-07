@@ -436,7 +436,7 @@ export function MyAvailabilityPage() {
                       </CardTitle>
                       <Button
                         variant="outline"
-                        size="xs"
+                        size="sm"
                         onClick={() => handleAddRecurringBlock(day.value)}
                         className="h-8 gap-1 font-bold text-xs"
                       >

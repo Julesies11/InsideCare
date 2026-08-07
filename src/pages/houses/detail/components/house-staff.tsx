@@ -132,7 +132,7 @@ export function HouseStaff({
           ...pendingChanges,
           staff: {
             ...pendingChanges.staff,
-            toAdd: pendingChanges.staff.toAdd.map((staff) =>
+            toAdd: pendingChanges.staff.toAdd.map((staff: any) =>
               staff.tempId === editingStaff.tempId
                 ? { ...staff, ...payload }
                 : staff,
@@ -150,7 +150,7 @@ export function HouseStaff({
               ...pendingChanges.staff.toUpdate.filter(
                 (s) => s.id !== editingStaff.id,
               ),
-              { id: editingStaff.id, ...payload },
+              { id: editingStaff.id, ...(payload as any) },
             ],
           },
         };
@@ -163,7 +163,7 @@ export function HouseStaff({
         ...pendingChanges,
         staff: {
           ...pendingChanges.staff,
-          toAdd: [...pendingChanges.staff.toAdd, { tempId, ...payload }],
+          toAdd: [...pendingChanges.staff.toAdd, { tempId, ...(payload as any) }],
         },
       };
       onPendingChangesChange(newPending);

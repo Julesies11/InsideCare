@@ -4,6 +4,7 @@ import { QUERY_KEYS } from '@/config/query-keys';
 
 export interface ParticipantGoal {
   id: string;
+  tempId?: string;
   participant_id: string;
   goal_type: 'ndis' | 'identified';
   description: string;

@@ -208,3 +208,14 @@ The application implements a white-labeled, zero-leak email architecture powered
 - **Unified Email Design System**: All notification emails utilize a standardized HTML template (`renderEmailTemplate`) with centered card formatting, custom typography, brand header logos, and primary action buttons.
 - **Header Topbar Elevation (`z-30`)**: Fixed header layouts feature an elevated `z-30` stacking context, ensuring that topbar components (User Avatar Dropdown and Notification Sheet) remain fully interactive and unobscured by sticky page headers or sidebars.
 - **Client Confirmation Route (`/auth/confirm`)**: A dedicated `<ConfirmPage />` component extracts single-use token hashes (`token_hash`), validates them with `supabase.auth.verifyOtp`, and safely navigates users to `/auth/change-password` without risk of open-redirect vulnerabilities.
+
+## 13. Reusable UI Components & Table Helpers
+
+Centralized, highly-optimized components following Metronic design guidelines.
+
+- **Shared `SortIcon` Component (`@/components/common/sort-icon`)**:
+  - **Single Source of Truth**: Centralized, memoized component replacing redundant inline sort icon logic across all master list dialogs and pages (Contact Types, Medication Register, Medication Master, Leave Types, Compliance Settings, Clinical Trackers, and Onboarding Settings).
+  - **Dual Compatibility**: Polymorphic interface `<T extends string = string>` supporting both component local state (`currentField` + `direction`) and TanStack DataGrid state (`activeSort`).
+  - **Accessibility Compliant**: Enforces WCAG screen-reader standards by applying `aria-hidden="true"` to decorative sorting icons.
+  - **High-Performance**: Wrapped in `React.memo` and integrated with `cn()` utility for fast renders and flexible class overrides.
+

@@ -724,7 +724,7 @@ export function Documents({
                                     </span>
                                     <Badge
                                       variant={
-                                        isOverride ? 'default' : 'outline'
+                                        isOverride ? 'secondary' : 'outline'
                                       }
                                       className={cn(
                                         'text-[9px] py-0 px-1.5 h-4 border-none font-bold uppercase tracking-tight shrink-0',

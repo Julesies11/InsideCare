@@ -1,5 +1,5 @@
-import { RiFacebookBoxLine, RiInstagramLine } from '@remixicon/react';
-import { Dribbble, EllipsisVertical, Mails, MapPin } from 'lucide-react';
+import { RiDribbbleLine, RiFacebookBoxLine, RiInstagramLine } from '@remixicon/react';
+import { EllipsisVertical, Mails, MapPin } from 'lucide-react';
 import { Link } from 'react-router';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -64,7 +64,7 @@ const CardUserSocialRow = ({
               />
             </Link>
             <Link to="#">
-              <Dribbble size={20} className="text-secondary-foreground " />
+              <RiDribbbleLine size={20} className="text-secondary-foreground " />
             </Link>
             <Link to="#">
               <RiInstagramLine

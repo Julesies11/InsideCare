@@ -8,3 +8,4 @@ export * from './service-providers';
 export * from './notes';
 export * from './restrictive-practices';
 export * from './shift-notes';
+export * from './account-basic-content';

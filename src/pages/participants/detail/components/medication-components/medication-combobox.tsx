@@ -1,4 +1,3 @@
-import * as React from 'react';
 import { useState } from 'react';
 import { useMedicationsMaster } from '@/hooks/use-medications-master';
 import { Button, ButtonArrow } from '@/components/ui/button';

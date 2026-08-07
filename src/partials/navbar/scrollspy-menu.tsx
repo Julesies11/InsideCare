@@ -5,6 +5,7 @@ export interface ScrollspyMenuItem {
   target?: string;
   active?: boolean;
   children?: ScrollspyMenuItem[];
+  hidden?: boolean;
 }
 export type ScrollspyMenuItems = Array<ScrollspyMenuItem>;
 
@@ -54,13 +55,16 @@ const ScrollspyMenu = ({ items }: ScrollspyMenuProps) => {
   };
 
   const buildSubAnchors = (items: ScrollspyMenuItems) => {
-    return items.map((item, index) => {
-      return buildAnchor(item, index, true, index === items.length - 1);
+    const visible = items.filter((item) => !item.hidden);
+    return visible.map((item, index) => {
+      return buildAnchor(item, index, true, index === visible.length - 1);
     });
   };
 
   const renderChildren = (items: ScrollspyMenuItems) => {
-    return items.map((item, index) => {
+    return items
+      .filter((item) => !item.hidden)
+      .map((item, index) => {
       if (item.children) {
         return (
           <div key={index} className="flex flex-col">

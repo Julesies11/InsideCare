@@ -681,7 +681,7 @@ export function HouseForms({
                                 </TableRow>
                               </TableHeader>
                               <TableBody>
-                                {assignments.map((assignment) => {
+                                {assignments.map((assignment: any) => {
                                   const isAssignmentPendingAdd =
                                     'tempId' in assignment;
                                   const isAssignmentPendingUpdate =

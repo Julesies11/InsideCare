@@ -1570,7 +1570,7 @@ export function ParticipantsReportPage() {
                         </h3>
 
                         <div className="space-y-5">
-                          {shiftNotes.slice(0, 10).map((note) => (
+                          {shiftNotes.slice(0, 10).map((note: any) => (
                             <div
                               key={note.id}
                               className="p-4 border border-gray-100 rounded-xl bg-gray-50/50 text-xs space-y-2"

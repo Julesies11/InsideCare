@@ -1,5 +1,5 @@
-import { RiFacebookBoxLine, RiInstagramLine } from '@remixicon/react';
-import { Dribbble, Mails } from 'lucide-react';
+import { RiDribbbleLine, RiFacebookBoxLine, RiInstagramLine } from '@remixicon/react';
+import { Mails } from 'lucide-react';
 import { Link } from 'react-router';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
@@ -65,7 +65,7 @@ const CardUserSocial = ({
             />
           </Link>
           <Link to="#">
-            <Dribbble size={20} className="text-secondary-foreground " />
+            <RiDribbbleLine size={20} className="text-secondary-foreground " />
           </Link>
           <Link to="#">
             <RiInstagramLine

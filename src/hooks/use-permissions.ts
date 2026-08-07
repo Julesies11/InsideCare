@@ -1,4 +1,5 @@
 import { useAuth } from '@/auth/context/auth-context';
+import { RBACModule } from '@/config/rbac-modules';
 import { ACCESS_LEVEL, AccessLevel, useRBAC } from './useRBAC';
 
 export type PermissionModule =
@@ -35,13 +36,13 @@ export function usePermissions() {
     if (Array.isArray(module)) {
       return module.some((m) =>
         hasAccess({
-          resource: m,
+          resource: m as RBACModule,
           requiredLevel: ACCESS_LEVEL.CONTEXT_READ_ONLY,
         }),
       );
     }
     return hasAccess({
-      resource: module,
+      resource: module as RBACModule,
       requiredLevel: ACCESS_LEVEL.CONTEXT_READ_ONLY,
     });
   };
@@ -50,13 +51,13 @@ export function usePermissions() {
     if (Array.isArray(module)) {
       return module.some((m) =>
         hasAccess({
-          resource: m,
+          resource: m as RBACModule,
           requiredLevel: ACCESS_LEVEL.CONTEXT_READ_WRITE,
         }),
       );
     }
     return hasAccess({
-      resource: module,
+      resource: module as RBACModule,
       requiredLevel: ACCESS_LEVEL.CONTEXT_READ_WRITE,
     });
   };
