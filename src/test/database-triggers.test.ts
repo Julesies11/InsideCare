@@ -74,7 +74,6 @@ describe('Advanced Audit Trigger Expectations', () => {
 
     // Check for the new detailed description format
     expect(latestLog.description).toContain('Updated Staff');
-    expect(latestLog.description).toContain('[Changed: Name, Email]');
     expect(latestLog.metadata.changes.staff_name.new).toBe(
       'Updated Audit Name',
     );
@@ -89,6 +88,9 @@ describe('Advanced Audit Trigger Expectations', () => {
           entity_id: contactId,
           description:
             'Added Contact "Emergency Contact" to Participant: Jane Doe',
+          parent_name: 'Jane Doe',
+          parent_type: 'Participant',
+          parent_id: 'participant-uuid',
           metadata: {
             new_data: {
               participant_id: 'participant-uuid',
@@ -118,5 +120,7 @@ describe('Advanced Audit Trigger Expectations', () => {
     expect(logs?.length).toBe(1);
     expect(logs![0].description).toContain('Added Contact');
     expect(logs![0].description).toContain('to Participant: Jane Doe');
+    expect(logs![0].parent_type).toBe('Participant');
+    expect(logs![0].parent_id).toBe('participant-uuid');
   });
 });

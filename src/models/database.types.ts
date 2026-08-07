@@ -3825,27 +3825,33 @@ export type Database = {
       ic_report_preferences: {
         Row: {
           created_at: string | null
+          created_by: string | null
           criteria: Json
           id: string
           report_type: string
           staff_id: string
           updated_at: string | null
+          updated_by: string | null
         }
         Insert: {
           created_at?: string | null
+          created_by?: string | null
           criteria: Json
           id?: string
           report_type: string
           staff_id: string
           updated_at?: string | null
+          updated_by?: string | null
         }
         Update: {
           created_at?: string | null
+          created_by?: string | null
           criteria?: Json
           id?: string
           report_type?: string
           staff_id?: string
           updated_at?: string | null
+          updated_by?: string | null
         }
         Relationships: [
           {

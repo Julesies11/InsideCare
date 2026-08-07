@@ -48,7 +48,7 @@ describe('Medication Type Mutation Hooks', () => {
   });
 
   describe('useAddMedicationType', () => {
-    it('should call API and log activity on success', async () => {
+    it('should call API on success', async () => {
       const mockData = { id: '1', medication_type_name: 'New Type' };
       (
         masterListsApi.medications.createMedicationType as any
@@ -61,19 +61,11 @@ describe('Medication Type Mutation Hooks', () => {
       expect(
         masterListsApi.medications.createMedicationType,
       ).toHaveBeenCalledWith('New Type');
-      expect(logActivity).toHaveBeenCalledWith(
-        expect.objectContaining({
-          activityType: 'create',
-          entityType: 'medication_type_master',
-          entityId: '1',
-          entityName: 'New Type',
-        }),
-      );
     });
   });
 
   describe('useUpdateMedicationType', () => {
-    it('should call API and log activity on success', async () => {
+    it('should call API on success', async () => {
       const mockData = { id: '1', medication_type_name: 'Updated Type' };
       (
         masterListsApi.medications.updateMedicationType as any
@@ -95,20 +87,11 @@ describe('Medication Type Mutation Hooks', () => {
         name: 'Updated Type',
         is_active: undefined,
       });
-      expect(logActivity).toHaveBeenCalledWith(
-        expect.objectContaining({
-          activityType: 'update',
-          entityType: 'medication_type_master',
-          changes: {
-            medication_type_name: { old: 'Old Type', new: 'Updated Type' },
-          },
-        }),
-      );
     });
   });
 
   describe('useDeleteMedicationType', () => {
-    it('should call API and log activity on success', async () => {
+    it('should call API on success', async () => {
       (
         masterListsApi.medications.deleteMedicationType as any
       ).mockResolvedValue(undefined);
@@ -122,13 +105,6 @@ describe('Medication Type Mutation Hooks', () => {
       expect(
         masterListsApi.medications.deleteMedicationType,
       ).toHaveBeenCalledWith('1');
-      expect(logActivity).toHaveBeenCalledWith(
-        expect.objectContaining({
-          activityType: 'delete',
-          entityType: 'medication_type_master',
-          entityName: 'Type to Delete',
-        }),
-      );
     });
   });
 });

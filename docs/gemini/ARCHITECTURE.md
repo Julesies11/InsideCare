@@ -121,11 +121,16 @@ The Roster module implements a highly optimized data fetching and rendering stra
 - **Deferred Query Loading (`enabled` Pattern)**: Form and dialog components (e.g., `ShiftDialog`, `BulkActionModal`, `HouseChecklistSetup`) defer loading heavy master lists (such as all active participants, houses, or staff) by binding the React Query `enabled` option to the visibility/open state of the dialog or dropdown. This avoids redundant query executions on initial page load.
 - **`useHouseStaffAssignments` Fetch Safety**: The query hook is guarded by default (`enabled: options?.enabled !== undefined ? options.enabled : !!houseId`) to prevent network calls when `houseId` is undefined, while still allowing callers to manually control the query lifecycle.
 
-## 5. Activity Logging & Auditing (Gold Standard)
+## 5. Activity Logging & Auditing (Gold Standard - July 31, 2026)
 
-Every operational table includes standard audit columns (`created_at`, `created_by`, etc.) managed at the database level via triggers.
+InsideCare implements a Gold Standard, zero-overhead, database-driven auditing system:
 
-- **Business-Level Auditing**: The `ic_activity_log` table provides a human-readable story of the data's lifecycle, managing Aggregate Root resolution (e.g., linking child changes back to the Participant).
+- **Database-Level Auto-Auditing**: Audit logging is 100% database-driven via PostgreSQL triggers (`ic_trigger_set_audit_columns` and `ic_trigger_audit_log`).
+- **Dynamic 100% Table Discovery**: Every domain and operational table in the `public` schema is dynamically attached to audit triggers, capturing `create`, `update`, and `delete` operations without manual configuration.
+- **Smart Aggregate Root Linking**: Automatically tracks parent entity associations (`parent_id`, `parent_type`, `parent_name`), linking sub-entity changes (such as contacts, shift notes, compliance items, or checklist submissions) directly back to their aggregate root entity (`Participant`, `Staff`, or `House`).
+- **Field-Level Diffing & Context**: Captures exact field mutation diffs in `metadata->'changes'` while capturing client request metadata (IP address and User-Agent).
+- **Append-Only Security**: The `ic_activity_log` table enforces append-only RLS security (SELECT permitted for authorized tenant roles; UPDATE and DELETE disallowed).
+- **Zero Frontend Duplication**: Frontend components and mutation hooks MUST NOT issue manual activity log API calls. Client-side activity logger utilities (`logActivity`) act as safe no-ops to eliminate duplicate log entries.
 
 ## 6. UI & Styling
 
