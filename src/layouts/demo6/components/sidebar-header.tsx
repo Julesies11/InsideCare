@@ -19,7 +19,7 @@ export function SidebarHeader() {
   const handleInputChange = () => {};
 
   useEffect(() => {
-    MENU_ROOT.forEach((item) => {
+    MENU_ROOT.forEach((item: any) => {
       if (item.rootPath && pathname.includes(item.rootPath)) {
         setSelectedMenuItem(item);
       }
@@ -48,7 +48,7 @@ export function SidebarHeader() {
             <ChevronDown className="size-3.5! text-muted-foreground" />
           </DropdownMenuTrigger>
           <DropdownMenuContent sideOffset={10} side="bottom" align="start">
-            {MENU_ROOT.map((item, index) => (
+            {MENU_ROOT.map((item: any, index: number) => (
               <DropdownMenuItem
                 key={index}
                 asChild

@@ -1,6 +1,6 @@
-import { useMemo, useState } from 'react';
+import { useState } from 'react';
 import { MedicationMaster } from '@/models/medication-master';
-import { ArrowDown, ArrowUp, ArrowUpDown, Edit, Plus } from 'lucide-react';
+import { Edit, Plus } from 'lucide-react';
 import { toast } from 'sonner';
 import {
   useAddMedicationMaster,
@@ -24,6 +24,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import { SortIcon } from '@/components/common/sort-icon';
 import { MedicationMasterQuickAdd } from './medication-master-quick-add';
 
 interface MedicationMasterDialogProps {
@@ -145,16 +146,6 @@ export function MedicationMasterDialog({
     }
   };
 
-  const SortIcon = ({ field }: { field: SortField }) => {
-    if (sortField !== field)
-      return <ArrowUpDown className="size-4 ms-1 inline opacity-30" />;
-    return sortDirection === 'asc' ? (
-      <ArrowUp className="size-4 ms-1 inline" />
-    ) : (
-      <ArrowDown className="size-4 ms-1 inline" />
-    );
-  };
-
   return (
     <>
       <Dialog open={open} onOpenChange={onClose}>
@@ -207,21 +198,33 @@ export function MedicationMasterDialog({
                       onClick={() => handleSort('medication_name')}
                     >
                       Generic Name
-                      <SortIcon field="medication_name" />
+                      <SortIcon
+                        field="medication_name"
+                        currentField={sortField}
+                        direction={sortDirection}
+                      />
                     </TableHead>
                     <TableHead
                       className="cursor-pointer select-none"
                       onClick={() => handleSort('brand_name')}
                     >
                       Brand Name
-                      <SortIcon field="brand_name" />
+                      <SortIcon
+                        field="brand_name"
+                        currentField={sortField}
+                        direction={sortDirection}
+                      />
                     </TableHead>
                     <TableHead
                       className="cursor-pointer select-none"
                       onClick={() => handleSort('type_id')}
                     >
                       Type
-                      <SortIcon field="type_id" />
+                      <SortIcon
+                        field="type_id"
+                        currentField={sortField}
+                        direction={sortDirection}
+                      />
                     </TableHead>
                     <TableHead>General Side Effects</TableHead>
                     <TableHead>Contraindication/Interactions</TableHead>
@@ -230,7 +233,11 @@ export function MedicationMasterDialog({
                       onClick={() => handleSort('is_active')}
                     >
                       Status
-                      <SortIcon field="is_active" />
+                      <SortIcon
+                        field="is_active"
+                        currentField={sortField}
+                        direction={sortDirection}
+                      />
                     </TableHead>
                     <TableHead className="text-right">Actions</TableHead>
                   </TableRow>

@@ -41,6 +41,7 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { CHECKLIST_STATUS, STATUS } from '@/config/enums';
+import { TABLES } from '@/config/db-tables';
 import { QUERY_KEYS } from '@/config/query-keys';
 import { cn } from '@/lib/utils';
 import { supabase } from '@/lib/supabase';

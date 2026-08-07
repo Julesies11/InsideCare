@@ -560,7 +560,7 @@ export function HouseParticipants({
               className="space-y-4"
             >
               <FormField
-                control={form.control}
+                control={form.control as any}
                 name="participant_id"
                 render={({ field }) => (
                   <FormItem>
@@ -577,7 +577,7 @@ export function HouseParticipants({
                 )}
               />
               <FormField
-                control={form.control}
+                control={form.control as any}
                 name="move_in_date"
                 render={({ field }) => (
                   <FormItem>
@@ -594,7 +594,7 @@ export function HouseParticipants({
                 )}
               />
               <FormField
-                control={form.control}
+                control={form.control as any}
                 name="is_active"
                 render={({ field }) => (
                   <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">

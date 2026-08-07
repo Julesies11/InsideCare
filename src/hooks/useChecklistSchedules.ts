@@ -68,7 +68,7 @@ export function useChecklistSchedules(houseId?: string) {
           house_id: schedule.house_id,
           title: houseChecklist?.house_checklist_name || 'Scheduled Checklist',
           event_date: format(date, 'yyyy-MM-dd'),
-          checklist_schedule_id: newSchedule.id,
+          checklist_schedule_id: newSchedule?.id || '',
           house_checklist_id: schedule.house_checklist_id,
           is_checklist_event: true,
           status: 'scheduled',

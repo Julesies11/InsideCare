@@ -3,7 +3,6 @@ import { Database } from '@/models/database.types';
 import { House } from '@/models/house';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { QUERY_KEYS } from '@/config/query-keys';
-import { useLogActivity } from '@/hooks/use-activity-log';
 
 // Re-export types for backward compatibility
 export type { HousesFilter, HousesSort };
@@ -55,23 +54,12 @@ export function useHousesLightweight() {
 
 export function useAddHouse() {
   const queryClient = useQueryClient();
-  const { mutateAsync: logActivity } = useLogActivity();
 
   return useMutation({
     mutationFn: async (
       house: Database['public']['Tables']['ic_houses']['Insert'],
     ) => {
-      const data = await housesApi.create(house);
-
-      await logActivity({
-        activityType: 'create',
-        entityType: 'house',
-        entityId: data.id,
-        entityName: data.house_name,
-        customDescription: `New house added: ${data.house_name}`,
-      });
-
-      return data;
+      return await housesApi.create(house);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.HOUSES] });
@@ -81,7 +69,6 @@ export function useAddHouse() {
 
 export function useUpdateHouse() {
   const queryClient = useQueryClient();
-  const { mutateAsync: logActivity } = useLogActivity();
 
   return useMutation({
     mutationFn: async ({
@@ -91,17 +78,7 @@ export function useUpdateHouse() {
       id: string;
       updates: Database['public']['Tables']['ic_houses']['Update'];
     }) => {
-      const data = await housesApi.update(id, updates);
-
-      await logActivity({
-        activityType: 'update',
-        entityType: 'house',
-        entityId: data.id,
-        entityName: data.house_name,
-        customDescription: `House updated: ${data.house_name}`,
-      });
-
-      return data;
+      return await housesApi.update(id, updates);
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.HOUSES] });
@@ -112,25 +89,15 @@ export function useUpdateHouse() {
 
 export function useDeleteHouse() {
   const queryClient = useQueryClient();
-  const { mutateAsync: logActivity } = useLogActivity();
 
   return useMutation({
     mutationFn: async ({
       id,
-      house_name,
     }: {
       id: string;
-      house_name: string;
+      house_name?: string;
     }) => {
       await housesApi.delete(id);
-
-      await logActivity({
-        activityType: 'delete',
-        entityType: 'house',
-        entityId: id,
-        entityName: house_name,
-        customDescription: `House deleted: ${house_name}`,
-      });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.HOUSES] });

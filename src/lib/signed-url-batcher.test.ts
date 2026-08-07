@@ -41,8 +41,8 @@ describe('SignedUrlBatcher', () => {
     expect(url2).toBe('https://example.com/path2?token=abc');
 
     expect(supabase.storage.from).toHaveBeenCalledWith('bucket1');
-    expect(supabase.storage.createSignedUrls).toHaveBeenCalledTimes(1);
-    expect(supabase.storage.createSignedUrls).toHaveBeenCalledWith(
+    expect((supabase.storage as any).createSignedUrls).toHaveBeenCalledTimes(1);
+    expect((supabase.storage as any).createSignedUrls).toHaveBeenCalledWith(
       ['path1', 'path2'],
       3600,
     );
@@ -58,13 +58,13 @@ describe('SignedUrlBatcher', () => {
     expect(results[0]).toBe('https://example.com/path0?token=abc');
     expect(results[74]).toBe('https://example.com/path74?token=abc');
 
-    expect(supabase.storage.createSignedUrls).toHaveBeenCalledTimes(2);
+    expect((supabase.storage as any).createSignedUrls).toHaveBeenCalledTimes(2);
     // First chunk should be 50, second should be 25
     expect(
-      vi.mocked(supabase.storage.createSignedUrls).mock.calls[0][0],
+      vi.mocked((supabase.storage as any).createSignedUrls).mock.calls[0][0],
     ).toHaveLength(50);
     expect(
-      vi.mocked(supabase.storage.createSignedUrls).mock.calls[1][0],
+      vi.mocked((supabase.storage as any).createSignedUrls).mock.calls[1][0],
     ).toHaveLength(25);
   }, 10000);
 
@@ -75,7 +75,7 @@ describe('SignedUrlBatcher', () => {
     const [url1, url2] = await Promise.all([p1, p2]);
 
     expect(url1).toBe(url2);
-    expect(supabase.storage.createSignedUrls).toHaveBeenCalledWith(
+    expect((supabase.storage as any).createSignedUrls).toHaveBeenCalledWith(
       ['path1'],
       3600,
     );
@@ -83,7 +83,7 @@ describe('SignedUrlBatcher', () => {
 
   it('should handle errors in a single chunk gracefully', async () => {
     // Mock failure for the first chunk only
-    vi.mocked(supabase.storage.createSignedUrls).mockResolvedValueOnce({
+    vi.mocked((supabase.storage as any).createSignedUrls).mockResolvedValueOnce({
       data: null,
       error: { message: 'Chunk 1 failed' } as any,
     });

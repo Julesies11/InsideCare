@@ -15,6 +15,7 @@ export interface MenuItem {
   badge?: string;
   separator?: boolean;
   hidden?: boolean;
+  hiddenOn?: string | string[];
   roles?: ('admin' | 'staff')[];
   permission?: string | string[];
 }

@@ -194,14 +194,14 @@ export const onboardingApi = {
           // Filter by search term if requested
           if (searchTerm) {
             const searchLower = searchTerm.toLowerCase();
-            const matchesStaff = s.staff_name.toLowerCase().includes(searchLower);
+            const matchesStaff = (s.staff_name || '').toLowerCase().includes(searchLower);
             const matchesTask = item.item_name.toLowerCase().includes(searchLower);
             if (!matchesStaff && !matchesTask) return;
           }
 
           allRequirements.push({
             staff_id: s.id,
-            staff_name: s.staff_name,
+            staff_name: s.staff_name || '',
             photo_url: s.photo_url,
             onboarding_item_id: item.id,
             item_name: item.item_name,

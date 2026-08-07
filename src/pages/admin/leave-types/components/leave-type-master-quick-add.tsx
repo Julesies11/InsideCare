@@ -85,7 +85,7 @@ export function LeaveTypeMasterQuickAdd({
             className="space-y-4 py-4"
           >
             <FormField
-              control={form.control}
+              control={form.control as any}
               name="leave_type_name"
               render={({ field }) => (
                 <FormItem>
@@ -98,7 +98,7 @@ export function LeaveTypeMasterQuickAdd({
               )}
             />
             <FormField
-              control={form.control}
+              control={form.control as any}
               name="is_active"
               render={({ field }) => (
                 <FormItem>

@@ -80,7 +80,7 @@ export function HouseComms({
             tempId,
             content: newEntryContent.trim(),
             entry_date: dateStr,
-            creator_name: user?.name || 'Staff Member',
+            creator_name: (user as any)?.fullname || (user as any)?.name || 'Staff Member',
           },
         ],
       },
@@ -210,7 +210,7 @@ export function HouseComms({
           </p>
           {!showAddForm && (
             <Button
-              variant="link"
+              variant="ghost"
               size="sm"
               className="mt-2"
               onClick={() => setShowAddForm(true)}

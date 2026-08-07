@@ -1,4 +1,4 @@
-import { parseISO, areIntervalsOverlapping } from 'date-fns';
+import { areIntervalsOverlapping } from 'date-fns';
 
 export interface ConflictCheckParams {
   shiftId?: string | null;

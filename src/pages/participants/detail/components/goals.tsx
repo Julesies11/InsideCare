@@ -360,7 +360,7 @@ export function Goals({
       if (editingGoal.tempId) {
         const newPending = {
           ...pendingChanges,
-          toAdd: pendingChanges.toAdd.map((g) =>
+          toAdd: pendingChanges.toAdd.map((g: any) =>
             g.tempId === editingGoal.tempId ? { ...g, ...data } : g,
           ),
         };
@@ -369,7 +369,7 @@ export function Goals({
         const newPending = {
           ...pendingChanges,
           toUpdate: [
-            ...pendingChanges.toUpdate.filter((g) => g.id !== editingGoal.id),
+            ...pendingChanges.toUpdate.filter((g: any) => g.id !== editingGoal.id),
             { id: editingGoal.id, ...data },
           ],
         };
@@ -413,7 +413,7 @@ export function Goals({
     if (!pendingChanges || !onPendingChangesChange) return;
     const newPending = {
       ...pendingChanges,
-      toAdd: pendingChanges.toAdd.filter((g) => g.tempId !== tempId),
+      toAdd: pendingChanges.toAdd.filter((g: any) => g.tempId !== tempId),
     };
     onPendingChangesChange(newPending);
   };
@@ -422,7 +422,7 @@ export function Goals({
     if (!pendingChanges || !onPendingChangesChange) return;
     const newPending = {
       ...pendingChanges,
-      toUpdate: pendingChanges.toUpdate.filter((g) => g.id !== id),
+      toUpdate: pendingChanges.toUpdate.filter((g: any) => g.id !== id),
     };
     onPendingChangesChange(newPending);
   };
@@ -431,7 +431,7 @@ export function Goals({
     if (!pendingChanges || !onPendingChangesChange) return;
     const newPending = {
       ...pendingChanges,
-      toDelete: pendingChanges.toDelete.filter((goalId) => goalId !== id),
+      toDelete: pendingChanges.toDelete.filter((goalId: any) => goalId !== id),
     };
     onPendingChangesChange(newPending);
   };
@@ -505,7 +505,7 @@ export function Goals({
                 {visibleGoals.map((goal) => {
                   const isPendingAdd = 'tempId' in goal;
                   const isPendingUpdate = pendingChanges?.toUpdate?.some(
-                    (g) => g.id === goal.id,
+                    (g: any) => g.id === goal.id,
                   );
                   const isPendingDelete = pendingChanges?.toDelete?.includes(
                     goal.id,

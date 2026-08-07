@@ -371,7 +371,7 @@ export function HouseDetailContent({
       <div className="flex items-center justify-center min-h-[400px]">
         <div className="text-lg text-muted-foreground font-medium text-center">
           <p>House not found.</p>
-          <Button variant="link" onClick={() => window.history.back()}>
+          <Button variant="ghost" onClick={() => window.history.back()}>
             Go Back
           </Button>
         </div>

@@ -64,10 +64,12 @@ export const ComplianceAttachmentsList = React.memo(
           file,
           userName,
         );
-        onAddAttachment({
-          file_name: data.file_name,
-          file_path: data.file_path,
-        });
+        if (data) {
+          onAddAttachment({
+            file_name: data.file_name,
+            file_path: data.file_path,
+          });
+        }
         toast.success(`Uploaded ${file.name} successfully`);
       } catch (err: any) {
         console.error(err);

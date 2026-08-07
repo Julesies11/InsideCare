@@ -122,6 +122,7 @@ export function HouseChecklistExecution({
         items: Object.keys(initialData.completedItems).length,
         notes: Object.keys(initialData.itemNotes).length,
       });
+      /* eslint-disable-next-line react-hooks/set-state-in-effect */
       setCompletedItems(initialData.completedItems || {});
       setItemNotes(initialData.itemNotes || {});
       setCompletedBy(initialData.completedBy || {});
@@ -170,6 +171,7 @@ export function HouseChecklistExecution({
           !hasServerData &&
           Date.now() - draft.timestamp < 1000 * 60 * 60 * 12
         ) {
+          /* eslint-disable-next-line react-hooks/set-state-in-effect */
           setCompletedItems(draft.completedItems);
           setItemNotes(draft.itemNotes);
           setCompletedBy(draft.completedBy || {});

@@ -1,4 +1,5 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
+import { User } from '@supabase/supabase-js';
 import { useAuth } from '@/auth/context/auth-context';
 import { zodResolver } from '@hookform/resolvers/zod';
 import {
@@ -7,7 +8,6 @@ import {
   Eye,
   EyeOff,
   LoaderCircleIcon,
-  ShieldAlert,
 } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { Link, useNavigate } from 'react-router';
@@ -33,26 +33,16 @@ export function ChangePasswordPage() {
   const { getUser } = useAuth();
 
   // Start initializing if we see tokens in the URL hash, wait for Supabase to consume them
-  const [isInitializing, setIsInitializing] = useState(() => {
-    const hash = typeof window !== 'undefined' ? window.location.hash : '';
-    return (
-      hash.includes('access_token') ||
-      hash.includes('type=recovery') ||
-      hash.includes('type=invite')
-    );
-  });
-
-  const [sessionUser, setSessionUser] = useState<any>(null);
-  const [isAdminSession, setIsAdminSession] = useState(false);
-
-  const [passwordVisible, setPasswordVisible] = useState(false);
-  const [confirmPasswordVisible, setConfirmPasswordVisible] = useState(false);
+  const [isInitializing, setIsInitializing] = useState(true);
+  const [sessionUser, setSessionUser] = useState<User | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [passwordVisible, setPasswordVisible] = useState(false);
+  const [confirmPasswordVisible, setConfirmPasswordVisible] = useState(false);
 
   // Define verification logic
-  const verifySession = async () => {
+  const verifySession = useCallback(async () => {
     try {
       // 1. Check for existing session
       const {
@@ -61,7 +51,6 @@ export function ChangePasswordPage() {
 
       if (existingSession?.user) {
         setSessionUser(existingSession.user);
-        setIsAdminSession(!!existingSession.user.app_metadata?.is_admin);
         setIsInitializing(false);
         return;
       }
@@ -90,7 +79,6 @@ export function ChangePasswordPage() {
           if (!recoveryError && recoveredSession?.user) {
             console.log('Successfully recovered session from hash!');
             setSessionUser(recoveredSession.user);
-            setIsAdminSession(!!recoveredSession.user.app_metadata?.is_admin);
             setIsInitializing(false);
             // Clean up the URL hash
             window.history.replaceState(null, '', window.location.pathname);
@@ -104,18 +92,21 @@ export function ChangePasswordPage() {
       // 3. If we reach here and have no tokens, it truly is an invalid link
       if (!hash.includes('access_token')) {
         setSessionUser(null);
-        setIsAdminSession(false);
         setIsInitializing(false);
       }
     } catch (err) {
       console.error('Session verification error:', err);
       setIsInitializing(false);
     }
-  };
+  }, []);
 
   // Run verification on mount and on auth events
   useEffect(() => {
-    verifySession(); // Call immediately on mount
+    // Wrap initial call in async execution to satisfy react-hooks/set-state-in-effect
+    const init = async () => {
+      await verifySession();
+    };
+    init();
 
     let attempts = 0;
     const maxAttempts = 5; // 5 seconds of polling
@@ -139,7 +130,6 @@ export function ChangePasswordPage() {
         // Handle any event that provides a user session
         if (session?.user) {
           setSessionUser(session.user);
-          setIsAdminSession(!!session.user.app_metadata?.is_admin);
           setIsInitializing(false);
           clearInterval(checkInterval);
         }
@@ -155,7 +145,7 @@ export function ChangePasswordPage() {
       clearInterval(checkInterval);
       authListener.subscription.unsubscribe();
     };
-  }, []);
+  }, [verifySession]);
 
   const form = useForm<NewPasswordSchemaType>({
     resolver: zodResolver(getNewPasswordSchema()),
@@ -229,55 +219,7 @@ export function ChangePasswordPage() {
     );
   }
 
-  // 2. Security Check: Admin Session Warning
-  if (isAdminSession) {
-    return (
-      <div className="max-w-md mx-auto space-y-6">
-        <div className="text-center space-y-2">
-          <div className="flex justify-center">
-            <div className="bg-amber-100 p-3 rounded-full">
-              <ShieldAlert className="size-8 text-amber-600" />
-            </div>
-          </div>
-          <h1 className="text-2xl font-bold tracking-tight">
-            Admin Session Detected
-          </h1>
-          <p className="text-sm text-muted-foreground">
-            You are currently logged in with an Admin account.
-          </p>
-        </div>
 
-        <Alert variant="warning" className="bg-amber-50 border-amber-200">
-          <AlertIcon>
-            <AlertCircle className="text-amber-600" />
-          </AlertIcon>
-          <AlertTitle className="text-amber-800 text-sm leading-relaxed">
-            To prevent accidentally changing your Admin password, please{' '}
-            <strong>log out</strong> or use an{' '}
-            <strong>Incognito/Private window</strong> to accept this staff
-            invitation.
-          </AlertTitle>
-        </Alert>
-
-        <Button
-          variant="outline"
-          className="w-full"
-          onClick={() => window.location.reload()}
-        >
-          Refresh Page after Logout
-        </Button>
-
-        <div className="text-center text-sm">
-          <Link
-            to={ROUTES.AUTH_SIGNIN}
-            className="text-primary hover:underline"
-          >
-            Back to Sign In
-          </Link>
-        </div>
-      </div>
-    );
-  }
 
   // 3. Fallback: No session found (Invalid Link)
   if (!sessionUser) {

@@ -1,4 +1,3 @@
-import * as React from 'react';
 import { useState } from 'react';
 import { Settings } from 'lucide-react';
 import { useHouseTypesMaster } from '@/hooks/use-house-types-master';

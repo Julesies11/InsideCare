@@ -47,7 +47,7 @@ export function ConfirmPage() {
           </Alert>
           <div className="flex justify-center pt-2">
             <Button
-              variant="default"
+              variant="primary"
               onClick={() => navigate(ROUTES.AUTH_SIGNIN)}
               className="w-full"
             >
@@ -81,12 +81,13 @@ export function ConfirmPage() {
           }
         }, 800);
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Failed to verify authentication token:', err);
       if (isMountedRef.current) {
         setStatus('error');
+        const message = err instanceof Error ? err.message : '';
         setErrorMessage(
-          err.message || 'Verification token has expired or is invalid. If your account is already active, you can sign in directly or request a password reset below.',
+          message || 'Verification token has expired or is invalid. If your account is already active, you can sign in directly or request a password reset below.',
         );
       }
     }
@@ -125,7 +126,7 @@ export function ConfirmPage() {
             <h3 className="text-xl font-semibold text-foreground">{getActionTitle()}</h3>
             <p className="text-sm text-muted-foreground">{getActionDescription()}</p>
             <Button
-              variant="default"
+              variant="primary"
               onClick={handleVerify}
               className="w-full h-11 text-base font-medium shadow-md mt-4"
             >
@@ -159,7 +160,7 @@ export function ConfirmPage() {
             </Alert>
             <div className="flex flex-col sm:flex-row gap-3 pt-2">
               <Button
-                variant="default"
+                variant="primary"
                 onClick={() => navigate(ROUTES.AUTH_SIGNIN)}
                 className="w-full sm:w-1/2"
               >

@@ -208,35 +208,35 @@ describe('Document Template Mappings', () => {
       const result = mapParticipantToTags(participant, relatedData);
 
       // Verify Medication 1 Flat Tags
-      expect(result.medication_name1).toBe('Paracetamol');
-      expect(result.brand_name1).toBe('Panadol');
-      expect(result.dosage1).toBe('500mg');
-      expect(result.medication_type1).toBe('Analgesic');
+      expect((result as any).medication_name1).toBe('Paracetamol');
+      expect((result as any).brand_name1).toBe('Panadol');
+      expect((result as any).dosage1).toBe('500mg');
+      expect((result as any).medication_type1).toBe('Analgesic');
 
       // Verify Goal 1 Flat Tags
-      expect(result.goal_type1).toBe('NDIS');
-      expect(result.goal_description1).toBe('Goal 1');
+      expect((result as any).goal_type1).toBe('NDIS');
+      expect((result as any).goal_description1).toBe('Goal 1');
 
       // Verify Contact 1 Flat Tags
-      expect(result.contact_name1).toBe('Bill Doe');
-      expect(result.contact_phone1).toBe('0499 999 999');
-      expect(result.contact_email1).toBe('bill@example.com');
-      expect(result.contact_address1).toBe('10 Road St');
-      expect(result.contact_notes1).toBe('Emergency contact');
-      expect(result.contact_type1).toBe('Father');
+      expect((result as any).contact_name1).toBe('Bill Doe');
+      expect((result as any).contact_phone1).toBe('0499 999 999');
+      expect((result as any).contact_email1).toBe('bill@example.com');
+      expect((result as any).contact_address1).toBe('10 Road St');
+      expect((result as any).contact_notes1).toBe('Emergency contact');
+      expect((result as any).contact_type1).toBe('Father');
 
       // Verify Provider 1 Flat Tags
-      expect(result.provider_name1).toBe('Clinic A');
-      expect(result.provider_company1).toBe('Health Corp');
-      expect(result.provider_type1).toBe('Physio');
-      expect(result.provider_phone1).toBe('02 4444 4444');
-      expect(result.provider_email1).toBe('clinic@health.com');
-      expect(result.provider_notes1).toBe('Weekly visits');
+      expect((result as any).provider_name1).toBe('Clinic A');
+      expect((result as any).provider_company1).toBe('Health Corp');
+      expect((result as any).provider_type1).toBe('Physio');
+      expect((result as any).provider_phone1).toBe('02 4444 4444');
+      expect((result as any).provider_email1).toBe('clinic@health.com');
+      expect((result as any).provider_notes1).toBe('Weekly visits');
 
       // Verify next indexes do not exist (they should be undefined)
-      expect(result.medication_name2).toBeUndefined();
-      expect(result.contact_name2).toBeUndefined();
-      expect(result.goal_type2).toBeUndefined();
+      expect((result as any).medication_name2).toBeUndefined();
+      expect((result as any).contact_name2).toBeUndefined();
+      expect((result as any).goal_type2).toBeUndefined();
     });
   });
 
@@ -351,28 +351,28 @@ describe('Document Template Mappings', () => {
       const result = mapStaffToTags(staff, relatedData);
 
       // Verify Qualification 1 Flat Tags
-      expect(result.qualification_title1).toBe('First Aid');
-      expect(result.qualification_institution1).toBe('Red Cross');
-      expect(result.qualification_date_completed1).toBe('15/05/2025');
-      expect(result.qualification_expiry_date1).toBe('15/05/2028');
-      expect(result.qualification_file_name1).toBe('cert.pdf');
+      expect((result as any).qualification_title1).toBe('First Aid');
+      expect((result as any).qualification_institution1).toBe('Red Cross');
+      expect((result as any).qualification_date_completed1).toBe('15/05/2025');
+      expect((result as any).qualification_expiry_date1).toBe('15/05/2028');
+      expect((result as any).qualification_file_name1).toBe('cert.pdf');
 
       // Verify Training 1 Flat Tags
-      expect(result.training_title1).toBe('NDIS Induction');
-      expect(result.training_category1).toBe('Compliance');
-      expect(result.training_description1).toBe('Core rules training');
-      expect(result.training_provider1).toBe('Commission');
-      expect(result.training_date_completed1).toBe('10/01/2026');
-      expect(result.training_expiry_date1).toBe('10/01/2027');
-      expect(result.training_file_name1).toBe('training.pdf');
+      expect((result as any).training_title1).toBe('NDIS Induction');
+      expect((result as any).training_category1).toBe('Compliance');
+      expect((result as any).training_description1).toBe('Core rules training');
+      expect((result as any).training_provider1).toBe('Commission');
+      expect((result as any).training_date_completed1).toBe('10/01/2026');
+      expect((result as any).training_expiry_date1).toBe('10/01/2027');
+      expect((result as any).training_file_name1).toBe('training.pdf');
 
       // Verify Compliance 1 Flat Tags
-      expect(result.compliance_name1).toBe('Screening Check');
-      expect(result.compliance_completion_date1).toBe('20/02/2026');
-      expect(result.compliance_expiry_date1).toBe('20/02/2027');
+      expect((result as any).compliance_name1).toBe('Screening Check');
+      expect((result as any).compliance_completion_date1).toBe('20/02/2026');
+      expect((result as any).compliance_expiry_date1).toBe('20/02/2027');
 
       // Verify next indexes do not exist
-      expect(result.qualification_title2).toBeUndefined();
+      expect((result as any).qualification_title2).toBeUndefined();
     });
   });
 
@@ -474,14 +474,14 @@ describe('Document Template Mappings', () => {
       expect(result.date_of_birth1).toBe('10/10/1995');
 
       // Verify Staff 1 Flat Tags
-      expect(result.staff_name1).toBe('Bob Worker');
-      expect(result.staff_role1).toBe('Supervisor');
-      expect(result.staff_email1).toBe('bob@example.com');
-      expect(result.staff_phone1).toBe('0400 222 222');
+      expect((result as any).staff_name1).toBe('Bob Worker');
+      expect((result as any).staff_role1).toBe('Supervisor');
+      expect((result as any).staff_email1).toBe('bob@example.com');
+      expect((result as any).staff_phone1).toBe('0400 222 222');
 
       // Verify next indexes do not exist
-      expect(result.participant_name2).toBeUndefined();
-      expect(result.staff_name2).toBeUndefined();
+      expect((result as any).participant_name2).toBeUndefined();
+      expect((result as any).staff_name2).toBeUndefined();
     });
   });
 

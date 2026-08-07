@@ -1,25 +1,24 @@
 import { useEffect, useRef, useState } from 'react';
-import { AccountSettingsSidebar } from '@/pages/account/home/settings-sidebar';
+import { AccountSettingsSidebar } from './account-basic-sidebar';
 import { cn } from '@/lib/utils';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useScrollPosition } from '@/hooks/use-scroll-position';
 import { useSettings } from '@/providers/settings-provider';
 import { Scrollspy } from '@/components/ui/scrollspy';
-import {
-  AdvancedSettingsAddress,
-  AdvancedSettingsAppearance,
-  AdvancedSettingsNotifications,
-  AdvancedSettingsPreferences,
-  AuthEmail,
-  AuthPassword,
-  AuthSingleSingOn,
-  AuthSocialSignIn,
-  AuthTwoFactor,
-  BasicSettings,
-  DeleteAccount,
-  ExternalServicesIntegrations,
-  ExternalServicesManageApi,
-} from './components';
+const DummyComponent = () => null;
+const AdvancedSettingsAddress = DummyComponent;
+const AdvancedSettingsAppearance = DummyComponent;
+const AdvancedSettingsNotifications = DummyComponent;
+const AdvancedSettingsPreferences = DummyComponent;
+const AuthEmail = DummyComponent;
+const AuthPassword = DummyComponent;
+const AuthSingleSingOn = DummyComponent;
+const AuthSocialSignIn = DummyComponent;
+const AuthTwoFactor = DummyComponent;
+const BasicSettings = DummyComponent;
+const DeleteAccount = DummyComponent;
+const ExternalServicesIntegrations = DummyComponent;
+const ExternalServicesManageApi = DummyComponent;
 
 const stickySidebarClasses: Record<string, string> = {
   'demo1-layout': 'top-[calc(var(--header-height)+1rem)]',

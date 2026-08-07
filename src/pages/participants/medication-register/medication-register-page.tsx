@@ -1,13 +1,9 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { PaginationState, SortingState } from '@tanstack/react-table';
 import {
-  ArrowDown,
-  ArrowUp,
-  ArrowUpDown,
   Edit,
   Plus,
   Search,
-  Settings2,
   X,
 } from 'lucide-react';
 import { Link, useNavigate, useSearchParams } from 'react-router';
@@ -43,6 +39,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Container } from '@/components/common/container';
+import { SortIcon } from '@/components/common/sort-icon';
 import { MedicationTypeMasterDialog } from './components/medication-type-master-dialog';
 
 type SortField = 'medication_name' | 'category' | 'side_effects' | 'is_active';
@@ -150,11 +147,6 @@ export function MedicationRegisterPage() {
     setSearchParams,
   ]);
 
-  // Reset to first page when filters change
-  useEffect(() => {
-    setPagination((prev) => ({ ...prev, pageIndex: 0 }));
-  }, [debouncedSearch, selectedTypeId, includeInactive]);
-
   const handleSort = (field: SortField) => {
     setSorting((prev) => {
       const isDesc = prev[0]?.id === field && !prev[0]?.desc;
@@ -168,17 +160,6 @@ export function MedicationRegisterPage() {
 
   const handleEditMedication = (id: string) => {
     navigate(`${ROUTES.MEDICATION_REGISTER}/${id}`);
-  };
-
-  const SortIcon = ({ field }: { field: SortField }) => {
-    const activeSort = sorting[0];
-    if (activeSort?.id !== field)
-      return <ArrowUpDown className="size-4 ms-1 inline opacity-30" />;
-    return activeSort.desc ? (
-      <ArrowDown className="size-4 ms-1 inline" />
-    ) : (
-      <ArrowUp className="size-4 ms-1 inline" />
-    );
   };
 
   // Optimized type fetching - Filter to only active types for the dropdown
@@ -237,11 +218,17 @@ export function MedicationRegisterPage() {
                     placeholder="Search medications..."
                     className="pl-9"
                     value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
+                    onChange={(e) => {
+                      setSearchQuery(e.target.value);
+                      setPagination((prev) => ({ ...prev, pageIndex: 0 }));
+                    }}
                   />
                   {searchQuery && (
                     <button
-                      onClick={() => setSearchQuery('')}
+                      onClick={() => {
+                        setSearchQuery('');
+                        setPagination((prev) => ({ ...prev, pageIndex: 0 }));
+                      }}
                       className="absolute right-2.5 top-2.5 text-muted-foreground hover:text-foreground"
                     >
                       <X className="size-4" />
@@ -252,7 +239,10 @@ export function MedicationRegisterPage() {
                 <div className="flex items-center gap-2">
                   <Select
                     value={selectedTypeId}
-                    onValueChange={setSelectedTypeId}
+                    onValueChange={(val) => {
+                      setSelectedTypeId(val);
+                      setPagination((prev) => ({ ...prev, pageIndex: 0 }));
+                    }}
                   >
                     <SelectTrigger className="w-[200px]">
                       <SelectValue placeholder="Filter by Type" />
@@ -272,7 +262,10 @@ export function MedicationRegisterPage() {
                   <Switch
                     id="show-inactive"
                     checked={includeInactive}
-                    onCheckedChange={setIncludeInactive}
+                    onCheckedChange={(val) => {
+                      setIncludeInactive(val);
+                      setPagination((prev) => ({ ...prev, pageIndex: 0 }));
+                    }}
                   />
                   <Label
                     htmlFor="show-inactive"
@@ -318,28 +311,40 @@ export function MedicationRegisterPage() {
                             onClick={() => handleSort('medication_name')}
                           >
                             Medication Name
-                            <SortIcon field="medication_name" />
+                            <SortIcon
+                              field="medication_name"
+                              activeSort={sorting[0]}
+                            />
                           </TableHead>
                           <TableHead
                             className="cursor-pointer select-none font-semibold text-gray-900 dark:text-gray-100"
                             onClick={() => handleSort('category')}
                           >
                             Type
-                            <SortIcon field="category" />
+                            <SortIcon
+                              field="category"
+                              activeSort={sorting[0]}
+                            />
                           </TableHead>
                           <TableHead
                             className="cursor-pointer select-none font-semibold text-gray-900 dark:text-gray-100"
                             onClick={() => handleSort('side_effects')}
                           >
                             General Side Effects
-                            <SortIcon field="side_effects" />
+                            <SortIcon
+                              field="side_effects"
+                              activeSort={sorting[0]}
+                            />
                           </TableHead>
                           <TableHead
                             className="cursor-pointer select-none font-semibold text-gray-900 dark:text-gray-100"
                             onClick={() => handleSort('is_active')}
                           >
                             Status
-                            <SortIcon field="is_active" />
+                            <SortIcon
+                              field="is_active"
+                              activeSort={sorting[0]}
+                            />
                           </TableHead>
                           <TableHead className="text-right font-semibold text-gray-900 dark:text-gray-100">
                             Actions

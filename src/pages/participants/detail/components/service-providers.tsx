@@ -103,7 +103,7 @@ export function ServiceProviders({
           ...pendingChanges,
           serviceProviders: {
             ...pendingChanges.serviceProviders,
-            toAdd: pendingChanges.serviceProviders.toAdd.map((prov) =>
+            toAdd: pendingChanges.serviceProviders.toAdd.map((prov: any) =>
               prov.tempId === editingProvider.tempId
                 ? { ...prov, ...formData }
                 : prov,
@@ -119,7 +119,7 @@ export function ServiceProviders({
             ...pendingChanges.serviceProviders,
             toUpdate: [
               ...pendingChanges.serviceProviders.toUpdate.filter(
-                (p) => p.id !== editingProvider.id,
+                (p: any) => p.id !== editingProvider.id,
               ),
               { id: editingProvider.id, ...formData },
             ],
@@ -180,7 +180,7 @@ export function ServiceProviders({
       serviceProviders: {
         ...pendingChanges.serviceProviders,
         toAdd: pendingChanges.serviceProviders.toAdd.filter(
-          (prov) => prov.tempId !== tempId,
+          (prov: any) => prov.tempId !== tempId,
         ),
       },
     };
@@ -195,7 +195,7 @@ export function ServiceProviders({
       serviceProviders: {
         ...pendingChanges.serviceProviders,
         toUpdate: pendingChanges.serviceProviders.toUpdate.filter(
-          (prov) => prov.id !== id,
+          (prov: any) => prov.id !== id,
         ),
       },
     };
@@ -210,7 +210,7 @@ export function ServiceProviders({
       serviceProviders: {
         ...pendingChanges.serviceProviders,
         toDelete: pendingChanges.serviceProviders.toDelete.filter(
-          (provId) => provId !== id,
+          (provId: any) => provId !== id,
         ),
       },
     };
@@ -220,7 +220,7 @@ export function ServiceProviders({
   // Combine existing providers with pending adds, filter out pending deletes
   const visibleProviders = [
     ...providers.filter(
-      (prov) => !pendingChanges?.serviceProviders.toDelete.includes(prov.id),
+      (prov: any) => !pendingChanges?.serviceProviders.toDelete.includes(prov.id),
     ),
     ...(pendingChanges?.serviceProviders.toAdd || []),
   ];
@@ -262,11 +262,11 @@ export function ServiceProviders({
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {visibleProviders.map((provider) => {
+                {visibleProviders.map((provider: any) => {
                   const isPendingAdd = 'tempId' in provider;
                   const isPendingUpdate =
                     pendingChanges?.serviceProviders.toUpdate.some(
-                      (p) => p.id === provider.id,
+                      (p: any) => p.id === provider.id,
                     );
                   const isPendingDelete =
                     pendingChanges?.serviceProviders.toDelete.includes(

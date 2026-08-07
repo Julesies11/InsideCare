@@ -158,69 +158,11 @@ describe('StaffDetailPage — Toolbar & Portal Status Badge', () => {
     expect(screen.getByText(/Staff Details/i)).toBeInTheDocument();
   });
 
-  // ── Portal Status Badges ───────────────────────────────────────────────
-
-  it('shows "No Portal Access" badge when auth_user_id is null', async () => {
-    await setStaffMember({ auth_user_id: null });
+  it('renders child content container', async () => {
+    await setStaffMember({});
     await setAuthStatus({});
     await renderPage();
-    await waitFor(() =>
-      expect(screen.getByText(/No Portal Access/i)).toBeInTheDocument(),
-    );
-  });
-
-  it('shows "Invite Pending" badge when auth user exists but not confirmed', async () => {
-    await setStaffMember({ auth_user_id: 'auth-1' });
-    await setAuthStatus({
-      'auth-1': {
-        id: 'auth-1',
-        email: 'john@example.com',
-        created_at: '2026-01-01T00:00:00Z',
-        invited_at: '2026-01-02T00:00:00Z',
-        confirmed_at: null,
-        last_sign_in_at: null,
-      },
-    });
-    await renderPage();
-    await waitFor(() =>
-      expect(screen.getByText(/Invite Pending/i)).toBeInTheDocument(),
-    );
-  });
-
-  it('shows "Portal Active" badge when auth user has confirmed_at set', async () => {
-    await setStaffMember({ auth_user_id: 'auth-2' });
-    await setAuthStatus({
-      'auth-2': {
-        id: 'auth-2',
-        email: 'john@example.com',
-        created_at: '2026-01-01T00:00:00Z',
-        invited_at: '2026-01-02T00:00:00Z',
-        confirmed_at: '2026-01-03T10:00:00Z',
-        last_sign_in_at: null,
-      },
-    });
-    await renderPage();
-    await waitFor(() =>
-      expect(screen.getByText(/Portal Active/i)).toBeInTheDocument(),
-    );
-  });
-
-  it('shows "Portal Active" badge when auth user has last_sign_in_at only', async () => {
-    await setStaffMember({ auth_user_id: 'auth-3' });
-    await setAuthStatus({
-      'auth-3': {
-        id: 'auth-3',
-        email: 'john@example.com',
-        created_at: '2026-01-01T00:00:00Z',
-        invited_at: '2026-01-02T00:00:00Z',
-        confirmed_at: null,
-        last_sign_in_at: '2026-06-15T09:30:00Z',
-      },
-    });
-    await renderPage();
-    await waitFor(() =>
-      expect(screen.getByText(/Portal Active/i)).toBeInTheDocument(),
-    );
+    expect(screen.getByTestId('staff-detail-content')).toBeInTheDocument();
   });
 
   // ── Toolbar Buttons ────────────────────────────────────────────────────

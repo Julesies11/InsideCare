@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { ContactTypeMaster } from '@/models/contact-type-master';
-import { ArrowDown, ArrowUp, ArrowUpDown, Edit, Plus } from 'lucide-react';
+import { Edit, Plus } from 'lucide-react';
 import { toast } from 'sonner';
 import {
   useAddContactTypeMaster,
@@ -24,6 +24,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import { SortIcon } from '@/components/common/sort-icon';
 import { ContactTypeMasterQuickAdd } from './contact-type-master-quick-add';
 
 interface ContactTypeMasterDialogProps {
@@ -143,16 +144,6 @@ export function ContactTypeMasterDialog({
     }
   };
 
-  const SortIcon = ({ field }: { field: SortField }) => {
-    if (sortField !== field)
-      return <ArrowUpDown className="size-4 ms-1 inline opacity-30" />;
-    return sortDirection === 'asc' ? (
-      <ArrowUp className="size-4 ms-1 inline" />
-    ) : (
-      <ArrowDown className="size-4 ms-1 inline" />
-    );
-  };
-
   return (
     <>
       <Dialog open={open} onOpenChange={onClose}>
@@ -202,14 +193,22 @@ export function ContactTypeMasterDialog({
                       onClick={() => handleSort('contact_type_name')}
                     >
                       Contact Type Name
-                      <SortIcon field="contact_type_name" />
+                      <SortIcon
+                        field="contact_type_name"
+                        currentField={sortField}
+                        direction={sortDirection}
+                      />
                     </TableHead>
                     <TableHead
                       className="cursor-pointer select-none"
                       onClick={() => handleSort('is_active')}
                     >
                       Status
-                      <SortIcon field="is_active" />
+                      <SortIcon
+                        field="is_active"
+                        currentField={sortField}
+                        direction={sortDirection}
+                      />
                     </TableHead>
                     <TableHead className="text-right">Actions</TableHead>
                   </TableRow>

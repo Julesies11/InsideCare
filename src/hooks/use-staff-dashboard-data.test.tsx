@@ -83,13 +83,13 @@ describe('useStaffDashboardData', () => {
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
 
     const schedule = result.current.data?.upcomingSchedule;
-    expect(schedule).toHaveLength(2);
+    expect(schedule!).toHaveLength(2);
 
     // Sorted by time: Event (09:00) then Shift (10:00)
-    expect(schedule[0].entry_type).toBe('event');
-    expect(schedule[0].title).toBe('Community Outing');
-    expect(schedule[1].entry_type).toBe('shift');
-    expect(schedule[1].id).toBe('shift-1');
+    expect(schedule![0].entry_type).toBe('event');
+    expect(schedule![0].title).toBe('Community Outing');
+    expect(schedule![1].entry_type).toBe('shift');
+    expect(schedule![1].id).toBe('shift-1');
   });
 
   it('handles empty results gracefully', async () => {

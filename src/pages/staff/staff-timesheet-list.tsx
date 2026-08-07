@@ -743,9 +743,7 @@ export function StaffTimesheetList() {
             variant={
               ts.status === 'missing'
                 ? 'primary'
-                : ts.status === 'rejected'
-                  ? 'warning'
-                  : 'outline'
+                : 'outline'
             }
             size="sm"
             className="h-8"

@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { LeaveTypeMaster } from '@/models/leave-type-master';
-import { ArrowDown, ArrowUp, ArrowUpDown, Edit, Plus } from 'lucide-react';
+import { Edit, Plus } from 'lucide-react';
 import { toast } from 'sonner';
 import {
   useAddLeaveTypeMaster,
@@ -24,6 +24,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import { SortIcon } from '@/components/common/sort-icon';
 import { LeaveTypeMasterQuickAdd } from './leave-type-master-quick-add';
 
 interface LeaveTypeMasterDialogProps {
@@ -151,16 +152,6 @@ export function LeaveTypeMasterDialog({
     }
   };
 
-  const SortIcon = ({ field }: { field: SortField }) => {
-    if (sortField !== field)
-      return <ArrowUpDown className="size-4 ms-1 inline opacity-30" />;
-    return sortDirection === 'asc' ? (
-      <ArrowUp className="size-4 ms-1 inline" />
-    ) : (
-      <ArrowDown className="size-4 ms-1 inline" />
-    );
-  };
-
   return (
     <>
       <Dialog open={open} onOpenChange={onClose}>
@@ -210,14 +201,22 @@ export function LeaveTypeMasterDialog({
                       onClick={() => handleSort('leave_type_name')}
                     >
                       Leave Type Name
-                      <SortIcon field="leave_type_name" />
+                      <SortIcon
+                        field="leave_type_name"
+                        currentField={sortField}
+                        direction={sortDirection}
+                      />
                     </TableHead>
                     <TableHead
                       className="cursor-pointer select-none"
                       onClick={() => handleSort('is_active')}
                     >
                       Status
-                      <SortIcon field="is_active" />
+                      <SortIcon
+                        field="is_active"
+                        currentField={sortField}
+                        direction={sortDirection}
+                      />
                     </TableHead>
                     <TableHead className="text-right">Actions</TableHead>
                   </TableRow>

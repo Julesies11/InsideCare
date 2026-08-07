@@ -131,11 +131,11 @@ export const checklistsApi = {
 
     const eventsWithFilteredSubs = (events || []).map((e) => ({
       ...e,
-      submissions: ((e.submissions as Array<{ id: string; status: string; updated_at: string; scheduled_date: string }>) || [])
+      submissions: ((e.submissions as Array<{ id: string; status: string; updated_at: string | null; scheduled_date: string }>) || [])
         .filter((s) => s.scheduled_date === date)
         .sort(
           (a, b) =>
-            new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime(),
+            new Date(b.updated_at || '').getTime() - new Date(a.updated_at || '').getTime(),
         ),
     }));
 
@@ -694,8 +694,8 @@ export const checklistsApi = {
 
     // 2. Fetch submissions (both shift-specific and house-wide scheduled)
     const fetchSubmissions = async () => {
-      let shiftSubmissions: Array<{ id: string; checklist_id: string; house_id: string; shift_id: string | null; status: string; scheduled_date: string }> = [];
-      let houseSubmissions: Array<{ id: string; checklist_id: string; house_id: string; shift_id: string | null; status: string; scheduled_date: string }> = [];
+      let shiftSubmissions: Array<{ id: string; checklist_id: string; house_id: string; shift_id: string | null; status: string; scheduled_date: string; updated_at: string | null }> = [];
+      let houseSubmissions: Array<{ id: string; checklist_id: string; house_id: string; shift_id: string | null; status: string; scheduled_date: string; updated_at: string | null }> = [];
 
       const subPromises: Promise<void>[] = [];
 

@@ -65,10 +65,10 @@ export function OnboardingReportPage() {
 
   useEffect(() => {
     if (isSuccess && !prefLoaded) {
-      if (preferences && preferences.criteria) {
+      if (preferences && (preferences as any).criteria) {
         setCriteria((prev) => ({
           ...prev,
-          ...preferences.criteria,
+          ...(preferences as any).criteria,
         }));
       }
       setPrefLoaded(true);

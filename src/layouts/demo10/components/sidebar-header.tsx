@@ -18,7 +18,7 @@ export function SidebarHeader() {
   const [selectedMenuItem, setSelectedMenuItem] = useState(MENU_ROOT[1]);
 
   useEffect(() => {
-    MENU_ROOT.forEach((item) => {
+    MENU_ROOT.forEach((item: any) => {
       if (item.rootPath && pathname.includes(item.rootPath)) {
         setSelectedMenuItem(item);
       }
@@ -47,7 +47,7 @@ export function SidebarHeader() {
             align="start"
             className="dark w-(--radix-popper-anchor-width)"
           >
-            {MENU_ROOT.map((item, index) => (
+            {MENU_ROOT.map((item: any, index: number) => (
               <DropdownMenuItem
                 key={index}
                 asChild

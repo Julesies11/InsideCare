@@ -2,14 +2,9 @@ import { useMemo, useState } from 'react';
 import { Database } from '@/models/database.types';
 import {
   AlertTriangle,
-  ArrowDown,
-  ArrowUp,
-  ArrowUpDown,
-  CheckCircle2,
   Edit,
   Plus,
   ShieldCheck,
-  Trash2,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import {
@@ -59,6 +54,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Textarea } from '@/components/ui/textarea';
 import { Container } from '@/components/common/container';
+import { SortIcon } from '@/components/common/sort-icon';
 
 type IDDocRow = Database['public']['Tables']['ic_id_document_types']['Row'];
 type IDDocInsert =
@@ -322,16 +318,6 @@ export function ComplianceSettingsPage() {
     }
   };
 
-  const SortIcon = ({ field }: { field: SortField }) => {
-    if (sortField !== field)
-      return <ArrowUpDown className="size-3.5 ms-2 text-muted-foreground/50" />;
-    return sortDirection === 'asc' ? (
-      <ArrowUp className="size-3.5 ms-2 text-primary" />
-    ) : (
-      <ArrowDown className="size-3.5 ms-2 text-primary" />
-    );
-  };
-
   return (
     <Container>
       <div className="flex flex-col gap-6">
@@ -421,7 +407,11 @@ export function ComplianceSettingsPage() {
                             onClick={() => handleSort('compliance_name')}
                           >
                             Requirement Name
-                            <SortIcon field="compliance_name" />
+                            <SortIcon
+                              field="compliance_name"
+                              currentField={sortField}
+                              direction={sortDirection}
+                            />
                           </TableHead>
                           <TableHead className="w-[30%] text-center">
                             Tracking Configuration
@@ -431,7 +421,11 @@ export function ComplianceSettingsPage() {
                             onClick={() => handleSort('is_active')}
                           >
                             Status
-                            <SortIcon field="is_active" />
+                            <SortIcon
+                              field="is_active"
+                              currentField={sortField}
+                              direction={sortDirection}
+                            />
                           </TableHead>
                           <TableHead className="w-[15%] text-right">
                             Actions

@@ -107,7 +107,7 @@ export function WordTemplatesReportPage() {
         providers,
       });
 
-      const filename = `${participant.participant_name.replace(/\s+/g, '_')}_${selectedTemplateName.replace('.docx', '')}`;
+      const filename = `${(participant.participant_name || 'Participant').replace(/\s+/g, '_')}_${selectedTemplateName.replace('.docx', '')}`;
       
       await docxGenerator.generate(templateBlob, tagData, filename);
       toast.success('Document generated successfully');

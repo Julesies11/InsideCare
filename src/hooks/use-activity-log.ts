@@ -27,7 +27,10 @@ export function useLogActivity() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (params: LogActivityParams) => activityLogApi.log(params),
+    mutationFn: async (_params: LogActivityParams) => {
+      // Activity logging is handled automatically by PostgreSQL triggers.
+      return null;
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.ACTIVITY_LOG] });
     },
@@ -134,11 +137,7 @@ export function useActivityLogHelpers() {
 }
 
 // Keeping a non-hook version for places where hooks can't be used
-export async function logActivity(params: LogActivityParams) {
-  try {
-    const data = await activityLogApi.log(params);
-    return { data, error: null };
-  } catch (error) {
-    return { data: null, error };
-  }
+export async function logActivity(_params: LogActivityParams) {
+  // Activity logging is handled automatically by PostgreSQL triggers.
+  return { data: null, error: null };
 }

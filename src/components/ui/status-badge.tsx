@@ -18,7 +18,7 @@ export function StatusBadge({ status, className }: StatusBadgeProps) {
     string,
     {
       variant: 'warning' | 'success' | 'secondary' | 'destructive' | 'info';
-      appearance: 'light' | 'outline' | 'solid';
+      appearance: 'light' | 'outline' | 'default';
     }
   > = {
     draft: { variant: 'warning', appearance: 'light' },

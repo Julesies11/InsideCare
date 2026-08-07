@@ -124,12 +124,20 @@ When implementing attachment deletion within a "Pending Changes" workflow:
   - **Incident Reference ID**: As of **June 8, 2026**, introduced a unique `reference_id` column. Formatted as `INC-YYYYMMDD-HHMM-[Participant Initials]` (e.g., `INC-20260608-2044-JG`) to match the shift note pattern, auto-computed on lodging and backfilled.
   - **RBAC Guarded**: Admin-only fields (`admin_status`, `admin_actions_taken`, `ndis_reported_date`) are protected via column-level checks in the application and hardened RLS policies.
 
-### 5. Automated Audit Columns
+### 5. Automated Audit Columns & Gold Standard Auditing (July 31, 2026)
 
-All operational tables use a unified, hardened trigger (`ic_trigger_set_audit_columns`) to manage standard audit fields (`created_at`, `updated_at`, `created_by`, `updated_by`).
+All operational and domain tables use a unified, hardened dual-trigger architecture (`ic_trigger_set_audit_columns` and `ic_trigger_audit_log`):
 
-- **Immutability**: `created_at` and `created_by` are preserved during updates.
-- **Identity Logic**: Identities are resolved via `public.ic_jwt_get_staff_id()` from the secure JWT.
+- **Audit Column Attribution (`ic_set_audit_columns`)**:
+  - Automatically populates `created_at`, `updated_at`, `created_by`, `updated_by`, and `organisation_id` via `ic_jwt_get_staff_id()` and `ic_jwt_get_organisation_id()`.
+  - **Immutability**: Preserves `created_at`, `created_by`, and `organisation_id` on updates.
+- **Universal Activity Logging (`ic_audit_trigger_func`)**:
+  - Automatically captures all `INSERT` (`create`), `UPDATE` (`update`), and `DELETE` (`delete`) operations across 100% of tables dynamically discovered via `information_schema.tables`.
+  - **Request Context**: Captures client IP address (`x-forwarded-for`/`cf-connecting-ip`) and `user-agent` from Supabase HTTP headers in `metadata->'request_meta'`.
+  - **Smart Aggregate Root Resolution**: Automatically resolves parent entities (`Participant`, `Staff`, or `House`) and populates `parent_id`, `parent_type`, and `parent_name`.
+  - **Field-Level Diffing**: Captures exact field transitions in `metadata->'changes'`, ignoring non-functional timestamp and user identity audit noise.
+  - **Append-Only Security**: `ic_activity_log` operates under strict append-only RLS security (SELECT permitted for authorized tenant users; UPDATE and DELETE disallowed).
+  - **Zero Frontend Duplication**: Activity logging is 100% database-driven; client-side mutation hooks must not execute explicit secondary log insertions.
 
 ### 6. Master Lists & Deactivation Standard
 

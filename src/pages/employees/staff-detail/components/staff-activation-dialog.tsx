@@ -106,7 +106,7 @@ export function StaffActivationDialog({
 
             <Button
               type="button"
-              variant={email ? 'outline' : 'default'}
+              variant={email ? 'outline' : 'primary'}
               className={
                 !email ? 'bg-green-600 hover:bg-green-700 text-white font-medium' : ''
               }

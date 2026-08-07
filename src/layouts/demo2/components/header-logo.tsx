@@ -16,7 +16,7 @@ export function HeaderLogo() {
   const [selectedMenuItem, setSelectedMenuItem] = useState(MENU_ROOT[1]);
 
   useEffect(() => {
-    MENU_ROOT.forEach((item) => {
+    MENU_ROOT.forEach((item: any) => {
       if (item.rootPath && pathname.includes(item.rootPath)) {
         setSelectedMenuItem(item);
       }
@@ -54,7 +54,7 @@ export function HeaderLogo() {
             <ChevronDown className="size-4 text-muted-foreground" />
           </DropdownMenuTrigger>
           <DropdownMenuContent sideOffset={10} side="bottom" align="start">
-            {MENU_ROOT.map((item, index) => (
+            {MENU_ROOT.map((item: any, index: number) => (
               <DropdownMenuItem
                 key={index}
                 asChild

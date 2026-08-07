@@ -73,14 +73,14 @@ describe('ChangePasswordPage (Gold Standard)', () => {
     });
   });
 
-  it('prevents password change and shows warning if an Admin session is active', async () => {
-    // Simulate an Admin clicking the link while still logged in
+  it('allows password change for Admin user sessions', async () => {
     vi.mocked(supabase.auth.getSession).mockResolvedValue({
       data: {
         session: {
           user: {
             id: 'admin-user-id',
-            app_metadata: { is_admin: true }, // Admin flag
+            email: 'admin@example.com',
+            app_metadata: { is_admin: true },
           },
         },
       },
@@ -90,15 +90,9 @@ describe('ChangePasswordPage (Gold Standard)', () => {
     renderWithProviders(<ChangePasswordPage />);
 
     await waitFor(() => {
-      expect(screen.getByText(/Admin Session Detected/i)).toBeInTheDocument();
-      // Use a more flexible matcher for the alert text
-      expect(
-        screen.getByText(
-          /To prevent accidentally changing your Admin password/i,
-        ),
-      ).toBeInTheDocument();
-      // Form should NOT be visible
-      expect(screen.queryByLabelText(/New Password/i)).not.toBeInTheDocument();
+      expect(screen.getByText(/Set New Password/i)).toBeInTheDocument();
+      expect(screen.getByText(/admin@example.com/i)).toBeInTheDocument();
+      expect(screen.getByLabelText(/New Password/i)).toBeInTheDocument();
     });
   });
 

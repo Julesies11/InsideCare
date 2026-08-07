@@ -652,7 +652,7 @@ export const houseOperationsApi = {
           const { error: itemsError } = await supabase
             .from(TABLES.HOUSE_CHECKLIST_ITEMS)
             .insert(
-              cl.items.map((i) => {
+              cl.items.map((i: any) => {
                 // Strip out read-only/joined properties like 'group'
                 // Ensure empty strings are null for UUID columns
                 const { tempId, group, id, ...itemData } = i;
@@ -692,7 +692,7 @@ export const houseOperationsApi = {
 
         // 2. Synchronize Items (Surgical Sync)
         if (cl.items) {
-          const incomingIds = cl.items.map((i) => i.id).filter(Boolean);
+          const incomingIds = cl.items.map((i: any) => i.id).filter(Boolean);
 
           // Delete items that are no longer in the list
           try {
@@ -714,10 +714,10 @@ export const houseOperationsApi = {
           // Synchronize items by separating new and existing
           if (cl.items.length > 0) {
             const itemsToUpsert = cl.items.filter(
-              (i) => i.id && i.id !== '' && !i.id.toString().startsWith('temp-'),
+              (i: any) => i.id && i.id !== '' && !i.id.toString().startsWith('temp-'),
             );
             const itemsToInsert = cl.items.filter(
-              (i) =>
+              (i: any) =>
                 !i.id || i.id === '' || i.id.toString().startsWith('temp-'),
             );
 
@@ -726,7 +726,7 @@ export const houseOperationsApi = {
               const { error: upsertError } = await supabase
                 .from(TABLES.HOUSE_CHECKLIST_ITEMS)
                 .upsert(
-                  itemsToUpsert.map((i) => {
+                  itemsToUpsert.map((i: any) => {
                     const { tempId, group, ...itemData } = i;
                     return {
                       ...itemData,
@@ -749,7 +749,7 @@ export const houseOperationsApi = {
               const { error: insertError } = await supabase
                 .from(TABLES.HOUSE_CHECKLIST_ITEMS)
                 .insert(
-                  itemsToInsert.map((i) => {
+                  itemsToInsert.map((i: any) => {
                     const { tempId, group, id, ...itemData } = i;
                     return {
                       ...itemData,

@@ -96,6 +96,7 @@ interface Timesheet {
   submitted_at: string | null;
   incident_tag: boolean;
   sick_shift: boolean;
+  overtime_hours: number;
   travel_km: number;
   participant_km: number;
   participant_km_description: string | null;
@@ -1003,7 +1004,7 @@ export function AdminTimesheetsPage() {
                       Cancel
                     </Button>
                     <Button
-                      variant={action === 'approve' ? 'default' : 'destructive'}
+                      variant={action === 'approve' ? 'primary' : 'destructive'}
                       onClick={handleAction}
                       disabled={
                         saving ||

@@ -165,7 +165,7 @@ export function NotificationCenter() {
             </div>
             <div className="flex gap-2">
               <Button
-                variant={filter === 'all' ? 'default' : 'outline'}
+                variant={filter === 'all' ? 'primary' : 'outline'}
                 size="sm"
                 onClick={() => {
                   setFilter('all');
@@ -175,7 +175,7 @@ export function NotificationCenter() {
                 All
               </Button>
               <Button
-                variant={filter === 'unread' ? 'default' : 'outline'}
+                variant={filter === 'unread' ? 'primary' : 'outline'}
                 size="sm"
                 onClick={() => {
                   setFilter('unread');
@@ -320,7 +320,7 @@ export function NotificationCenter() {
                       (p) => (
                         <PaginationItem key={p}>
                           <Button
-                            variant={page === p ? 'default' : 'outline'}
+                            variant={page === p ? 'primary' : 'outline'}
                             size="sm"
                             onClick={() => setPage(p)}
                             className="w-9"
